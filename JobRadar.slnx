@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/JobRadar.Api/JobRadar.Api.csproj" />
+    <Project Path="src/JobRadar.Application/JobRadar.Application.csproj" />
+    <Project Path="src/JobRadar.Domain/JobRadar.Domain.csproj" />
+    <Project Path="src/JobRadar.Infrastructure/JobRadar.Infrastructure.csproj" />
+    <Project Path="src/JobRadar.Workers/JobRadar.Workers.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,11 @@
+c:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\bin\Debug\net8.0\JobRadar.Domain.deps.json
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\bin\Debug\net8.0\JobRadar.Domain.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\bin\Debug\net8.0\JobRadar.Domain.pdb
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\obj\Debug\net8.0\JobRadar.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\obj\Debug\net8.0\JobRadar.Domain.AssemblyInfoInputs.cache
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\obj\Debug\net8.0\JobRadar.Domain.AssemblyInfo.cs
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\obj\Debug\net8.0\JobRadar.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\obj\Debug\net8.0\JobRadar.Domain.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\obj\Debug\net8.0\refint\JobRadar.Domain.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\obj\Debug\net8.0\JobRadar.Domain.pdb
+c:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Domain\obj\Debug\net8.0\ref\JobRadar.Domain.dll

@@ -1,0 +1,108 @@
+2026-09-15 01:48:41.401 +03:00 [WRN] [] [1] Microsoft.EntityFrameworkCore.Model.Validation: The property 'JobPosting.EmbeddingVector' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+2026-09-15 01:48:42.971 +03:00 [WRN] [] [1] Microsoft.EntityFrameworkCore.Model.Validation: The property 'JobPosting.EmbeddingVector' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+2026-09-15 01:49:46.931 +03:00 [WRN] [] [1] Microsoft.EntityFrameworkCore.Model.Validation: The property 'JobPosting.EmbeddingVector' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+2026-09-15 02:07:17.675 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (255ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND
+          c.relname='__EFMigrationsHistory'
+)
+2026-09-15 02:07:51.605 +03:00 [ERR] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Failed executing DbCommand (32,987ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND
+          c.relname='__EFMigrationsHistory'
+)
+2026-09-15 02:09:43.098 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (224ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND
+          c.relname='__EFMigrationsHistory'
+)
+2026-09-15 02:09:44.415 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (121ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND
+          c.relname='__EFMigrationsHistory'
+)
+2026-09-15 02:09:45.549 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (158ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2026-09-15 02:09:46.465 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (123ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND
+          c.relname='__EFMigrationsHistory'
+)
+2026-09-15 02:09:46.624 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (155ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2026-09-15 02:09:46.954 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (213ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE EXTENSION IF NOT EXISTS vector;
+2026-09-15 02:09:47.081 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (126ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE job_sources (
+    id uuid NOT NULL,
+    name character varying(200) NOT NULL,
+    base_url character varying(2048) NOT NULL,
+    is_enabled boolean NOT NULL DEFAULT TRUE,
+    last_fetched_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_job_sources" PRIMARY KEY (id)
+);
+2026-09-15 02:09:47.220 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (139ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE job_postings (
+    id uuid NOT NULL,
+    title character varying(300) NOT NULL,
+    company character varying(200) NOT NULL,
+    location character varying(200),
+    is_remote boolean NOT NULL DEFAULT FALSE,
+    description text NOT NULL,
+    source_url character varying(2048),
+    salary_min numeric(18,2),
+    salary_max numeric(18,2),
+    salary_currency character varying(10),
+    job_type character varying(50) NOT NULL,
+    experience_level character varying(50) NOT NULL,
+    embedding_vector vector(1536),
+    posted_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    job_source_id uuid,
+    CONSTRAINT "PK_job_postings" PRIMARY KEY (id),
+    CONSTRAINT "FK_job_postings_job_sources_job_source_id" FOREIGN KEY (job_source_id) REFERENCES job_sources (id) ON DELETE SET NULL
+);
+2026-09-15 02:09:47.356 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (135ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE application_records (
+    id uuid NOT NULL,
+    job_posting_id uuid NOT NULL,
+    status character varying(50) NOT NULL,
+    notes character varying(5000),
+    applied_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_application_records" PRIMARY KEY (id),
+    CONSTRAINT "FK_application_records_job_postings_job_posting_id" FOREIGN KEY (job_posting_id) REFERENCES job_postings (id) ON DELETE CASCADE
+);
+2026-09-15 02:09:47.468 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (111ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX ix_application_records_applied_at ON application_records (applied_at);
+2026-09-15 02:09:47.579 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (111ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX ix_application_records_job_posting_id ON application_records (job_posting_id);
+2026-09-15 02:09:47.705 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (126ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_job_postings_job_source_id" ON job_postings (job_source_id);
+2026-09-15 02:09:47.820 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (114ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX ix_job_postings_posted_at ON job_postings (posted_at);
+2026-09-15 02:09:47.940 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (120ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX ix_job_postings_source_url ON job_postings (source_url) WHERE source_url IS NOT NULL;
+2026-09-15 02:09:48.059 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (119ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX ix_job_sources_name ON job_sources (name);
+2026-09-15 02:09:48.164 +03:00 [INF] [] [1] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (105ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260914224845_InitialCreate', '8.0.13');
