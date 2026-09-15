@@ -84,3 +84,11 @@ C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\Debug\net8.0\JobRadar.Workers.genruntimeconfig.cache
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\Debug\net8.0\ref\JobRadar.Workers.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\Debug\net8.0\JobRadar.Workers.sourcelink.json
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\CodeHollow.FeedReader.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\MassTransit.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\MassTransit.Abstractions.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\MassTransit.RabbitMqTransport.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Polly.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Polly.Core.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\RabbitMQ.Client.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\WTelegramClient.dll

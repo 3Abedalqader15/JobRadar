@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JobRadar.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+56d405a34ede60c6f3a59b714fc3f845ad8009aa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+09a1ff1d5d5a1f17fce4362ea412609be0100b28")]
 [assembly: System.Reflection.AssemblyProductAttribute("JobRadar.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JobRadar.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

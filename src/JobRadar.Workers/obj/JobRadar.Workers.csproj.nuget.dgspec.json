@@ -64,6 +64,10 @@
               "target": "Package",
               "version": "[11.12.0, )"
             },
+            "MassTransit.Abstractions": {
+              "target": "Package",
+              "version": "[9.2.2, )"
+            },
             "MediatR": {
               "target": "Package",
               "version": "[12.4.1, )"
@@ -346,6 +350,10 @@
           "framework": "net8.0",
           "targetAlias": "net8.0",
           "dependencies": {
+            "CodeHollow.FeedReader": {
+              "target": "Package",
+              "version": "[1.2.6, )"
+            },
             "Hangfire.AspNetCore": {
               "target": "Package",
               "version": "[1.8.20, )"
@@ -358,9 +366,17 @@
               "target": "Package",
               "version": "[1.20.10, )"
             },
+            "MassTransit.RabbitMQ": {
+              "target": "Package",
+              "version": "[9.2.2, )"
+            },
             "Microsoft.Extensions.Hosting": {
               "target": "Package",
               "version": "[8.0.1, )"
+            },
+            "Polly": {
+              "target": "Package",
+              "version": "[8.8.0, )"
             },
             "Serilog.Enrichers.Environment": {
               "target": "Package",
@@ -385,6 +401,10 @@
             "Serilog.Sinks.File": {
               "target": "Package",
               "version": "[6.0.0, )"
+            },
+            "WTelegramClient": {
+              "target": "Package",
+              "version": "[4.4.8, )"
             }
           },
           "imports": [
