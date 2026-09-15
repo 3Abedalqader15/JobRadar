@@ -10,7 +10,7 @@ namespace JobRadar.Workers.Jobs;
 /// </summary>
 public sealed class StaleJobCleanupJob
 {
-    private readonly IJobPostingRepository _repository;
+    private readonly IJobRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<StaleJobCleanupJob> _logger;
 
@@ -18,7 +18,7 @@ public sealed class StaleJobCleanupJob
     private const int StaleAfterDays = 90;
 
     public StaleJobCleanupJob(
-        IJobPostingRepository repository,
+        IJobRepository repository,
         IUnitOfWork unitOfWork,
         ILogger<StaleJobCleanupJob> logger)
     {

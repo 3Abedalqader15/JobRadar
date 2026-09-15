@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj": {}
+    "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj": {}
   },
   "projects": {
-    "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj": {
+    "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj",
+        "projectUniqueName": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj",
         "projectName": "JobRadar.Application",
-        "projectPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj",
+        "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj",
         "packagesPath": "C:\\Users\\Dell\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\obj\\",
+        "outputPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -33,8 +33,8 @@
             "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {
-              "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\JobRadar.Domain.csproj": {
-                "projectPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\JobRadar.Domain.csproj"
+              "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\JobRadar.Domain.csproj": {
+                "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\JobRadar.Domain.csproj"
               }
             }
           }
@@ -97,14 +97,14 @@
         }
       }
     },
-    "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\JobRadar.Domain.csproj": {
+    "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\JobRadar.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\JobRadar.Domain.csproj",
+        "projectUniqueName": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\JobRadar.Domain.csproj",
         "projectName": "JobRadar.Domain",
-        "projectPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\JobRadar.Domain.csproj",
+        "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\JobRadar.Domain.csproj",
         "packagesPath": "C:\\Users\\Dell\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\obj\\",
+        "outputPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -193,8 +193,8 @@
             "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {
-              "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj": {
-                "projectPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj"
+              "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj": {
+                "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj"
               }
             }
           }
@@ -217,6 +217,10 @@
           "targetAlias": "net8.0",
           "dependencies": {
             "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.13, )"
+            },
+            "Microsoft.EntityFrameworkCore.Relational": {
               "target": "Package",
               "version": "[8.0.13, )"
             },
@@ -287,14 +291,14 @@
         }
       }
     },
-    "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj": {
+    "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
+        "projectUniqueName": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
         "projectName": "JobRadar.Workers",
-        "projectPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
+        "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
         "packagesPath": "C:\\Users\\Dell\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\obj\\",
+        "outputPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -316,8 +320,8 @@
             "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {
-              "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj": {
-                "projectPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj"
+              "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj": {
+                "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj"
               },
               "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Infrastructure\\JobRadar.Infrastructure.csproj": {
                 "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Infrastructure\\JobRadar.Infrastructure.csproj"

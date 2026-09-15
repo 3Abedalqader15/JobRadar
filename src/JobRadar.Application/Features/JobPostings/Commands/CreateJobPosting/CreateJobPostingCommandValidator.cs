@@ -6,12 +6,15 @@ public sealed class CreateJobPostingCommandValidator : AbstractValidator<CreateJ
 {
     public CreateJobPostingCommandValidator()
     {
+        RuleFor(x => x.SourceId)
+            .NotEmpty().WithMessage("SourceId is required.");
+
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required.")
             .MaximumLength(300).WithMessage("Title must not exceed 300 characters.");
 
-        RuleFor(x => x.Company)
-            .NotEmpty().WithMessage("Company is required.")
+        RuleFor(x => x.CompanyName)
+            .NotEmpty().WithMessage("CompanyName is required.")
             .MaximumLength(200).WithMessage("Company name must not exceed 200 characters.");
 
         RuleFor(x => x.Description)
@@ -22,10 +25,10 @@ public sealed class CreateJobPostingCommandValidator : AbstractValidator<CreateJ
             .MaximumLength(200).WithMessage("Location must not exceed 200 characters.")
             .When(x => x.Location is not null);
 
-        RuleFor(x => x.SourceUrl)
+        RuleFor(x => x.ExternalApplyUrl)
             .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
-            .WithMessage("SourceUrl must be a valid absolute URI.")
-            .When(x => !string.IsNullOrEmpty(x.SourceUrl));
+            .WithMessage("ExternalApplyUrl must be a valid absolute URI.")
+            .When(x => !string.IsNullOrEmpty(x.ExternalApplyUrl));
 
         RuleFor(x => x.SalaryMin)
             .GreaterThanOrEqualTo(0).WithMessage("SalaryMin must be >= 0.")
@@ -36,8 +39,8 @@ public sealed class CreateJobPostingCommandValidator : AbstractValidator<CreateJ
             .WithMessage("SalaryMax must be >= SalaryMin.")
             .When(x => x.SalaryMax.HasValue);
 
-        RuleFor(x => x.JobType)
-            .IsInEnum().WithMessage("Invalid JobType value.");
+        RuleFor(x => x.EmploymentType)
+            .IsInEnum().WithMessage("Invalid EmploymentType value.");
 
         RuleFor(x => x.ExperienceLevel)
             .IsInEnum().WithMessage("Invalid ExperienceLevel value.");

@@ -2,20 +2,20 @@ using MediatR;
 
 namespace JobRadar.Application.Features.JobPostings.Queries.GetJobPostingById;
 
-public sealed record GetJobPostingByIdQuery(Guid Id) : IRequest<JobPostingDetailDto>;
+public sealed record GetJobPostingByIdQuery(Guid Id) : IRequest<JobDetailDto>;
 
-public sealed record JobPostingDetailDto(
+public sealed record JobDetailDto(
     Guid Id,
     string Title,
-    string Company,
+    string CompanyName,
     string? Location,
     bool IsRemote,
     string Description,
-    string? SourceUrl,
+    string? ExternalApplyUrl,
     decimal? SalaryMin,
     decimal? SalaryMax,
     string? SalaryCurrency,
-    string JobType,
+    string EmploymentType,
     string ExperienceLevel,
     DateTime PostedAt,
     DateTime CreatedAt,

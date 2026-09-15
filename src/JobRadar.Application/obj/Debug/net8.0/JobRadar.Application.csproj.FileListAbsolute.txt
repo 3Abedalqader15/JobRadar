@@ -1,4 +1,4 @@
-c:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\bin\Debug\net8.0\JobRadar.Application.deps.json
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\bin\Debug\net8.0\JobRadar.Application.deps.json
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\bin\Debug\net8.0\JobRadar.Application.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\bin\Debug\net8.0\JobRadar.Application.pdb
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\bin\Debug\net8.0\JobRadar.Domain.dll
@@ -8,8 +8,9 @@ C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\JobRadar.Application.AssemblyInfoInputs.cache
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\JobRadar.Application.AssemblyInfo.cs
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\JobRadar.Application.csproj.CoreCompileInputs.cache
-c:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\JobRadar.AEE92575.Up2Date
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\JobRadar.Application.sourcelink.json
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\JobRadar.AEE92575.Up2Date
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\JobRadar.Application.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\refint\JobRadar.Application.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\JobRadar.Application.pdb
-c:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\ref\JobRadar.Application.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\obj\Debug\net8.0\ref\JobRadar.Application.dll

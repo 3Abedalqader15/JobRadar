@@ -245,10 +245,10 @@
           "lib/netstandard2.0/_._": {}
         }
       },
-      "Microsoft.EntityFrameworkCore.Relational/8.0.11": {
+      "Microsoft.EntityFrameworkCore.Relational/8.0.13": {
         "type": "package",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "8.0.11",
+          "Microsoft.EntityFrameworkCore": "8.0.13",
           "Microsoft.Extensions.Configuration.Abstractions": "8.0.0"
         },
         "compile": {
@@ -1161,6 +1161,7 @@
         "dependencies": {
           "JobRadar.Application": "1.0.0",
           "Microsoft.EntityFrameworkCore": "8.0.13",
+          "Microsoft.EntityFrameworkCore.Relational": "8.0.13",
           "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "8.0.11",
@@ -1541,10 +1542,10 @@
         "microsoft.entityframeworkcore.analyzers.nuspec"
       ]
     },
-    "Microsoft.EntityFrameworkCore.Relational/8.0.11": {
-      "sha512": "3TuuW3i5I4Ro0yoaHmi2MqEDGObOVuhLaMEnd/heaLB1fcvm4fu4PevmC4BOWnI0vo176AIlV5o4rEQciLoohw==",
+    "Microsoft.EntityFrameworkCore.Relational/8.0.13": {
+      "sha512": "uQR2iTar+6ZEjEHTwgH0/7ySSRme4R9sDiupfG3w/eBub3365fPw/MjhsuOMQkdq9YzLM7veH4Qt/K9OqL26Qg==",
       "type": "package",
-      "path": "microsoft.entityframeworkcore.relational/8.0.11",
+      "path": "microsoft.entityframeworkcore.relational/8.0.13",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1552,7 +1553,7 @@
         "PACKAGE.md",
         "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll",
         "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.xml",
-        "microsoft.entityframeworkcore.relational.8.0.11.nupkg.sha512",
+        "microsoft.entityframeworkcore.relational.8.0.13.nupkg.sha512",
         "microsoft.entityframeworkcore.relational.nuspec"
       ]
     },
@@ -2898,11 +2899,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
+      "projectUniqueName": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
       "projectName": "JobRadar.Workers",
-      "projectPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
+      "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
       "packagesPath": "C:\\Users\\Dell\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\obj\\",
+      "outputPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2924,8 +2925,8 @@
           "framework": "net8.0",
           "targetAlias": "net8.0",
           "projectReferences": {
-            "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj": {
-              "projectPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj"
+            "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj": {
+              "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj"
             },
             "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Infrastructure\\JobRadar.Infrastructure.csproj": {
               "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Infrastructure\\JobRadar.Infrastructure.csproj"

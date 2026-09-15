@@ -8,23 +8,23 @@ public sealed record GetJobPostingsQuery(
     int PageSize = 20,
     string? SearchTerm = null) : IRequest<GetJobPostingsResponse>;
 
-public sealed record JobPostingDto(
+public sealed record JobDto(
     Guid Id,
     string Title,
-    string Company,
+    string CompanyName,
     string? Location,
     bool IsRemote,
-    string? SourceUrl,
+    string? ExternalApplyUrl,
     decimal? SalaryMin,
     decimal? SalaryMax,
     string? SalaryCurrency,
-    JobType JobType,
+    EmploymentType EmploymentType,
     ExperienceLevel ExperienceLevel,
     DateTime PostedAt,
     DateTime CreatedAt);
 
 public sealed record GetJobPostingsResponse(
-    IReadOnlyList<JobPostingDto> Items,
+    IReadOnlyList<JobDto> Items,
     int TotalCount,
     int Page,
     int PageSize);

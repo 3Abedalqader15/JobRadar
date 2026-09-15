@@ -2,12 +2,15 @@ using JobRadar.Domain.Entities;
 
 namespace JobRadar.Application.Abstractions;
 
-public interface IApplicationRecordRepository
+/// <summary>
+/// Repository for <see cref="UserJobApplication"/> entities.
+/// </summary>
+public interface IUserJobApplicationRepository
 {
-    Task<ApplicationRecord?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<ApplicationRecord>> GetByJobPostingIdAsync(Guid jobPostingId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<ApplicationRecord>> GetAllAsync(CancellationToken cancellationToken = default);
-    Task AddAsync(ApplicationRecord applicationRecord, CancellationToken cancellationToken = default);
-    Task UpdateAsync(ApplicationRecord applicationRecord, CancellationToken cancellationToken = default);
-    Task DeleteAsync(ApplicationRecord applicationRecord, CancellationToken cancellationToken = default);
+    Task<UserJobApplication?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<UserJobApplication>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<UserJobApplication>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task AddAsync(UserJobApplication application, CancellationToken cancellationToken = default);
+    Task UpdateAsync(UserJobApplication application, CancellationToken cancellationToken = default);
+    Task DeleteAsync(UserJobApplication application, CancellationToken cancellationToken = default);
 }

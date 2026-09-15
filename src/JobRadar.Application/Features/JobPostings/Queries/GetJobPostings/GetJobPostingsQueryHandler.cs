@@ -6,9 +6,9 @@ namespace JobRadar.Application.Features.JobPostings.Queries.GetJobPostings;
 public sealed class GetJobPostingsQueryHandler
     : IRequestHandler<GetJobPostingsQuery, GetJobPostingsResponse>
 {
-    private readonly IJobPostingRepository _repository;
+    private readonly IJobRepository _repository;
 
-    public GetJobPostingsQueryHandler(IJobPostingRepository repository)
+    public GetJobPostingsQueryHandler(IJobRepository repository)
     {
         _repository = repository;
     }
@@ -24,17 +24,17 @@ public sealed class GetJobPostingsQueryHandler
             ? all
             : all.Where(j =>
                 j.Title.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                j.Company.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase))
+                j.CompanyName.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase))
               .ToList();
 
         var totalCount = filtered.Count;
         var items = filtered
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(j => new JobPostingDto(
-                j.Id, j.Title, j.Company, j.Location, j.IsRemote,
-                j.SourceUrl, j.SalaryMin, j.SalaryMax, j.SalaryCurrency,
-                j.JobType, j.ExperienceLevel, j.PostedAt, j.CreatedAt))
+            .Select(j => new JobDto(
+                j.Id, j.Title, j.CompanyName, j.Location, j.IsRemote,
+                j.ExternalApplyUrl, j.SalaryMin, j.SalaryMax, j.SalaryCurrency,
+                j.EmploymentType, j.ExperienceLevel, j.PostedAt, j.CreatedAt))
             .ToList();
 
         return new GetJobPostingsResponse(items, totalCount, request.Page, request.PageSize);
