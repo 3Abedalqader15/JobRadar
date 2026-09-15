@@ -40,7 +40,7 @@ public sealed class JobPostingsController : ControllerBase
     /// Returns a single job posting by its ID.
     /// </summary>
     [HttpGet("{id:guid}", Name = "GetJobPostingById")]
-    [ProducesResponseType(typeof(JobPostingDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(JobDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(
         Guid id,

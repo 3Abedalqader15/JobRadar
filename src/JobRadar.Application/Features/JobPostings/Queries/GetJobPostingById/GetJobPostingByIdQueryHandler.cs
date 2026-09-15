@@ -5,37 +5,37 @@ using MediatR;
 namespace JobRadar.Application.Features.JobPostings.Queries.GetJobPostingById;
 
 public sealed class GetJobPostingByIdQueryHandler
-    : IRequestHandler<GetJobPostingByIdQuery, JobPostingDetailDto>
+    : IRequestHandler<GetJobPostingByIdQuery, JobDetailDto>
 {
-    private readonly IJobPostingRepository _repository;
+    private readonly IJobRepository _repository;
 
-    public GetJobPostingByIdQueryHandler(IJobPostingRepository repository)
+    public GetJobPostingByIdQueryHandler(IJobRepository repository)
     {
         _repository = repository;
     }
 
-    public async Task<JobPostingDetailDto> Handle(
+    public async Task<JobDetailDto> Handle(
         GetJobPostingByIdQuery request,
         CancellationToken cancellationToken)
     {
-        var posting = await _repository.GetByIdAsync(request.Id, cancellationToken)
-            ?? throw new NotFoundException(nameof(Domain.Entities.JobPosting), request.Id);
+        var job = await _repository.GetByIdAsync(request.Id, cancellationToken)
+            ?? throw new NotFoundException(nameof(Domain.Entities.Job), request.Id);
 
-        return new JobPostingDetailDto(
-            posting.Id,
-            posting.Title,
-            posting.Company,
-            posting.Location,
-            posting.IsRemote,
-            posting.Description,
-            posting.SourceUrl,
-            posting.SalaryMin,
-            posting.SalaryMax,
-            posting.SalaryCurrency,
-            posting.JobType.ToString(),
-            posting.ExperienceLevel.ToString(),
-            posting.PostedAt,
-            posting.CreatedAt,
-            posting.UpdatedAt);
+        return new JobDetailDto(
+            job.Id,
+            job.Title,
+            job.CompanyName,
+            job.Location,
+            job.IsRemote,
+            job.Description,
+            job.ExternalApplyUrl,
+            job.SalaryMin,
+            job.SalaryMax,
+            job.SalaryCurrency,
+            job.EmploymentType.ToString(),
+            job.ExperienceLevel.ToString(),
+            job.PostedAt,
+            job.CreatedAt,
+            job.UpdatedAt);
     }
 }

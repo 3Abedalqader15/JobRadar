@@ -7,11 +7,11 @@ namespace JobRadar.Application.Features.JobPostings.Commands.CreateJobPosting;
 public sealed class CreateJobPostingCommandHandler
     : IRequestHandler<CreateJobPostingCommand, Guid>
 {
-    private readonly IJobPostingRepository _repository;
+    private readonly IJobRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 
     public CreateJobPostingCommandHandler(
-        IJobPostingRepository repository,
+        IJobRepository repository,
         IUnitOfWork unitOfWork)
     {
         _repository = repository;
@@ -22,29 +22,30 @@ public sealed class CreateJobPostingCommandHandler
         CreateJobPostingCommand request,
         CancellationToken cancellationToken)
     {
-        var jobPosting = JobPosting.Create(
+        var job = Job.Create(
+            request.SourceId,
             request.Title,
-            request.Company,
+            request.CompanyName,
             request.Description,
             request.Location,
             request.IsRemote,
-            request.SourceUrl,
-            request.JobType,
+            request.EmploymentType,
             request.ExperienceLevel,
+            request.ExternalApplyUrl,
             request.PostedAt,
-            request.JobSourceId);
+            request.RawPostId);
 
         if (request.SalaryMin.HasValue && request.SalaryMax.HasValue)
         {
-            jobPosting.UpdateSalaryRange(
+            job.UpdateSalaryRange(
                 request.SalaryMin.Value,
                 request.SalaryMax.Value,
                 request.SalaryCurrency ?? "USD");
         }
 
-        await _repository.AddAsync(jobPosting, cancellationToken);
+        await _repository.AddAsync(job, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return jobPosting.Id;
+        return job.Id;
     }
 }

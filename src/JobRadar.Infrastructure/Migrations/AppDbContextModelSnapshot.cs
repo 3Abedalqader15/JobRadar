@@ -24,7 +24,561 @@ namespace JobRadar.Infrastructure.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("JobRadar.Domain.Entities.ApplicationRecord", b =>
+            modelBuilder.Entity("JobRadar.Domain.Entities.Cv", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ContentJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("content_json");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("GeneratedPdfUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("generated_pdf_url");
+
+                    b.Property<Guid?>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_cvs_user_id");
+
+                    b.ToTable("cvs", (string)null);
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.CvJobMatchAnalysis", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("AnalyzedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("analyzed_at");
+
+                    b.Property<int>("AtsScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("ats_score");
+
+                    b.Property<Guid>("CvId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cv_id");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
+
+                    b.Property<string[]>("MissingKeywords")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasColumnName("missing_keywords")
+                        .HasDefaultValueSql("'{}'::text[]");
+
+                    b.Property<string>("Suggestions")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("suggestions");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnalyzedAt")
+                        .HasDatabaseName("ix_cv_job_match_analyses_analyzed_at");
+
+                    b.HasIndex("JobId");
+
+                    b.HasIndex("CvId", "JobId")
+                        .HasDatabaseName("ix_cv_job_match_analyses_cv_job");
+
+                    b.ToTable("cv_job_match_analyses", (string)null);
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.CvTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("IsAtsFriendly")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_ats_friendly");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("PreviewImageUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("preview_image_url");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cv_templates_name");
+
+                    b.ToTable("cv_templates", (string)null);
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Job", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("ApplicantsClickCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("applicants_click_count");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("company_name");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<Vector>("Embedding")
+                        .HasColumnType("vector(1536)")
+                        .HasColumnName("embedding");
+
+                    b.Property<string>("EmploymentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("employment_type");
+
+                    b.Property<string>("ExperienceLevel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("experience_level");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("ExternalApplyUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("external_apply_url");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsRemote")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_remote");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("location");
+
+                    b.Property<DateTime>("PostedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("posted_at");
+
+                    b.Property<Guid?>("RawPostId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("raw_post_id");
+
+                    b.Property<string>("SalaryCurrency")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("salary_currency");
+
+                    b.Property<decimal?>("SalaryMax")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("salary_max");
+
+                    b.Property<decimal?>("SalaryMin")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("salary_min");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("ViewsCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("views_count");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmploymentType")
+                        .HasDatabaseName("ix_jobs_employment_type");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_jobs_is_active");
+
+                    b.HasIndex("PostedAt")
+                        .HasDatabaseName("ix_jobs_posted_at");
+
+                    b.HasIndex("RawPostId")
+                        .IsUnique();
+
+                    b.HasIndex("SourceId")
+                        .HasDatabaseName("ix_jobs_source_id");
+
+                    b.ToTable("jobs", (string)null);
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.JobSkillMap", b =>
+                {
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
+
+                    b.Property<Guid>("SkillId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("skill_id");
+
+                    b.HasKey("JobId", "SkillId");
+
+                    b.HasIndex("SkillId")
+                        .HasDatabaseName("ix_job_skill_maps_skill_id");
+
+                    b.ToTable("job_skill_maps", (string)null);
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("channel");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("message");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_notifications_created_at");
+
+                    b.HasIndex("JobId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_notifications_status");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_notifications_user_id");
+
+                    b.ToTable("notifications", (string)null);
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.RawPost", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("FetchedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fetched_at");
+
+                    b.Property<string>("ProcessingStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("processing_status");
+
+                    b.Property<string>("RawContent")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("raw_content");
+
+                    b.Property<string>("RawUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("raw_url");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FetchedAt")
+                        .HasDatabaseName("ix_raw_posts_fetched_at");
+
+                    b.HasIndex("ProcessingStatus")
+                        .HasDatabaseName("ix_raw_posts_processing_status");
+
+                    b.HasIndex("SourceId")
+                        .HasDatabaseName("ix_raw_posts_source_id");
+
+                    b.ToTable("raw_posts", (string)null);
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Skill", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("slug");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_skills_name");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_skills_slug");
+
+                    b.ToTable("skills", (string)null);
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Source", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AddedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("added_by_user_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("FetchIntervalMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(60)
+                        .HasColumnName("fetch_interval_minutes");
+
+                    b.Property<DateTime?>("LastFetchedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_fetched_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("type");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("url");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddedByUserId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_sources_status");
+
+                    b.HasIndex("Url")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sources_url");
+
+                    b.ToTable("sources", (string)null);
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("ExperienceLevel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("experience_level");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("full_name");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("phone");
+
+                    b.Property<string[]>("PreferredJobTitles")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasColumnName("preferred_job_titles")
+                        .HasDefaultValueSql("'{}'::text[]");
+
+                    b.Property<string[]>("PreferredLocations")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasColumnName("preferred_locations")
+                        .HasDefaultValueSql("'{}'::text[]");
+
+                    b.Property<string[]>("PreferredSkills")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasColumnName("preferred_skills")
+                        .HasDefaultValueSql("'{}'::text[]");
+
+                    b.Property<string>("TelegramChatId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("telegram_chat_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_email");
+
+                    b.HasIndex("TelegramChatId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_telegram_chat_id")
+                        .HasFilter("telegram_chat_id IS NOT NULL");
+
+                    b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.UserJobApplication", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -35,9 +589,9 @@ namespace JobRadar.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("applied_at");
 
-                    b.Property<Guid>("JobPostingId")
+                    b.Property<Guid>("JobId")
                         .HasColumnType("uuid")
-                        .HasColumnName("job_posting_id");
+                        .HasColumnName("job_id");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(5000)
@@ -54,183 +608,248 @@ namespace JobRadar.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AppliedAt")
-                        .HasDatabaseName("ix_application_records_applied_at");
+                        .HasDatabaseName("ix_user_job_applications_applied_at");
 
-                    b.HasIndex("JobPostingId")
-                        .HasDatabaseName("ix_application_records_job_posting_id");
+                    b.HasIndex("JobId");
 
-                    b.ToTable("application_records", (string)null);
-                });
-
-            modelBuilder.Entity("JobRadar.Domain.Entities.JobPosting", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Company")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("company");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<Vector>("EmbeddingVector")
-                        .HasColumnType("vector(1536)")
-                        .HasColumnName("embedding_vector");
-
-                    b.Property<string>("ExperienceLevel")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("experience_level");
-
-                    b.Property<bool>("IsRemote")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_remote");
-
-                    b.Property<Guid?>("JobSourceId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("job_source_id");
-
-                    b.Property<string>("JobType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("job_type");
-
-                    b.Property<string>("Location")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("location");
-
-                    b.Property<DateTime>("PostedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("posted_at");
-
-                    b.Property<string>("SalaryCurrency")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasColumnName("salary_currency");
-
-                    b.Property<decimal?>("SalaryMax")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("salary_max");
-
-                    b.Property<decimal?>("SalaryMin")
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("salary_min");
-
-                    b.Property<string>("SourceUrl")
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)")
-                        .HasColumnName("source_url");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("title");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobSourceId");
-
-                    b.HasIndex("PostedAt")
-                        .HasDatabaseName("ix_job_postings_posted_at");
-
-                    b.HasIndex("SourceUrl")
+                    b.HasIndex("UserId", "JobId")
                         .IsUnique()
-                        .HasDatabaseName("ix_job_postings_source_url")
-                        .HasFilter("source_url IS NOT NULL");
+                        .HasDatabaseName("ix_user_job_applications_user_job");
 
-                    b.ToTable("job_postings", (string)null);
+                    b.ToTable("user_job_applications", (string)null);
                 });
 
-            modelBuilder.Entity("JobRadar.Domain.Entities.JobSource", b =>
+            modelBuilder.Entity("JobRadar.Domain.Entities.UserSavedJob", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("user_id");
 
-                    b.Property<string>("BaseUrl")
-                        .IsRequired()
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)")
-                        .HasColumnName("base_url");
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("SavedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("saved_at");
 
-                    b.Property<bool>("IsEnabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_enabled");
+                    b.HasKey("UserId", "JobId");
 
-                    b.Property<DateTime?>("LastFetchedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_fetched_at");
+                    b.HasIndex("JobId");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("name");
+                    b.HasIndex("SavedAt")
+                        .HasDatabaseName("ix_user_saved_jobs_saved_at");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique()
-                        .HasDatabaseName("ix_job_sources_name");
-
-                    b.ToTable("job_sources", (string)null);
+                    b.ToTable("user_saved_jobs", (string)null);
                 });
 
-            modelBuilder.Entity("JobRadar.Domain.Entities.ApplicationRecord", b =>
+            modelBuilder.Entity("JobRadar.Domain.Entities.Cv", b =>
                 {
-                    b.HasOne("JobRadar.Domain.Entities.JobPosting", "JobPosting")
-                        .WithMany()
-                        .HasForeignKey("JobPostingId")
+                    b.HasOne("JobRadar.Domain.Entities.CvTemplate", "Template")
+                        .WithMany("Cvs")
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("JobRadar.Domain.Entities.User", "User")
+                        .WithMany("Cvs")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("JobPosting");
+                    b.Navigation("Template");
+
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("JobRadar.Domain.Entities.JobPosting", b =>
+            modelBuilder.Entity("JobRadar.Domain.Entities.CvJobMatchAnalysis", b =>
                 {
-                    b.HasOne("JobRadar.Domain.Entities.JobSource", "JobSource")
-                        .WithMany("JobPostings")
-                        .HasForeignKey("JobSourceId")
+                    b.HasOne("JobRadar.Domain.Entities.Cv", "Cv")
+                        .WithMany("Analyses")
+                        .HasForeignKey("CvId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JobRadar.Domain.Entities.Job", "Job")
+                        .WithMany("MatchAnalyses")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cv");
+
+                    b.Navigation("Job");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Job", b =>
+                {
+                    b.HasOne("JobRadar.Domain.Entities.RawPost", "RawPost")
+                        .WithOne("Job")
+                        .HasForeignKey("JobRadar.Domain.Entities.Job", "RawPostId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("JobSource");
+                    b.HasOne("JobRadar.Domain.Entities.Source", "Source")
+                        .WithMany("Jobs")
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RawPost");
+
+                    b.Navigation("Source");
                 });
 
-            modelBuilder.Entity("JobRadar.Domain.Entities.JobSource", b =>
+            modelBuilder.Entity("JobRadar.Domain.Entities.JobSkillMap", b =>
                 {
-                    b.Navigation("JobPostings");
+                    b.HasOne("JobRadar.Domain.Entities.Job", "Job")
+                        .WithMany("JobSkills")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JobRadar.Domain.Entities.Skill", "Skill")
+                        .WithMany("JobSkills")
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Job");
+
+                    b.Navigation("Skill");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("JobRadar.Domain.Entities.Job", "Job")
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("JobRadar.Domain.Entities.User", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Job");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.RawPost", b =>
+                {
+                    b.HasOne("JobRadar.Domain.Entities.Source", "Source")
+                        .WithMany("RawPosts")
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Source");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Source", b =>
+                {
+                    b.HasOne("JobRadar.Domain.Entities.User", "AddedByUser")
+                        .WithMany("AddedSources")
+                        .HasForeignKey("AddedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AddedByUser");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.UserJobApplication", b =>
+                {
+                    b.HasOne("JobRadar.Domain.Entities.Job", "Job")
+                        .WithMany("Applications")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JobRadar.Domain.Entities.User", "User")
+                        .WithMany("Applications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Job");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.UserSavedJob", b =>
+                {
+                    b.HasOne("JobRadar.Domain.Entities.Job", "Job")
+                        .WithMany("SavedByUsers")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JobRadar.Domain.Entities.User", "User")
+                        .WithMany("SavedJobs")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Job");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Cv", b =>
+                {
+                    b.Navigation("Analyses");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.CvTemplate", b =>
+                {
+                    b.Navigation("Cvs");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Job", b =>
+                {
+                    b.Navigation("Applications");
+
+                    b.Navigation("JobSkills");
+
+                    b.Navigation("MatchAnalyses");
+
+                    b.Navigation("SavedByUsers");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.RawPost", b =>
+                {
+                    b.Navigation("Job");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Skill", b =>
+                {
+                    b.Navigation("JobSkills");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.Source", b =>
+                {
+                    b.Navigation("Jobs");
+
+                    b.Navigation("RawPosts");
+                });
+
+            modelBuilder.Entity("JobRadar.Domain.Entities.User", b =>
+                {
+                    b.Navigation("AddedSources");
+
+                    b.Navigation("Applications");
+
+                    b.Navigation("Cvs");
+
+                    b.Navigation("Notifications");
+
+                    b.Navigation("SavedJobs");
                 });
 #pragma warning restore 612, 618
         }

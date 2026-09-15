@@ -25,9 +25,9 @@ public static class DependencyInjection
             ));
 
         // ── Repositories ──────────────────────────────────────────────────────
-        services.AddScoped<IJobPostingRepository, JobPostingRepository>();
-        services.AddScoped<IJobSourceRepository, JobSourceRepository>();
-        services.AddScoped<IApplicationRecordRepository, ApplicationRecordRepository>();
+        services.AddScoped<IJobRepository, JobRepository>();
+        services.AddScoped<ISourceRepository, SourceRepository>();
+        services.AddScoped<IUserJobApplicationRepository, UserJobApplicationRepository>();
 
         // ── Unit of Work ──────────────────────────────────────────────────────
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -38,3 +38,4 @@ public static class DependencyInjection
         return services;
     }
 }
+

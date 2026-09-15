@@ -2844,6 +2844,7 @@
     "net8.0": [
       "JobRadar.Application >= 1.0.0",
       "Microsoft.EntityFrameworkCore >= 8.0.13",
+      "Microsoft.EntityFrameworkCore.Relational >= 8.0.13",
       "Microsoft.EntityFrameworkCore.Tools >= 8.0.13",
       "Microsoft.Extensions.Configuration.Abstractions >= 8.0.0",
       "Microsoft.Extensions.DependencyInjection.Abstractions >= 8.0.2",
@@ -2890,8 +2891,8 @@
           "framework": "net8.0",
           "targetAlias": "net8.0",
           "projectReferences": {
-            "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj": {
-              "projectPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj"
+            "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj": {
+              "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Application\\JobRadar.Application.csproj"
             }
           }
         }
@@ -2914,6 +2915,10 @@
         "targetAlias": "net8.0",
         "dependencies": {
           "Microsoft.EntityFrameworkCore": {
+            "target": "Package",
+            "version": "[8.0.13, )"
+          },
+          "Microsoft.EntityFrameworkCore.Relational": {
             "target": "Package",
             "version": "[8.0.13, )"
           },

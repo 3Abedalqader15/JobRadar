@@ -6,11 +6,11 @@ namespace JobRadar.Application.Features.JobPostings.Commands.DeleteJobPosting;
 
 public sealed class DeleteJobPostingCommandHandler : IRequestHandler<DeleteJobPostingCommand>
 {
-    private readonly IJobPostingRepository _repository;
+    private readonly IJobRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 
     public DeleteJobPostingCommandHandler(
-        IJobPostingRepository repository,
+        IJobRepository repository,
         IUnitOfWork unitOfWork)
     {
         _repository = repository;
@@ -19,10 +19,10 @@ public sealed class DeleteJobPostingCommandHandler : IRequestHandler<DeleteJobPo
 
     public async Task Handle(DeleteJobPostingCommand request, CancellationToken cancellationToken)
     {
-        var jobPosting = await _repository.GetByIdAsync(request.Id, cancellationToken)
-            ?? throw new NotFoundException(nameof(Domain.Entities.JobPosting), request.Id);
+        var job = await _repository.GetByIdAsync(request.Id, cancellationToken)
+            ?? throw new NotFoundException(nameof(Domain.Entities.Job), request.Id);
 
-        await _repository.DeleteAsync(jobPosting, cancellationToken);
+        await _repository.DeleteAsync(job, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

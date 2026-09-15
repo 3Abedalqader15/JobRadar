@@ -83,3 +83,4 @@ C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\Debug\net8.0\JobRadar.Workers.pdb
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\Debug\net8.0\JobRadar.Workers.genruntimeconfig.cache
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\Debug\net8.0\ref\JobRadar.Workers.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\Debug\net8.0\JobRadar.Workers.sourcelink.json

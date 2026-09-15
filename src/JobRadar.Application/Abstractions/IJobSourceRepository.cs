@@ -2,10 +2,13 @@ using JobRadar.Domain.Entities;
 
 namespace JobRadar.Application.Abstractions;
 
-public interface IJobSourceRepository
+/// <summary>
+/// Repository for <see cref="Source"/> entities.
+/// </summary>
+public interface ISourceRepository
 {
-    Task<JobSource?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<JobSource>> GetAllEnabledAsync(CancellationToken cancellationToken = default);
-    Task AddAsync(JobSource jobSource, CancellationToken cancellationToken = default);
-    Task UpdateAsync(JobSource jobSource, CancellationToken cancellationToken = default);
+    Task<Source?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Source>> GetAllActiveAsync(CancellationToken cancellationToken = default);
+    Task AddAsync(Source source, CancellationToken cancellationToken = default);
+    Task UpdateAsync(Source source, CancellationToken cancellationToken = default);
 }

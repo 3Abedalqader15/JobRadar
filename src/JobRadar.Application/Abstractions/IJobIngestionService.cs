@@ -7,13 +7,13 @@ namespace JobRadar.Application.Abstractions;
 public interface IJobIngestionService
 {
     /// <summary>
-    /// Fetches new job postings from all enabled <see cref="Domain.Entities.JobSource"/> records
-    /// and persists them to the database. Skips duplicates by source URL.
+    /// Fetches new raw posts from all active <see cref="Domain.Entities.Source"/> records
+    /// and persists them as <see cref="Domain.Entities.RawPost"/> entities.
     /// </summary>
     Task IngestAllSourcesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ingests postings from a single source identified by <paramref name="jobSourceId"/>.
+    /// Ingests raw posts from a single source identified by <paramref name="sourceId"/>.
     /// </summary>
-    Task IngestSourceAsync(Guid jobSourceId, CancellationToken cancellationToken = default);
+    Task IngestSourceAsync(Guid sourceId, CancellationToken cancellationToken = default);
 }
