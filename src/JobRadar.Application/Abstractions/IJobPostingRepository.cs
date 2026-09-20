@@ -16,4 +16,13 @@ public interface IJobRepository
     Task DeleteAsync(Job job, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
     Task<int> CountAsync(CancellationToken cancellationToken = default);
+
+    Task<(IReadOnlyList<Job> Jobs, double[] Scores, int TotalCount)> SearchSemanticAsync(
+        float[] vector, 
+        string? location, 
+        JobRadar.Domain.Enums.EmploymentType? empType, 
+        JobRadar.Domain.Enums.ExperienceLevel? expLevel, 
+        int page, 
+        int pageSize, 
+        CancellationToken ct = default);
 }

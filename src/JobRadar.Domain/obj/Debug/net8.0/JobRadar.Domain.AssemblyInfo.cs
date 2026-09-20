@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JobRadar.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+11ceff571892ee900e8c65e6c978a5e7de99aa72")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e1d080ad989247f3ed02bdfeebc324c18e0474c4")]
 [assembly: System.Reflection.AssemblyProductAttribute("JobRadar.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JobRadar.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

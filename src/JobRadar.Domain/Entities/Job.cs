@@ -1,5 +1,6 @@
 using JobRadar.Domain.Common;
 using JobRadar.Domain.Enums;
+using Pgvector;
 
 namespace JobRadar.Domain.Entities;
 
@@ -39,7 +40,7 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
     /// After migration, create an HNSW index manually:
     ///   CREATE INDEX ON jobs USING hnsw (embedding vector_cosine_ops);
     /// </summary>
-    public float[]? Embedding { get; private set; }
+    public Vector? Embedding { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
@@ -121,7 +122,7 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
 
     public void SetEmbedding(float[] vector)
     {
-        Embedding = vector;
+        Embedding = new Vector(vector);
         UpdatedAt = DateTime.UtcNow;
     }
 

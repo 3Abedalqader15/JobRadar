@@ -97,18 +97,7 @@ public sealed class JobConfiguration : IEntityTypeConfiguration<Job>
         //   CREATE INDEX ON jobs USING hnsw (embedding vector_cosine_ops);
         builder.Property(j => j.Embedding)
             .HasColumnName("embedding")
-            .HasColumnType("vector(1536)")
-            .HasConversion(
-                v => v != null ? new Vector(v) : null,
-                v => v != null ? v.ToArray() : null
-            )
-            .Metadata.SetValueComparer(
-                new ValueComparer<float[]>(
-                    (c1, c2) => c1 != null && c2 != null && c1.SequenceEqual(c2),
-                    c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                    c => c.ToArray()
-                )
-            );
+            .HasColumnType("vector(1536)");
         // ────────────────────────────────────────────────────────────────────────
 
         builder.Property(j => j.CreatedAt)
