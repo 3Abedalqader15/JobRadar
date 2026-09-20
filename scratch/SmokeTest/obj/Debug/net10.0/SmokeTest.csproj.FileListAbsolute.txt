@@ -51,3 +51,14 @@ C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\obj\Deb
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\obj\Debug\net10.0\SmokeTest.pdb
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\obj\Debug\net10.0\SmokeTest.genruntimeconfig.cache
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\obj\Debug\net10.0\ref\SmokeTest.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\MassTransit.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\MassTransit.Abstractions.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\Microsoft.Extensions.Configuration.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\Microsoft.Extensions.Configuration.Binder.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\Microsoft.Extensions.Diagnostics.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\Microsoft.Extensions.Diagnostics.HealthChecks.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\Microsoft.Extensions.Http.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\Microsoft.Extensions.Options.ConfigurationExtensions.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\Polly.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\scratch\SmokeTest\bin\Debug\net10.0\Polly.Core.dll

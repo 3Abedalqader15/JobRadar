@@ -415,6 +415,10 @@
               "target": "Package",
               "version": "[11.12.0, )"
             },
+            "MassTransit.Abstractions": {
+              "target": "Package",
+              "version": "[8.3.6, )"
+            },
             "MediatR": {
               "target": "Package",
               "version": "[12.4.1, )"
@@ -567,6 +571,10 @@
           "framework": "net8.0",
           "targetAlias": "net8.0",
           "dependencies": {
+            "MassTransit": {
+              "target": "Package",
+              "version": "[8.3.6, )"
+            },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.0.13, )"
@@ -589,6 +597,10 @@
               "target": "Package",
               "version": "[8.0.2, )"
             },
+            "Microsoft.Extensions.Http": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            },
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[8.0.11, )"
@@ -596,6 +608,10 @@
             "Pgvector.EntityFrameworkCore": {
               "target": "Package",
               "version": "[0.2.1, )"
+            },
+            "Polly": {
+              "target": "Package",
+              "version": "[8.8.0, )"
             },
             "Serilog": {
               "target": "Package",

@@ -137,3 +137,9 @@ C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debu
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\obj\Debug\net8.0\JobRadar.Api.sourcelink.json
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\MassTransit.Abstractions.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\MassTransit.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\Microsoft.Extensions.Http.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\Polly.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\Polly.Core.dll

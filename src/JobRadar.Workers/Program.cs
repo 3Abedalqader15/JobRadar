@@ -2,6 +2,8 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using JobRadar.Application;
 using JobRadar.Infrastructure;
+using JobRadar.Infrastructure.BackgroundServices;
+using JobRadar.Infrastructure.Consumers;
 using JobRadar.Workers.Jobs;
 using JobRadar.Workers.Ingestion;
 using JobRadar.Workers.Ingestion.Services;
@@ -50,12 +52,24 @@ builder.ConfigureServices((ctx, services) =>
     // ── MassTransit ──────────────────────────────────────────────────────────
     services.AddMassTransit(x =>
     {
+        // Register the consumer so MassTransit discovers it automatically
+        x.AddConsumer<RawPostProcessingConsumer>();
+
         x.UsingRabbitMq((context, cfg) =>
         {
             cfg.Host(configuration.GetConnectionString("RabbitMQ") ?? "amqp://guest:guest@localhost:5672");
-            cfg.ConfigureEndpoints(context);
+
+            // Dedicated queue for raw-post processing
+            cfg.ReceiveEndpoint("raw-post-processing", e =>
+            {
+                e.ConcurrentMessageLimit = 4; // don't hammer the LLM
+                e.ConfigureConsumer<RawPostProcessingConsumer>(context);
+            });
         });
     });
+
+    // ── Embedding batch processor (background service) ────────────────────
+    services.AddHostedService<EmbeddingBatchProcessor>();
 
     // ── Register job classes and services for DI ─────────────────────────
     services.AddScoped<JobIngestionJob>();
@@ -72,6 +86,8 @@ var host = builder.Build();
 // ── Schedule recurring jobs ────────────────────────────────────────────────
 using (var scope = host.Services.CreateScope())
 {
+    JobStorage.Current = scope.ServiceProvider.GetRequiredService<JobStorage>();
+
     // Every minute: check if any source is due for fetching
     RecurringJob.AddOrUpdate<IngestionDispatcherJob>(
         recurringJobId: "ingestion-dispatcher",
