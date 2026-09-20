@@ -1,0 +1,64 @@
+2026-09-21 00:29:15.080 +03:00 [INF] [53d5505c28964bb4aed89bf45197e6ee] [8] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/index.html responded 200 in 196.5128 ms
+2026-09-21 00:29:44.001 +03:00 [INF] [37b83b0d6fd94dcdb23f66976102f1b3] [13] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/v1/swagger.json responded 200 in 517.8952 ms
+2026-09-21 00:30:26.843 +03:00 [WRN] [5178707874c2488599b4224874de999c] [3] Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware: Failed to determine the https port for redirect.
+2026-09-21 00:30:27.159 +03:00 [INF] [5178707874c2488599b4224874de999c] [3] JobRadar.Application.Behaviors.LoggingBehavior: Handling GetJobPostingsQuery {"Page":1,"PageSize":20,"SearchTerm":null,"$type":"GetJobPostingsQuery"}
+2026-09-21 00:30:46.987 +03:00 [INF] [5178707874c2488599b4224874de999c] [3] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (215ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT j.id, j.applicants_click_count, j.company_name, j.created_at, j.description, j.embedding, j.employment_type, j.experience_level, j.expires_at, j.external_apply_url, j.is_active, j.is_remote, j.location, j.posted_at, j.raw_post_id, j.salary_currency, j.salary_max, j.salary_min, j.source_id, j.title, j.updated_at, j.views_count
+FROM jobs AS j
+2026-09-21 00:30:47.025 +03:00 [INF] [5178707874c2488599b4224874de999c] [3] JobRadar.Application.Behaviors.LoggingBehavior: Handled GetJobPostingsQuery in 19821ms
+2026-09-21 00:30:47.119 +03:00 [INF] [5178707874c2488599b4224874de999c] [3] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /api/job-postings responded 200 in 20296.2378 ms
+2026-09-21 00:37:46.316 +03:00 [INF] [a460a6ddfe414f07b2c1375a31282da6] [12] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger responded 301 in 0.4119 ms
+2026-09-21 00:37:46.529 +03:00 [INF] [453dcce10e134d50bfc15ec68dbd785e] [10] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/index.html responded 200 in 1.1813 ms
+2026-09-21 00:37:52.130 +03:00 [WRN] [] [6] Microsoft.AspNetCore.Server.Kestrel: As of ""2026-09-20T21:37:51.9783569+00:00"", the heartbeat has been running for ""00:00:02.1141107"" which is longer than ""00:00:01"". This could be caused by thread pool starvation.
+2026-09-21 00:37:52.700 +03:00 [INF] [d7ae42a3bf3e44eaa611d9933fa205c3] [10] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/swagger-ui.css responded 200 in 327.3963 ms
+2026-09-21 00:37:52.764 +03:00 [INF] [d8c0e171ecee4d45b1e8f1644d6972e1] [18] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/swagger-ui-standalone-preset.js responded 200 in 235.0292 ms
+2026-09-21 00:37:53.326 +03:00 [INF] [74f449dcd8e14258afd3ba8757d9d9c5] [17] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/swagger-ui-bundle.js responded 200 in 823.5723 ms
+2026-09-21 00:37:53.941 +03:00 [INF] [7876bc89782a428790dc2c7d2ca66abd] [17] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/v1/swagger.json responded 200 in 14.5529 ms
+2026-09-21 00:37:54.306 +03:00 [INF] [107a975018284d8da06ec49cffd75d4a] [18] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/favicon-32x32.png responded 200 in 0.9439 ms
+2026-09-21 00:39:22.758 +03:00 [INF] [c3a50ff42ae147d8969d44418a35491b] [8] JobRadar.Application.Behaviors.LoggingBehavior: Handling CreateJobPostingCommand {"SourceId":"3fa85f64-5717-4562-b3fc-2c963f66afa6","Title":"string","CompanyName":"string","Description":"string","Location":"string","IsRemote":true,"ExternalApplyUrl":"string","SalaryMin":0,"SalaryMax":0,"SalaryCurrency":"string","EmploymentType":"FullTime","ExperienceLevel":"Internship","PostedAt":"2026-09-20T21:38:11.2800000Z","RawPostId":"3fa85f64-5717-4562-b3fc-2c963f66afa6","$type":"CreateJobPostingCommand"}
+2026-09-21 00:39:23.489 +03:00 [ERR] [c3a50ff42ae147d8969d44418a35491b] [8] JobRadar.Application.Behaviors.LoggingBehavior: Error handling CreateJobPostingCommand after 724ms
+FluentValidation.ValidationException: Validation failed: 
+ -- ExternalApplyUrl: ExternalApplyUrl must be a valid absolute URI. Severity: Error
+   at JobRadar.Application.Behaviors.ValidationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\ValidationBehavior.cs:line 44
+   at JobRadar.Application.Behaviors.LoggingBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\LoggingBehavior.cs:line 33
+2026-09-21 00:39:23.510 +03:00 [ERR] [c3a50ff42ae147d8969d44418a35491b] [8] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP POST /api/job-postings responded 500 in 1678.5718 ms
+FluentValidation.ValidationException: Validation failed: 
+ -- ExternalApplyUrl: ExternalApplyUrl must be a valid absolute URI. Severity: Error
+   at JobRadar.Application.Behaviors.ValidationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\ValidationBehavior.cs:line 44
+   at JobRadar.Application.Behaviors.LoggingBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\LoggingBehavior.cs:line 33
+   at JobRadar.Api.Controllers.JobPostingsController.Create(CreateJobPostingCommand command, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\Controllers\JobPostingsController.cs:line 63
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2026-09-21 00:39:23.530 +03:00 [WRN] [c3a50ff42ae147d8969d44418a35491b] [8] JobRadar.Api.Middleware.GlobalExceptionMiddleware: Validation failed for request POST /api/job-postings
+FluentValidation.ValidationException: Validation failed: 
+ -- ExternalApplyUrl: ExternalApplyUrl must be a valid absolute URI. Severity: Error
+   at JobRadar.Application.Behaviors.ValidationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\ValidationBehavior.cs:line 44
+   at JobRadar.Application.Behaviors.LoggingBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\LoggingBehavior.cs:line 33
+   at JobRadar.Api.Controllers.JobPostingsController.Create(CreateJobPostingCommand command, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\Controllers\JobPostingsController.cs:line 63
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at JobRadar.Api.Middleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\Middleware\GlobalExceptionMiddleware.cs:line 39

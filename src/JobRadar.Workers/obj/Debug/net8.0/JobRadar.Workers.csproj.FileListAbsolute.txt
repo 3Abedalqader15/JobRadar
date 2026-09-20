@@ -92,3 +92,4 @@ C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Polly.Core.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\RabbitMQ.Client.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\WTelegramClient.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.Extensions.Http.dll

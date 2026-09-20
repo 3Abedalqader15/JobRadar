@@ -1,6 +1,7 @@
 using JobRadar.Application.Abstractions;
 using JobRadar.Infrastructure.Persistence;
 using JobRadar.Infrastructure.Persistence.Repositories;
+using JobRadar.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,16 @@ public static class DependencyInjection
 
         // ── Services ──────────────────────────────────────────────────────────
         services.AddScoped<IJobIngestionService, JobRadar.Infrastructure.Services.JobIngestionService>();
+
+        // ── Gemini AI Services ────────────────────────────────────────────────
+        // Named HttpClient used by both Gemini services
+        services.AddHttpClient("Gemini", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(60);
+        });
+
+        services.AddScoped<ILlmExtractionService, GeminiExtractionService>();
+        services.AddScoped<IEmbeddingService, GeminiEmbeddingService>();
 
         return services;
     }

@@ -17,16 +17,17 @@ try
 
     if (canConnect)
     {
-        Console.WriteLine("Fetching one job from the database...");
-        var job = await dbContext.Jobs.FirstOrDefaultAsync();
-        
-        if (job != null)
+        var source = await dbContext.Sources.FirstOrDefaultAsync();
+        if (source == null)
         {
-            Console.WriteLine($"Found job: {job.Title}");
+            source = Source.Create("LinkedIn Jobs", SourceType.RssFeed, "https://example.com/feed", null, 60);
+            dbContext.Sources.Add(source);
+            await dbContext.SaveChangesAsync();
+            Console.WriteLine($"Created new source: {source.Id} ({source.Name})");
         }
         else
         {
-            Console.WriteLine("No jobs found in the database. Schema is ready!");
+            Console.WriteLine($"Existing source found: {source.Id} ({source.Name})");
         }
     }
 }
