@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "hc4Fic7ou5o=",
+  "dgSpecHash": "5SEgLYLQBaI=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
+  "projectFilePath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Dell\\.nuget\\packages\\codehollow.feedreader\\1.2.6\\codehollow.feedreader.1.2.6.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\dapper\\2.0.123\\dapper.2.0.123.nupkg.sha512",
