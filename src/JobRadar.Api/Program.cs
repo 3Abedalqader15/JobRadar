@@ -1,7 +1,9 @@
 using JobRadar.Api.Middleware;
 using JobRadar.Application;
 using JobRadar.Infrastructure;
+using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,26 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Job aggregation and tracking API powered by pgvector semantic search."
     });
+});
+
+// ── Caching & Rate Limiting ─────────────────────────────────────────────────
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "JobRadar_";
+});
+
+var searchJobsPolicy = builder.Configuration.GetSection("RateLimiting:SearchJobsPolicy");
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("SearchJobsPolicy", opt =>
+    {
+        opt.PermitLimit = searchJobsPolicy.GetValue<int>("PermitLimit", 20);
+        opt.Window = TimeSpan.FromSeconds(searchJobsPolicy.GetValue<int>("WindowSeconds", 60));
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = searchJobsPolicy.GetValue<int>("QueueLimit", 5);
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
 // ── Build ──────────────────────────────────────────────────────────────────
@@ -54,6 +76,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 
 app.Run();

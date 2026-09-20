@@ -10,8 +10,8 @@ public abstract class Repository<TEntity, TId>
     where TEntity : Entity<TId>
     where TId : notnull
 {
-    protected readonly AppDbContext Context;
-    protected readonly DbSet<TEntity> DbSet;
+    protected AppDbContext Context { get; }
+    protected DbSet<TEntity> DbSet { get; }
 
     protected Repository(AppDbContext context)
     {

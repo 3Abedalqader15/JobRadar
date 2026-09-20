@@ -95,3 +95,6 @@ SELECT j.id, j.applicants_click_count, j.company_name, j.created_at, j.descripti
 FROM jobs AS j
 2026-09-21 00:54:37.754 +03:00 [INF] [3e47b28840b04b1d8dc9c1d31ce65851] [7] JobRadar.Application.Behaviors.LoggingBehavior: Handled GetJobPostingsQuery in 132ms
 2026-09-21 00:54:37.755 +03:00 [INF] [3e47b28840b04b1d8dc9c1d31ce65851] [7] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /api/job-postings responded 200 in 134.4335 ms
+2026-09-21 01:27:25.475 +03:00 [WRN] [] [6] Microsoft.AspNetCore.Server.Kestrel: As of ""2026-09-20T22:27:23.9738173+00:00"", the heartbeat has been running for ""00:00:03.5645617"" which is longer than ""00:00:01"". This could be caused by thread pool starvation.
+2026-09-21 01:30:55.966 +03:00 [WRN] [] [6] Microsoft.AspNetCore.Server.Kestrel: As of ""2026-09-20T22:30:55.9660854+00:00"", the heartbeat has been running for ""00:00:01.1650128"" which is longer than ""00:00:01"". This could be caused by thread pool starvation.
+2026-09-21 01:40:37.187 +03:00 [WRN] [] [6] Microsoft.AspNetCore.Server.Kestrel: As of ""2026-09-20T22:40:37.1669155+00:00"", the heartbeat has been running for ""00:00:01.8089805"" which is longer than ""00:00:01"". This could be caused by thread pool starvation.
