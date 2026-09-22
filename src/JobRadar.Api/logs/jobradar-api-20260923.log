@@ -1,0 +1,236 @@
+2026-09-23 00:34:56.461 +03:00 [WRN] [] [6] Microsoft.AspNetCore.Server.Kestrel: As of ""2026-09-22T21:34:56.4255434+00:00"", the heartbeat has been running for ""00:00:02.4248100"" which is longer than ""00:00:01"". This could be caused by thread pool starvation.
+2026-09-23 00:35:51.814 +03:00 [INF] [9024aaafc6c94f139a3afc35662e890a] [12] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/index.html responded 200 in 285.2204 ms
+2026-09-23 00:35:53.996 +03:00 [INF] [3d0694ca15b64ad5ad560dab1f6d61d3] [12] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/v1/swagger.json responded 200 in 346.6322 ms
+2026-09-23 00:36:08.482 +03:00 [WRN] [e50892a1d47644b88d05c6a57e1fa07e] [11] Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware: Failed to determine the https port for redirect.
+2026-09-23 00:36:08.678 +03:00 [INF] [e50892a1d47644b88d05c6a57e1fa07e] [11] JobRadar.Application.Behaviors.LoggingBehavior: Handling GetJobPostingsQuery {"Page":1,"PageSize":20,"SearchTerm":null,"$type":"GetJobPostingsQuery"}
+2026-09-23 00:36:20.682 +03:00 [INF] [e50892a1d47644b88d05c6a57e1fa07e] [11] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (199ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT j.id, j.applicants_click_count, j.company_name, j.created_at, j.description, j.embedding, j.employment_type, j.experience_level, j.expires_at, j.external_apply_url, j.is_active, j.is_remote, j.location, j.posted_at, j.raw_post_id, j.salary_currency, j.salary_max, j.salary_min, j.source_id, j.title, j.updated_at, j.views_count
+FROM jobs AS j
+2026-09-23 00:36:20.859 +03:00 [INF] [e50892a1d47644b88d05c6a57e1fa07e] [11] JobRadar.Application.Behaviors.LoggingBehavior: Handled GetJobPostingsQuery in 12172ms
+2026-09-23 00:36:20.987 +03:00 [INF] [e50892a1d47644b88d05c6a57e1fa07e] [11] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /api/job-postings responded 200 in 12516.9160 ms
+2026-09-23 00:38:57.296 +03:00 [INF] [67943a128d5649e6b8b5634dc7ffa4e8] [19] JobRadar.Application.Behaviors.LoggingBehavior: Handling SearchJobsQuery {"Query":"React frontend remote","Location":null,"EmploymentType":"Freelance","ExperienceLevel":"Senior","Page":1,"PageSize":20,"$type":"SearchJobsQuery"}
+2026-09-23 00:38:59.126 +03:00 [ERR] [67943a128d5649e6b8b5634dc7ffa4e8] [19] JobRadar.Application.Behaviors.LoggingBehavior: Error handling SearchJobsQuery after 1830ms
+System.InvalidOperationException: Missing configuration key: Gemini:ApiKey
+   at JobRadar.Infrastructure.Services.GeminiEmbeddingService..ctor(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger`1 logger) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Infrastructure\Services\GeminiEmbeddingService.cs:line 32
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeConstructorInfo.Invoke(BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSiteMain(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteRuntimeResolver.VisitCache(ServiceCallSite callSite, RuntimeResolverContext context, ServiceProviderEngineScope serviceProviderEngine, RuntimeResolverLock lockType)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSite(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSiteMain(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSite(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteRuntimeResolver.Resolve(ServiceCallSite callSite, ServiceProviderEngineScope scope)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.DynamicServiceProviderEngine.<>c__DisplayClass2_0.<RealizeService>b__0(ServiceProviderEngineScope scope)
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider.GetService(ServiceIdentifier serviceIdentifier, ServiceProviderEngineScope serviceProviderEngineScope)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.ServiceProviderEngineScope.GetService(Type serviceType)
+   at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)
+   at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)
+   at MediatR.Wrappers.RequestHandlerWrapperImpl`2.<>c__DisplayClass1_0.<Handle>g__Handler|0()
+   at JobRadar.Application.Behaviors.ValidationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\ValidationBehavior.cs:line 47
+   at JobRadar.Application.Behaviors.LoggingBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\LoggingBehavior.cs:line 33
+2026-09-23 00:38:59.262 +03:00 [ERR] [67943a128d5649e6b8b5634dc7ffa4e8] [19] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP POST /api/Jobs/search responded 500 in 2122.7322 ms
+System.InvalidOperationException: Missing configuration key: Gemini:ApiKey
+   at JobRadar.Infrastructure.Services.GeminiEmbeddingService..ctor(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger`1 logger) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Infrastructure\Services\GeminiEmbeddingService.cs:line 32
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeConstructorInfo.Invoke(BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSiteMain(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteRuntimeResolver.VisitCache(ServiceCallSite callSite, RuntimeResolverContext context, ServiceProviderEngineScope serviceProviderEngine, RuntimeResolverLock lockType)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSite(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSiteMain(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSite(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteRuntimeResolver.Resolve(ServiceCallSite callSite, ServiceProviderEngineScope scope)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.DynamicServiceProviderEngine.<>c__DisplayClass2_0.<RealizeService>b__0(ServiceProviderEngineScope scope)
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider.GetService(ServiceIdentifier serviceIdentifier, ServiceProviderEngineScope serviceProviderEngineScope)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.ServiceProviderEngineScope.GetService(Type serviceType)
+   at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)
+   at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)
+   at MediatR.Wrappers.RequestHandlerWrapperImpl`2.<>c__DisplayClass1_0.<Handle>g__Handler|0()
+   at JobRadar.Application.Behaviors.ValidationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\ValidationBehavior.cs:line 47
+   at JobRadar.Application.Behaviors.LoggingBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\LoggingBehavior.cs:line 33
+   at JobRadar.Api.Controllers.JobsController.Search(SearchJobsQuery query, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\Controllers\JobsController.cs:line 26
+   at lambda_method15(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2026-09-23 00:38:59.302 +03:00 [ERR] [67943a128d5649e6b8b5634dc7ffa4e8] [19] JobRadar.Api.Middleware.GlobalExceptionMiddleware: Unhandled exception for request POST /api/Jobs/search
+System.InvalidOperationException: Missing configuration key: Gemini:ApiKey
+   at JobRadar.Infrastructure.Services.GeminiEmbeddingService..ctor(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger`1 logger) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Infrastructure\Services\GeminiEmbeddingService.cs:line 32
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeConstructorInfo.Invoke(BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSiteMain(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteRuntimeResolver.VisitCache(ServiceCallSite callSite, RuntimeResolverContext context, ServiceProviderEngineScope serviceProviderEngine, RuntimeResolverLock lockType)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSite(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSiteMain(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteVisitor`2.VisitCallSite(ServiceCallSite callSite, TArgument argument)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.CallSiteRuntimeResolver.Resolve(ServiceCallSite callSite, ServiceProviderEngineScope scope)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.DynamicServiceProviderEngine.<>c__DisplayClass2_0.<RealizeService>b__0(ServiceProviderEngineScope scope)
+   at Microsoft.Extensions.DependencyInjection.ServiceProvider.GetService(ServiceIdentifier serviceIdentifier, ServiceProviderEngineScope serviceProviderEngineScope)
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.ServiceProviderEngineScope.GetService(Type serviceType)
+   at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)
+   at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)
+   at MediatR.Wrappers.RequestHandlerWrapperImpl`2.<>c__DisplayClass1_0.<Handle>g__Handler|0()
+   at JobRadar.Application.Behaviors.ValidationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\ValidationBehavior.cs:line 47
+   at JobRadar.Application.Behaviors.LoggingBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\LoggingBehavior.cs:line 33
+   at JobRadar.Api.Controllers.JobsController.Search(SearchJobsQuery query, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\Controllers\JobsController.cs:line 26
+   at lambda_method15(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at JobRadar.Api.Middleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\Middleware\GlobalExceptionMiddleware.cs:line 39
+2026-09-23 00:44:17.395 +03:00 [WRN] [] [6] Microsoft.AspNetCore.Server.Kestrel: As of ""2026-09-22T21:44:17.3754018+00:00"", the heartbeat has been running for ""00:00:01.5138708"" which is longer than ""00:00:01"". This could be caused by thread pool starvation.
+2026-09-23 00:44:17.956 +03:00 [INF] [8de53b29d3e948acaf9219518cb03e79] [7] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/index.html responded 200 in 508.3856 ms
+2026-09-23 00:44:19.545 +03:00 [INF] [381f08a628df4cab971327898c634a36] [7] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/v1/swagger.json responded 200 in 237.0889 ms
+2026-09-23 00:44:46.738 +03:00 [WRN] [28842d285f3d4a6aaabc33a34e8230a5] [7] Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware: Failed to determine the https port for redirect.
+2026-09-23 00:44:46.960 +03:00 [INF] [28842d285f3d4a6aaabc33a34e8230a5] [7] JobRadar.Application.Behaviors.LoggingBehavior: Handling SearchJobsQuery {"Query":"React frontend remote","Location":null,"EmploymentType":"Freelance","ExperienceLevel":"Senior","Page":1,"PageSize":20,"$type":"SearchJobsQuery"}
+2026-09-23 00:45:15.946 +03:00 [ERR] [28842d285f3d4a6aaabc33a34e8230a5] [9] JobRadar.Application.Behaviors.LoggingBehavior: Error handling SearchJobsQuery after 28978ms
+StackExchange.Redis.RedisConnectionException: The message timed out in the backlog attempting to send because no connection became available (5000ms) - Last Connection Exception: It was not possible to connect to the redis server(s). ConnectTimeout, command=HMGET, timeout: 5000, inst: 0, qu: 0, qs: 0, aw: False, bw: CheckingForTimeout, rs: NotStarted, ws: Initializing, in: 0, last-in: 0, cur-in: 0, sync-ops: 0, async-ops: 1, serverEndpoint: localhost:6379, conn-sec: n/a, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: DESKTOP-N5DBCBK(SE.Redis-v2.7.27.49176), IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=0,Free=32767,Min=4,Max=32767), POOL: (Threads=5,QueuedItems=0,CompletedItems=953,Timers=5), v: 2.7.27.49176 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts)
+ ---> StackExchange.Redis.RedisConnectionException: It was not possible to connect to the redis server(s). ConnectTimeout
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAndRefreshAsync(String key, Boolean getData, CancellationToken token)
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAsync(String key, CancellationToken token)
+   at Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetStringAsync(IDistributedCache cache, String key, CancellationToken token)
+   at JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler.Handle(SearchJobsQuery request, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Features\JobSearch\Queries\SearchJobsQuery.cs:line 64
+   at JobRadar.Application.Behaviors.ValidationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\ValidationBehavior.cs:line 47
+   at JobRadar.Application.Behaviors.LoggingBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\LoggingBehavior.cs:line 33
+2026-09-23 00:45:15.973 +03:00 [ERR] [28842d285f3d4a6aaabc33a34e8230a5] [9] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP POST /api/Jobs/search responded 500 in 29243.8204 ms
+StackExchange.Redis.RedisConnectionException: The message timed out in the backlog attempting to send because no connection became available (5000ms) - Last Connection Exception: It was not possible to connect to the redis server(s). ConnectTimeout, command=HMGET, timeout: 5000, inst: 0, qu: 0, qs: 0, aw: False, bw: CheckingForTimeout, rs: NotStarted, ws: Initializing, in: 0, last-in: 0, cur-in: 0, sync-ops: 0, async-ops: 1, serverEndpoint: localhost:6379, conn-sec: n/a, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: DESKTOP-N5DBCBK(SE.Redis-v2.7.27.49176), IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=0,Free=32767,Min=4,Max=32767), POOL: (Threads=5,QueuedItems=0,CompletedItems=953,Timers=5), v: 2.7.27.49176 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts)
+ ---> StackExchange.Redis.RedisConnectionException: It was not possible to connect to the redis server(s). ConnectTimeout
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAndRefreshAsync(String key, Boolean getData, CancellationToken token)
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAsync(String key, CancellationToken token)
+   at Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetStringAsync(IDistributedCache cache, String key, CancellationToken token)
+   at JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler.Handle(SearchJobsQuery request, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Features\JobSearch\Queries\SearchJobsQuery.cs:line 64
+   at JobRadar.Application.Behaviors.ValidationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\ValidationBehavior.cs:line 47
+   at JobRadar.Application.Behaviors.LoggingBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\LoggingBehavior.cs:line 33
+   at JobRadar.Api.Controllers.JobsController.Search(SearchJobsQuery query, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\Controllers\JobsController.cs:line 26
+   at lambda_method5(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2026-09-23 00:45:15.985 +03:00 [ERR] [28842d285f3d4a6aaabc33a34e8230a5] [9] JobRadar.Api.Middleware.GlobalExceptionMiddleware: Unhandled exception for request POST /api/Jobs/search
+StackExchange.Redis.RedisConnectionException: The message timed out in the backlog attempting to send because no connection became available (5000ms) - Last Connection Exception: It was not possible to connect to the redis server(s). ConnectTimeout, command=HMGET, timeout: 5000, inst: 0, qu: 0, qs: 0, aw: False, bw: CheckingForTimeout, rs: NotStarted, ws: Initializing, in: 0, last-in: 0, cur-in: 0, sync-ops: 0, async-ops: 1, serverEndpoint: localhost:6379, conn-sec: n/a, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: DESKTOP-N5DBCBK(SE.Redis-v2.7.27.49176), IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=0,Free=32767,Min=4,Max=32767), POOL: (Threads=5,QueuedItems=0,CompletedItems=953,Timers=5), v: 2.7.27.49176 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts)
+ ---> StackExchange.Redis.RedisConnectionException: It was not possible to connect to the redis server(s). ConnectTimeout
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAndRefreshAsync(String key, Boolean getData, CancellationToken token)
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAsync(String key, CancellationToken token)
+   at Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetStringAsync(IDistributedCache cache, String key, CancellationToken token)
+   at JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler.Handle(SearchJobsQuery request, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Features\JobSearch\Queries\SearchJobsQuery.cs:line 64
+   at JobRadar.Application.Behaviors.ValidationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\ValidationBehavior.cs:line 47
+   at JobRadar.Application.Behaviors.LoggingBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Behaviors\LoggingBehavior.cs:line 33
+   at JobRadar.Api.Controllers.JobsController.Search(SearchJobsQuery query, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\Controllers\JobsController.cs:line 26
+   at lambda_method5(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.RateLimiting.RateLimitingMiddleware.InvokeInternal(HttpContext context, EnableRateLimitingAttribute enableRateLimitingAttribute)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at JobRadar.Api.Middleware.GlobalExceptionMiddleware.InvokeAsync(HttpContext context) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\Middleware\GlobalExceptionMiddleware.cs:line 39
+2026-09-23 00:50:13.706 +03:00 [INF] [424058e7c7344d1cbd9cca61f8bdfcda] [8] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/index.html responded 200 in 872.5825 ms
+2026-09-23 00:50:15.876 +03:00 [INF] [17f8fe9e13254c1e9e8112828fa6456e] [8] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP GET /swagger/v1/swagger.json responded 200 in 589.8775 ms
+2026-09-23 00:50:49.518 +03:00 [WRN] [da73a1339427442294ed2788616685bd] [10] Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware: Failed to determine the https port for redirect.
+2026-09-23 00:50:49.998 +03:00 [INF] [da73a1339427442294ed2788616685bd] [10] JobRadar.Application.Behaviors.LoggingBehavior: Handling SearchJobsQuery {"Query":"React frontend remote","Location":null,"EmploymentType":"Freelance","ExperienceLevel":"Senior","Page":1,"PageSize":20,"$type":"SearchJobsQuery"}
+2026-09-23 00:51:12.222 +03:00 [WRN] [da73a1339427442294ed2788616685bd] [8] JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler: Redis unavailable — skipping results cache read for search:results:9D912D36BAAA152A08528F437E254BBD86F630FED7F5FF7EDD01233F818F49EF
+StackExchange.Redis.RedisConnectionException: The message timed out in the backlog attempting to send because no connection became available (5000ms) - Last Connection Exception: It was not possible to connect to the redis server(s). ConnectTimeout, command=HMGET, timeout: 5000, inst: 0, qu: 0, qs: 0, aw: False, bw: CheckingForTimeout, rs: NotStarted, ws: Idle, in: 0, last-in: 0, cur-in: 0, sync-ops: 0, async-ops: 1, serverEndpoint: localhost:6379, conn-sec: n/a, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: DESKTOP-N5DBCBK(SE.Redis-v2.7.27.49176), IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=0,Free=32767,Min=4,Max=32767), POOL: (Threads=5,QueuedItems=0,CompletedItems=1880,Timers=5), v: 2.7.27.49176 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts)
+ ---> StackExchange.Redis.RedisConnectionException: It was not possible to connect to the redis server(s). ConnectTimeout
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAndRefreshAsync(String key, Boolean getData, CancellationToken token)
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAsync(String key, CancellationToken token)
+   at Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetStringAsync(IDistributedCache cache, String key, CancellationToken token)
+   at JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler.Handle(SearchJobsQuery request, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Features\JobSearch\Queries\SearchJobsQuery.cs:line 65
+2026-09-23 00:51:12.354 +03:00 [INF] [da73a1339427442294ed2788616685bd] [8] JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler: Cache miss for SearchJobsQuery search:results:9D912D36BAAA152A08528F437E254BBD86F630FED7F5FF7EDD01233F818F49EF
+2026-09-23 00:51:18.199 +03:00 [WRN] [da73a1339427442294ed2788616685bd] [11] JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler: Redis unavailable — skipping embedding cache read for query 'react frontend remote'
+StackExchange.Redis.RedisConnectionException: The message timed out in the backlog attempting to send because no connection became available (5000ms) - Last Connection Exception: It was not possible to connect to the redis server(s). ConnectTimeout, command=HMGET, timeout: 5000, inst: 0, qu: 0, qs: 0, aw: False, bw: CheckingForTimeout, rs: NotStarted, ws: Idle, in: 0, last-in: 0, cur-in: 0, sync-ops: 0, async-ops: 2, serverEndpoint: localhost:6379, conn-sec: n/a, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: DESKTOP-N5DBCBK(SE.Redis-v2.7.27.49176), IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=1,Free=32766,Min=4,Max=32767), POOL: (Threads=5,QueuedItems=0,CompletedItems=1982,Timers=5), v: 2.7.27.49176 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts)
+ ---> StackExchange.Redis.RedisConnectionException: It was not possible to connect to the redis server(s). ConnectTimeout
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAndRefreshAsync(String key, Boolean getData, CancellationToken token)
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAsync(String key, CancellationToken token)
+   at Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetStringAsync(IDistributedCache cache, String key, CancellationToken token)
+   at JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler.Handle(SearchJobsQuery request, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Features\JobSearch\Queries\SearchJobsQuery.cs:line 89
+2026-09-23 00:51:18.200 +03:00 [INF] [da73a1339427442294ed2788616685bd] [11] JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler: Embedding cache miss for query 'react frontend remote'
+2026-09-23 00:51:27.201 +03:00 [WRN] [da73a1339427442294ed2788616685bd] [26] JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler: Redis unavailable — skipping embedding cache write for query 'react frontend remote'
+StackExchange.Redis.RedisConnectionException: The message timed out in the backlog attempting to send because no connection became available (5000ms) - Last Connection Exception: It was not possible to connect to the redis server(s). ConnectTimeout, command=HMSET, timeout: 5000, inst: 0, qu: 1, qs: 0, aw: False, bw: CheckingForTimeout, rs: NotStarted, ws: Idle, in: 0, last-in: 0, cur-in: 0, sync-ops: 0, async-ops: 4, serverEndpoint: localhost:6379, conn-sec: n/a, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: DESKTOP-N5DBCBK(SE.Redis-v2.7.27.49176), IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=0,Free=32767,Min=4,Max=32767), POOL: (Threads=5,QueuedItems=0,CompletedItems=2117,Timers=8), v: 2.7.27.49176 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts)
+ ---> StackExchange.Redis.RedisConnectionException: It was not possible to connect to the redis server(s). ConnectTimeout
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.SetImplAsync(String key, ReadOnlySequence`1 value, DistributedCacheEntryOptions options, CancellationToken token)
+   at JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler.Handle(SearchJobsQuery request, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Features\JobSearch\Queries\SearchJobsQuery.cs:line 108
+2026-09-23 00:51:37.113 +03:00 [INF] [da73a1339427442294ed2788616685bd] [8] Microsoft.EntityFrameworkCore.Database.Command: Executed DbCommand (2,710ms) [Parameters=[@__empType_Value_0='?', @__expLevel_Value_1='?'], CommandType='"Text"', CommandTimeout='30']
+SELECT count(*)::int
+FROM jobs AS j
+WHERE j.is_active AND j.embedding IS NOT NULL AND j.employment_type = @__empType_Value_0 AND j.experience_level = @__expLevel_Value_1
+2026-09-23 00:51:43.201 +03:00 [WRN] [da73a1339427442294ed2788616685bd] [12] JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler: Redis unavailable — skipping results cache write for search:results:9D912D36BAAA152A08528F437E254BBD86F630FED7F5FF7EDD01233F818F49EF
+StackExchange.Redis.RedisConnectionException: The message timed out in the backlog attempting to send because no connection became available (5000ms) - Last Connection Exception: It was not possible to connect to the redis server(s). ConnectTimeout, command=HMSET, timeout: 5000, inst: 0, qu: 1, qs: 0, aw: False, bw: CheckingForTimeout, rs: NotStarted, ws: Initializing, in: 0, last-in: 0, cur-in: 0, sync-ops: 0, async-ops: 6, serverEndpoint: localhost:6379, conn-sec: n/a, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: DESKTOP-N5DBCBK(SE.Redis-v2.7.27.49176), IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=2,Free=32765,Min=4,Max=32767), POOL: (Threads=5,QueuedItems=0,CompletedItems=2373,Timers=9), v: 2.7.27.49176 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts)
+ ---> StackExchange.Redis.RedisConnectionException: It was not possible to connect to the redis server(s). ConnectTimeout
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.SetImplAsync(String key, ReadOnlySequence`1 value, DistributedCacheEntryOptions options, CancellationToken token)
+   at JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler.Handle(SearchJobsQuery request, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Features\JobSearch\Queries\SearchJobsQuery.cs:line 159
+2026-09-23 00:51:43.203 +03:00 [INF] [da73a1339427442294ed2788616685bd] [12] JobRadar.Application.Behaviors.LoggingBehavior: Handled SearchJobsQuery in 53198ms
+2026-09-23 00:51:44.572 +03:00 [INF] [da73a1339427442294ed2788616685bd] [12] Serilog.AspNetCore.RequestLoggingMiddleware: HTTP POST /api/Jobs/search responded 200 in 55071.6999 ms
+2026-09-23 00:52:18.091 +03:00 [INF] [1d2b9523f11f4a52a767698f1044a251] [12] JobRadar.Application.Behaviors.LoggingBehavior: Handling SearchJobsQuery {"Query":"بrontend remote","Location":null,"EmploymentType":"Freelance","ExperienceLevel":"Senior","Page":1,"PageSize":20,"$type":"SearchJobsQuery"}
+2026-09-23 00:52:24.197 +03:00 [WRN] [1d2b9523f11f4a52a767698f1044a251] [27] JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler: Redis unavailable — skipping results cache read for search:results:2A47A17FF97065417AF252225EED058AA68B3D1B17B0A3DCCE5D56F2AFD92555
+StackExchange.Redis.RedisConnectionException: The message timed out in the backlog attempting to send because no connection became available (5000ms) - Last Connection Exception: It was not possible to connect to the redis server(s). ConnectTimeout, command=HMGET, timeout: 5000, inst: 0, qu: 0, qs: 0, aw: False, bw: CheckingForTimeout, rs: NotStarted, ws: Initializing, in: 0, last-in: 0, cur-in: 0, sync-ops: 0, async-ops: 7, serverEndpoint: localhost:6379, conn-sec: n/a, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: DESKTOP-N5DBCBK(SE.Redis-v2.7.27.49176), IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=2,Free=32765,Min=4,Max=32767), POOL: (Threads=5,QueuedItems=1,CompletedItems=3049,Timers=9), v: 2.7.27.49176 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts)
+ ---> StackExchange.Redis.RedisConnectionException: It was not possible to connect to the redis server(s). ConnectTimeout
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAndRefreshAsync(String key, Boolean getData, CancellationToken token)
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAsync(String key, CancellationToken token)
+   at Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetStringAsync(IDistributedCache cache, String key, CancellationToken token)
+   at JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler.Handle(SearchJobsQuery request, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Features\JobSearch\Queries\SearchJobsQuery.cs:line 65
+2026-09-23 00:52:24.198 +03:00 [INF] [1d2b9523f11f4a52a767698f1044a251] [27] JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler: Cache miss for SearchJobsQuery search:results:2A47A17FF97065417AF252225EED058AA68B3D1B17B0A3DCCE5D56F2AFD92555
+2026-09-23 00:52:29.195 +03:00 [WRN] [1d2b9523f11f4a52a767698f1044a251] [12] JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler: Redis unavailable — skipping embedding cache read for query 'بrontend remote'
+StackExchange.Redis.RedisConnectionException: The message timed out in the backlog attempting to send because no connection became available (5000ms) - Last Connection Exception: It was not possible to connect to the redis server(s). ConnectTimeout, command=HMGET, timeout: 5000, inst: 0, qu: 0, qs: 0, aw: False, bw: CheckingForTimeout, rs: NotStarted, ws: Idle, in: 0, last-in: 0, cur-in: 0, sync-ops: 0, async-ops: 8, serverEndpoint: localhost:6379, conn-sec: n/a, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: DESKTOP-N5DBCBK(SE.Redis-v2.7.27.49176), IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=0,Free=32767,Min=4,Max=32767), POOL: (Threads=5,QueuedItems=0,CompletedItems=3132,Timers=9), v: 2.7.27.49176 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts)
+ ---> StackExchange.Redis.RedisConnectionException: It was not possible to connect to the redis server(s). ConnectTimeout
+   --- End of inner exception stack trace ---
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAndRefreshAsync(String key, Boolean getData, CancellationToken token)
+   at Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache.GetAsync(String key, CancellationToken token)
+   at Microsoft.Extensions.Caching.Distributed.DistributedCacheExtensions.GetStringAsync(IDistributedCache cache, String key, CancellationToken token)
+   at JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler.Handle(SearchJobsQuery request, CancellationToken cancellationToken) in C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Application\Features\JobSearch\Queries\SearchJobsQuery.cs:line 89
+2026-09-23 00:52:29.196 +03:00 [INF] [1d2b9523f11f4a52a767698f1044a251] [12] JobRadar.Application.Features.JobSearch.Queries.SearchJobsQueryHandler: Embedding cache miss for query 'بrontend remote'

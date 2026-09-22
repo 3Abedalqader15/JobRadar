@@ -55,32 +55,44 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
             page = request.Page,
             pageSize = request.PageSize
         };
-        
+
         var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(cacheKeyParams, _jsonOptions);
-        
         string resultsCacheKey = "search:results:" + Convert.ToHexString(SHA256.HashData(jsonBytes));
 
-        // 2. Check Results Cache (5 min TTL)
-        var cachedResults = await _cache.GetStringAsync(resultsCacheKey, cancellationToken);
-        if (!string.IsNullOrEmpty(cachedResults))
+        // 2. Check Results Cache (5 min TTL) — Redis is optional; failures are non-fatal
+        try
         {
-            _logger.LogInformation("Cache hit for SearchJobsQuery {CacheKey}", resultsCacheKey);
-            var parsed = JsonSerializer.Deserialize<PagedResult<JobSearchResultDto>>(cachedResults);
-            if (parsed != null)
+            var cachedResults = await _cache.GetStringAsync(resultsCacheKey, cancellationToken);
+            if (!string.IsNullOrEmpty(cachedResults))
             {
-                return parsed;
+                _logger.LogInformation("Cache hit for SearchJobsQuery {CacheKey}", resultsCacheKey);
+                var parsed = JsonSerializer.Deserialize<PagedResult<JobSearchResultDto>>(cachedResults);
+                if (parsed != null) return parsed;
             }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable — skipping results cache read for {CacheKey}", resultsCacheKey);
         }
 
         _logger.LogInformation("Cache miss for SearchJobsQuery {CacheKey}", resultsCacheKey);
 
-        // 3. Check Embedding Cache (1 hr TTL) using query text only
+        // 3. Check Embedding Cache (1 hr TTL) — Redis is optional
         string normalizedQuery = request.Query.Trim().ToLowerInvariant();
         string embeddingCacheKey = "search:embedding:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalizedQuery)));
-        
+
         float[] queryEmbedding;
-        var cachedEmbedding = await _cache.GetStringAsync(embeddingCacheKey, cancellationToken);
-        
+        string? cachedEmbedding = null;
+
+        try
+        {
+            cachedEmbedding = await _cache.GetStringAsync(embeddingCacheKey, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable — skipping embedding cache read for query '{Query}'", normalizedQuery);
+        }
+
         if (!string.IsNullOrEmpty(cachedEmbedding))
         {
             _logger.LogInformation("Embedding cache hit for query '{Query}'", normalizedQuery);
@@ -90,23 +102,29 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
         {
             _logger.LogInformation("Embedding cache miss for query '{Query}'", normalizedQuery);
             queryEmbedding = await _embeddingService.GenerateAsync(request.Query, cancellationToken);
-            
-            // Save to embedding cache for 1 hour
-            await _cache.SetStringAsync(
-                embeddingCacheKey, 
-                JsonSerializer.Serialize(queryEmbedding), 
-                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1) },
-                cancellationToken);
+
+            try
+            {
+                await _cache.SetStringAsync(
+                    embeddingCacheKey,
+                    JsonSerializer.Serialize(queryEmbedding),
+                    new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1) },
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Redis unavailable — skipping embedding cache write for query '{Query}'", normalizedQuery);
+            }
         }
 
         // 4. Run Semantic Hybrid Search in Repository
         var (jobs, scores, totalCount) = await _jobRepository.SearchSemanticAsync(
-            queryEmbedding, 
-            request.Location, 
-            request.EmploymentType, 
-            request.ExperienceLevel, 
-            request.Page, 
-            request.PageSize, 
+            queryEmbedding,
+            request.Location,
+            request.EmploymentType,
+            request.ExperienceLevel,
+            request.Page,
+            request.PageSize,
             cancellationToken);
 
         // 5. Map results
@@ -135,12 +153,19 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
             PageSize = request.PageSize
         };
 
-        // 6. Save to Results Cache (5 min TTL)
-        await _cache.SetStringAsync(
-            resultsCacheKey, 
-            JsonSerializer.Serialize(result), 
-            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5) },
-            cancellationToken);
+        // 6. Save to Results Cache (5 min TTL) — Redis is optional
+        try
+        {
+            await _cache.SetStringAsync(
+                resultsCacheKey,
+                JsonSerializer.Serialize(result),
+                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5) },
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis unavailable — skipping results cache write for {CacheKey}", resultsCacheKey);
+        }
 
         return result;
     }
