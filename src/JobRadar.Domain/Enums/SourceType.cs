@@ -5,5 +5,6 @@ public enum SourceType
     TelegramChannel = 0,
     RssFeed = 1,
     CompanyCareersPage = 2,
-    ManualShare = 3
+    ManualShare = 3,
+    LinkedIn = 4
 }

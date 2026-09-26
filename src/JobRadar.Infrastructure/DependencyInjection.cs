@@ -35,6 +35,9 @@ public static class DependencyInjection
 
         // ── Services ──────────────────────────────────────────────────────────
         services.AddScoped<IJobIngestionService, JobRadar.Infrastructure.Services.JobIngestionService>();
+        
+        // ── Caching ──────────────────────────────────────────────────────────
+        services.AddDistributedMemoryCache();
 
         // ── Gemini AI Services ────────────────────────────────────────────────
         // Named HttpClient used by both Gemini services

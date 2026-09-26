@@ -14,6 +14,7 @@ public class FetchSourceJob
     private readonly AppDbContext _dbContext;
     private readonly Services.RssFeedFetcher _rssFetcher;
     private readonly Services.TelegramFetcher _telegramFetcher;
+    private readonly Services.LinkedInScraper _linkedInScraper;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<FetchSourceJob> _logger;
 
@@ -21,12 +22,14 @@ public class FetchSourceJob
         AppDbContext dbContext,
         Services.RssFeedFetcher rssFetcher,
         Services.TelegramFetcher telegramFetcher,
+        Services.LinkedInScraper linkedInScraper,
         IPublishEndpoint publishEndpoint,
         ILogger<FetchSourceJob> logger)
     {
         _dbContext = dbContext;
         _rssFetcher = rssFetcher;
         _telegramFetcher = telegramFetcher;
+        _linkedInScraper = linkedInScraper;
         _publishEndpoint = publishEndpoint;
         _logger = logger;
     }
@@ -52,6 +55,9 @@ public class FetchSourceJob
                     break;
                 case SourceType.TelegramChannel:
                     await ProcessTelegramChannelAsync(source);
+                    break;
+                case SourceType.LinkedIn:
+                    await ProcessLinkedInAsync(source);
                     break;
                 default:
                     _logger.LogWarning("Source {SourceId} has unsupported type {Type}. Skipping.", sourceId, source.Type);
@@ -108,6 +114,37 @@ public class FetchSourceJob
             if (!exists)
             {
                 var rawPost = RawPost.Create(source.Id, msg.Content, rawUrl);
+                _dbContext.RawPosts.Add(rawPost);
+                
+                await _dbContext.SaveChangesAsync();
+                
+                await _publishEndpoint.Publish(new RawPostCreatedEvent(
+                    RawPostId: rawPost.Id,
+                    SourceId: source.Id,
+                    RawUrl: rawPost.RawUrl,
+                    FetchedAt: rawPost.FetchedAt
+                ));
+            }
+        }
+    }
+
+    private async Task ProcessLinkedInAsync(Source source)
+    {
+        // source.Url format for linkedin search can be just a keyword, e.g. "Software Engineer"
+        var keyword = source.Url;
+        var location = "Worldwide"; // Default location, or parse from a configuration/JSON if Source is updated
+        
+        var jobs = await _linkedInScraper.FetchJobsAsync(keyword, location);
+        
+        foreach (var job in jobs)
+        {
+            var exists = await _dbContext.RawPosts.AnyAsync(p => p.SourceId == source.Id && p.RawUrl == job.Url);
+            
+            if (!exists)
+            {
+                // We combine the title and company into the content so Gemini can extract it correctly.
+                var content = $"Title: {job.Title}\nCompany: {job.Company}\nLocation: {job.Location}\nURL: {job.Url}";
+                var rawPost = RawPost.Create(source.Id, content, job.Url);
                 _dbContext.RawPosts.Add(rawPost);
                 
                 await _dbContext.SaveChangesAsync();

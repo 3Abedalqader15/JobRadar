@@ -396,6 +396,10 @@
               "target": "Package",
               "version": "[8.0.1, )"
             },
+            "Microsoft.Playwright": {
+              "target": "Package",
+              "version": "[1.63.0, )"
+            },
             "Polly": {
               "target": "Package",
               "version": "[8.8.0, )"

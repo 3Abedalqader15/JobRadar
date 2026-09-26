@@ -12,6 +12,15 @@ builder.Host.UseSerilog((ctx, lc) =>
     lc.ReadFrom.Configuration(ctx.Configuration));
 
 // ── Services ───────────────────────────────────────────────────────────────
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazor", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -28,11 +37,11 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ── Caching & Rate Limiting ─────────────────────────────────────────────────
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    options.InstanceName = "JobRadar_";
-});
+// builder.Services.AddStackExchangeRedisCache(options =>
+// {
+//     options.Configuration = builder.Configuration.GetConnectionString("Redis");
+//     options.InstanceName = "JobRadar_";
+// });
 
 var searchJobsPolicy = builder.Configuration.GetSection("RateLimiting:SearchJobsPolicy");
 builder.Services.AddRateLimiter(options =>
@@ -73,8 +82,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobRadar API v1"));
 }
-
 app.UseHttpsRedirection();
+app.UseCors("AllowBlazor");
 app.UseAuthorization();
 app.UseRateLimiter();
 app.MapControllers();

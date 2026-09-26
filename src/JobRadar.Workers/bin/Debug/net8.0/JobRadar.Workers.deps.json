@@ -16,6 +16,7 @@
           "JobRadar.Infrastructure": "1.0.0",
           "MassTransit.RabbitMQ": "8.3.6",
           "Microsoft.Extensions.Hosting": "8.0.1",
+          "Microsoft.Playwright": "1.63.0",
           "Polly": "8.8.0",
           "Serilog.Enrichers.Environment": "3.0.0",
           "Serilog.Enrichers.Thread": "4.0.0",
@@ -210,6 +211,14 @@
           "lib/netstandard2.0/MediatR.Contracts.dll": {
             "assemblyVersion": "2.0.1.0",
             "fileVersion": "2.0.1.0"
+          }
+        }
+      },
+      "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
+        "runtime": {
+          "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
+            "assemblyVersion": "6.0.0.0",
+            "fileVersion": "6.0.21.52210"
           }
         }
       },
@@ -504,6 +513,17 @@
           "lib/net8.0/Microsoft.Extensions.Options.dll": {
             "assemblyVersion": "8.0.0.0",
             "fileVersion": "8.0.224.6711"
+          }
+        }
+      },
+      "Microsoft.Playwright/1.63.0": {
+        "dependencies": {
+          "Microsoft.Bcl.AsyncInterfaces": "6.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Playwright.dll": {
+            "assemblyVersion": "1.63.0.0",
+            "fileVersion": "1.63.0.0"
           }
         }
       },
@@ -858,6 +878,13 @@
       "path": "mediatr.contracts/2.0.1",
       "hashPath": "mediatr.contracts.2.0.1.nupkg.sha512"
     },
+    "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-UcSjPsst+DfAdJGVDsu346FX0ci0ah+lw3WRtn18NUwEqRt70HaOQ7lI72vy3+1LxtqI3T5GWwV39rQSrCzAeg==",
+      "path": "microsoft.bcl.asyncinterfaces/6.0.0",
+      "hashPath": "microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512"
+    },
     "Microsoft.EntityFrameworkCore/8.0.13": {
       "type": "package",
       "serviceable": true,
@@ -1025,6 +1052,13 @@
       "sha512": "sha512-dWGKvhFybsaZpGmzkGCbNNwBD1rVlWzrZKANLW/CcbFJpCEceMCGzT7zZwHOGBCbwM0SzBuceMj5HN1LKV1QqA==",
       "path": "microsoft.extensions.options/8.0.2",
       "hashPath": "microsoft.extensions.options.8.0.2.nupkg.sha512"
+    },
+    "Microsoft.Playwright/1.63.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-O9F45Tt5vjauIo7mTTgQtahigL7cfRLvBMpErLJfdvgCnQ14yue5BmRASNnfNBWRBni4Mqp2YiD1eFGIO4nUUw==",
+      "path": "microsoft.playwright/1.63.0",
+      "hashPath": "microsoft.playwright.1.63.0.nupkg.sha512"
     },
     "Newtonsoft.Json/11.0.1": {
       "type": "package",

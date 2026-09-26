@@ -1,0 +1,127 @@
+@page "/"
+@using JobRadar.Application.Features.JobSearch.Queries
+@using JobRadar.Application.Models
+@using JobRadar.Domain.Enums
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<PageTitle>JobRadar | Discover Remote Jobs</PageTitle>
+
+<div class="container py-5 animate-fade-in">
+    <h1 class="page-title display-4 fw-bold">Find Your Next Big Opportunity</h1>
+    <p class="text-center text-muted-premium mb-5 fs-5">Powered by Vector Semantic Search & Gemini AI</p>
+
+    <div class="glass-card mb-5">
+        <div class="row g-3">
+            <div class="col-md-7">
+                <input type="text" class="form-control form-premium" placeholder="e.g. Senior Frontend Developer with React..." @bind="searchQuery" @bind:event="oninput" @onkeyup="HandleKeyUp" />
+            </div>
+            <div class="col-md-3">
+                <select class="form-select form-premium" @bind="employmentType">
+                    <option value="">Any Employment Type</option>
+                    <option value="0">Full Time</option>
+                    <option value="1">Part Time</option>
+                    <option value="2">Freelance</option>
+                    <option value="4">Contract</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-premium w-100" @onclick="SearchJobs" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    }
+                    Search AI
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (searchResults != null)
+    {
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold m-0">Found @searchResults.TotalCount Matches</h4>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var job in searchResults.Items)
+            {
+                <div class="col-12 animate-fade-in">
+                    <div class="glass-card d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="fw-bold mb-1">@job.Title</h4>
+                            <div class="text-muted-premium mb-2 fs-5">@job.CompanyName</div>
+                            <div class="d-flex gap-2">
+                                @if (job.IsRemote)
+                                {
+                                    <span class="badge-premium">🌎 Remote</span>
+                                }
+                                @if (!string.IsNullOrEmpty(job.Location))
+                                {
+                                    <span class="badge-premium">📍 @job.Location</span>
+                                }
+                                <span class="badge-premium">💼 @job.EmploymentType.ToString()</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="score-badge mb-3">AI Match: @((1 - job.RelevanceScore).ToString("P1"))</div>
+                            <button class="btn btn-premium btn-sm w-100">Apply Now</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string searchQuery = "مطور واجهات عن بعد";
+    private int? employmentType = null;
+    private bool isLoading = false;
+    private PagedResult<JobSearchResultDto>? searchResults;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Do an initial search on load
+        await SearchJobs();
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchJobs();
+        }
+    }
+
+    private async Task SearchJobs()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery)) return;
+
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var query = new SearchJobsQuery(
+                Query: searchQuery,
+                EmploymentType: employmentType.HasValue ? (EmploymentType)employmentType.Value : null
+            );
+
+            var response = await Http.PostAsJsonAsync("api/jobs/search", query);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                searchResults = await response.Content.ReadFromJsonAsync<PagedResult<JobSearchResultDto>>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

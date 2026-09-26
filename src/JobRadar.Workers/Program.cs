@@ -77,6 +77,7 @@ builder.ConfigureServices((ctx, services) =>
     
     services.AddScoped<RssFeedFetcher>();
     services.AddScoped<TelegramFetcher>();
+    services.AddScoped<LinkedInScraper>();
     services.AddScoped<FetchSourceJob>();
     services.AddScoped<IngestionDispatcherJob>();
 });
