@@ -1,0 +1,28 @@
+## .NET / C# Build Artifacts
+bin/
+obj/
+*.user
+*.suo
+*.vs/
+.vs/
+
+## Sensitive Configuration Files
+**/appsettings.Development.json
+**/appsettings.*.json
+!**/appsettings.json
+
+## NuGet
+*.nupkg
+packages/
+.nuget/
+
+## Publish Profiles
+PublishProfiles/
+
+## User-specific files
+*.rsuser
+*.userosscache
+*.sln.docstates
+
+## Logs
+*.log
