@@ -76,6 +76,10 @@
               "target": "Package",
               "version": "[8.0.0, )"
             },
+            "Microsoft.Extensions.Configuration.Abstractions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
             "Microsoft.Extensions.DependencyInjection.Abstractions": {
               "target": "Package",
               "version": "[8.0.2, )"
@@ -230,7 +234,15 @@
           "framework": "net8.0",
           "targetAlias": "net8.0",
           "dependencies": {
+            "CodeHollow.FeedReader": {
+              "target": "Package",
+              "version": "[1.2.6, )"
+            },
             "MassTransit": {
+              "target": "Package",
+              "version": "[8.3.6, )"
+            },
+            "MassTransit.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.3.6, )"
             },
@@ -295,6 +307,10 @@
             "Serilog.Sinks.File": {
               "target": "Package",
               "version": "[6.0.0, )"
+            },
+            "WTelegramClient": {
+              "target": "Package",
+              "version": "[4.4.9, )"
             }
           },
           "imports": [
@@ -430,7 +446,7 @@
             },
             "WTelegramClient": {
               "target": "Package",
-              "version": "[4.4.8, )"
+              "version": "[4.4.9, )"
             }
           },
           "imports": [

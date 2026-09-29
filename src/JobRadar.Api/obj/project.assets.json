@@ -2,6 +2,19 @@
   "version": 4,
   "targets": {
     "net8.0": {
+      "CodeHollow.FeedReader/1.2.6": {
+        "type": "package",
+        "compile": {
+          "lib/netcoreapp2.1/CodeHollow.FeedReader.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netcoreapp2.1/CodeHollow.FeedReader.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "FluentValidation/11.12.0": {
         "type": "package",
         "compile": {
@@ -75,6 +88,24 @@
         },
         "runtime": {
           "lib/net8.0/MassTransit.Abstractions.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "MassTransit.EntityFrameworkCore/8.3.6": {
+        "type": "package",
+        "dependencies": {
+          "MassTransit": "8.3.6",
+          "Microsoft.EntityFrameworkCore.Relational": "8.0.0",
+          "Microsoft.Extensions.Caching.Memory": "8.0.1"
+        },
+        "compile": {
+          "lib/net8.0/MassTransit.EntityFrameworkCoreIntegration.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/MassTransit.EntityFrameworkCoreIntegration.dll": {
             "related": ".xml"
           }
         }
@@ -1533,6 +1564,19 @@
           "buildTransitive/netcoreapp3.1/_._": {}
         }
       },
+      "WTelegramClient/4.4.9": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/WTelegramClient.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/WTelegramClient.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "JobRadar.Application/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
@@ -1543,6 +1587,7 @@
           "MassTransit.Abstractions": "8.3.6",
           "MediatR": "12.4.1",
           "Microsoft.Extensions.Caching.Abstractions": "8.0.0",
+          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
           "Microsoft.Extensions.Logging.Abstractions": "8.0.3"
         },
@@ -1570,8 +1615,10 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
+          "CodeHollow.FeedReader": "1.2.6",
           "JobRadar.Application": "1.0.0",
           "MassTransit": "8.3.6",
+          "MassTransit.EntityFrameworkCore": "8.3.6",
           "Microsoft.EntityFrameworkCore": "8.0.13",
           "Microsoft.EntityFrameworkCore.Relational": "8.0.13",
           "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
@@ -1585,7 +1632,8 @@
           "Serilog.Enrichers.Thread": "4.0.0",
           "Serilog.Extensions.Hosting": "8.0.0",
           "Serilog.Sinks.Console": "6.0.0",
-          "Serilog.Sinks.File": "6.0.0"
+          "Serilog.Sinks.File": "6.0.0",
+          "WTelegramClient": "4.4.9"
         },
         "compile": {
           "bin/placeholder/JobRadar.Infrastructure.dll": {}
@@ -1597,6 +1645,25 @@
     }
   },
   "libraries": {
+    "CodeHollow.FeedReader/1.2.6": {
+      "sha512": "KpnP1zlX5zk58PUrREYUXC/7gk8ljjS8mkPfmFeuofaJlHJm62990cZdWLiMBuwWhV/HA6NAu9Ck5uM7GOJl0A==",
+      "type": "package",
+      "path": "codehollow.feedreader/1.2.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.MD",
+        "codehollow.feedreader.1.2.6.nupkg.sha512",
+        "codehollow.feedreader.nuspec",
+        "icon.png",
+        "lib/net452/CodeHollow.FeedReader.dll",
+        "lib/netcoreapp2.1/CodeHollow.FeedReader.dll",
+        "lib/netcoreapp2.1/CodeHollow.FeedReader.xml",
+        "lib/netstandard1.3/CodeHollow.FeedReader.dll",
+        "lib/netstandard1.3/CodeHollow.FeedReader.xml"
+      ]
+    },
     "FluentValidation/11.12.0": {
       "sha512": "Wim3rI1nGZKO5S/lgJ0ZpD3W/uu1CECoJ8pETzC8av34ejr+jCDr4paKhSJRG0Ltcv8UjdxtYCynG+RUEfEUDA==",
       "type": "package",
@@ -1696,6 +1763,23 @@
         "lib/netstandard2.0/MassTransit.Abstractions.xml",
         "masstransit.abstractions.8.3.6.nupkg.sha512",
         "masstransit.abstractions.nuspec",
+        "mt-logo-small.png"
+      ]
+    },
+    "MassTransit.EntityFrameworkCore/8.3.6": {
+      "sha512": "qZtWIzd/cFosHiL5eKsk3DUZUH6w0/PBrRxjjyDK4SKUWE9WrdCvz59ocJVCQ8QQHeJYATLnFlEJ1Oshw1AbCw==",
+      "type": "package",
+      "path": "masstransit.entityframeworkcore/8.3.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "NuGet.README.md",
+        "lib/net8.0/MassTransit.EntityFrameworkCoreIntegration.dll",
+        "lib/net8.0/MassTransit.EntityFrameworkCoreIntegration.xml",
+        "lib/net9.0/MassTransit.EntityFrameworkCoreIntegration.dll",
+        "lib/net9.0/MassTransit.EntityFrameworkCoreIntegration.xml",
+        "masstransit.entityframeworkcore.8.3.6.nupkg.sha512",
+        "masstransit.entityframeworkcore.nuspec",
         "mt-logo-small.png"
       ]
     },
@@ -4067,6 +4151,25 @@
         "system.threading.channels.6.0.0.nupkg.sha512",
         "system.threading.channels.nuspec",
         "useSharedDesignerContext.txt"
+      ]
+    },
+    "WTelegramClient/4.4.9": {
+      "sha512": "K4xOqTx8J9/g/Qzwk4YHxcMnO3CrL5ascHW3Ka/TZcGK5hryAKUOW/e2SzoU/ilqXBV//Hn9RXW2wmn+OcRoXA==",
+      "type": "package",
+      "path": "wtelegramclient/4.4.9",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net5.0/WTelegramClient.dll",
+        "lib/net5.0/WTelegramClient.xml",
+        "lib/net8.0/WTelegramClient.dll",
+        "lib/net8.0/WTelegramClient.xml",
+        "lib/netstandard2.0/WTelegramClient.dll",
+        "lib/netstandard2.0/WTelegramClient.xml",
+        "logo.png",
+        "wtelegramclient.4.4.9.nupkg.sha512",
+        "wtelegramclient.nuspec"
       ]
     },
     "JobRadar.Application/1.0.0": {

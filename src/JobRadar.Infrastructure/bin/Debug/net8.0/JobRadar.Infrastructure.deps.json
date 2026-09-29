@@ -8,8 +8,10 @@
     ".NETCoreApp,Version=v8.0": {
       "JobRadar.Infrastructure/1.0.0": {
         "dependencies": {
+          "CodeHollow.FeedReader": "1.2.6",
           "JobRadar.Application": "1.0.0",
           "MassTransit": "8.3.6",
+          "MassTransit.EntityFrameworkCore": "8.3.6",
           "Microsoft.EntityFrameworkCore": "8.0.13",
           "Microsoft.EntityFrameworkCore.Relational": "8.0.13",
           "Microsoft.EntityFrameworkCore.Tools": "8.0.13",
@@ -24,10 +26,19 @@
           "Serilog.Enrichers.Thread": "4.0.0",
           "Serilog.Extensions.Hosting": "8.0.0",
           "Serilog.Sinks.Console": "6.0.0",
-          "Serilog.Sinks.File": "6.0.0"
+          "Serilog.Sinks.File": "6.0.0",
+          "WTelegramClient": "4.4.9"
         },
         "runtime": {
           "JobRadar.Infrastructure.dll": {}
+        }
+      },
+      "CodeHollow.FeedReader/1.2.6": {
+        "runtime": {
+          "lib/netcoreapp2.1/CodeHollow.FeedReader.dll": {
+            "assemblyVersion": "1.2.6.0",
+            "fileVersion": "1.2.6.0"
+          }
         }
       },
       "FluentValidation/11.12.0": {
@@ -77,6 +88,19 @@
       "MassTransit.Abstractions/8.3.6": {
         "runtime": {
           "lib/net8.0/MassTransit.Abstractions.dll": {
+            "assemblyVersion": "8.3.6.0",
+            "fileVersion": "8.3.6.0"
+          }
+        }
+      },
+      "MassTransit.EntityFrameworkCore/8.3.6": {
+        "dependencies": {
+          "MassTransit": "8.3.6",
+          "Microsoft.EntityFrameworkCore.Relational": "8.0.13",
+          "Microsoft.Extensions.Caching.Memory": "8.0.1"
+        },
+        "runtime": {
+          "lib/net8.0/MassTransit.EntityFrameworkCoreIntegration.dll": {
             "assemblyVersion": "8.3.6.0",
             "fileVersion": "8.3.6.0"
           }
@@ -843,6 +867,14 @@
           }
         }
       },
+      "WTelegramClient/4.4.9": {
+        "runtime": {
+          "lib/net8.0/WTelegramClient.dll": {
+            "assemblyVersion": "4.4.9.0",
+            "fileVersion": "4.4.9.0"
+          }
+        }
+      },
       "JobRadar.Application/1.0.0": {
         "dependencies": {
           "FluentValidation": "11.12.0",
@@ -851,6 +883,7 @@
           "MassTransit.Abstractions": "8.3.6",
           "MediatR": "12.4.1",
           "Microsoft.Extensions.Caching.Abstractions": "8.0.0",
+          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
           "Microsoft.Extensions.Logging.Abstractions": "8.0.3"
         },
@@ -879,6 +912,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "CodeHollow.FeedReader/1.2.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-KpnP1zlX5zk58PUrREYUXC/7gk8ljjS8mkPfmFeuofaJlHJm62990cZdWLiMBuwWhV/HA6NAu9Ck5uM7GOJl0A==",
+      "path": "codehollow.feedreader/1.2.6",
+      "hashPath": "codehollow.feedreader.1.2.6.nupkg.sha512"
     },
     "FluentValidation/11.12.0": {
       "type": "package",
@@ -914,6 +954,13 @@
       "sha512": "sha512-F3R3EFPvUvpsiebnijmpvZ4IhSEcqkEJdrhlFuTOjzIUnMRYBgki/oDfFWj57Ki4b9yq0nilt4Q5bk11pC4ygg==",
       "path": "masstransit.abstractions/8.3.6",
       "hashPath": "masstransit.abstractions.8.3.6.nupkg.sha512"
+    },
+    "MassTransit.EntityFrameworkCore/8.3.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-qZtWIzd/cFosHiL5eKsk3DUZUH6w0/PBrRxjjyDK4SKUWE9WrdCvz59ocJVCQ8QQHeJYATLnFlEJ1Oshw1AbCw==",
+      "path": "masstransit.entityframeworkcore/8.3.6",
+      "hashPath": "masstransit.entityframeworkcore.8.3.6.nupkg.sha512"
     },
     "MediatR/12.4.1": {
       "type": "package",
@@ -1292,6 +1339,13 @@
       "sha512": "sha512-ryTgF+iFkpGZY1vRQhfCzX0xTdlV3pyaTTqRu2ETbEv+HlV7O6y7hyQURnghNIXvctl5DuZ//Dpks6HdL/Txgw==",
       "path": "system.io.pipelines/6.0.3",
       "hashPath": "system.io.pipelines.6.0.3.nupkg.sha512"
+    },
+    "WTelegramClient/4.4.9": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-K4xOqTx8J9/g/Qzwk4YHxcMnO3CrL5ascHW3Ka/TZcGK5hryAKUOW/e2SzoU/ilqXBV//Hn9RXW2wmn+OcRoXA==",
+      "path": "wtelegramclient/4.4.9",
+      "hashPath": "wtelegramclient.4.4.9.nupkg.sha512"
     },
     "JobRadar.Application/1.0.0": {
       "type": "project",

@@ -44,6 +44,10 @@ public sealed class RawPostConfiguration : IEntityTypeConfiguration<RawPost>
         builder.HasIndex(r => r.SourceId)
             .HasDatabaseName("ix_raw_posts_source_id");
 
+        builder.HasIndex(r => new { r.SourceId, r.RawUrl })
+            .HasDatabaseName("ix_raw_posts_source_id_raw_url")
+            .IsUnique();
+
         builder.HasIndex(r => r.ProcessingStatus)
             .HasDatabaseName("ix_raw_posts_processing_status");
 

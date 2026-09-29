@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "/MjcFBgkKBg=",
+  "dgSpecHash": "QjzMPuJl3To=",
   "success": true,
   "projectFilePath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Workers\\JobRadar.Workers.csproj",
   "expectedPackageFiles": [
@@ -14,6 +14,7 @@
     "C:\\Users\\Dell\\.nuget\\packages\\hangfire.postgresql\\1.20.10\\hangfire.postgresql.1.20.10.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\masstransit\\8.3.6\\masstransit.8.3.6.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\masstransit.abstractions\\8.3.6\\masstransit.abstractions.8.3.6.nupkg.sha512",
+    "C:\\Users\\Dell\\.nuget\\packages\\masstransit.entityframeworkcore\\8.3.6\\masstransit.entityframeworkcore.8.3.6.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\masstransit.rabbitmq\\8.3.6\\masstransit.rabbitmq.8.3.6.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\mediatr\\12.4.1\\mediatr.12.4.1.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
@@ -80,7 +81,7 @@
     "C:\\Users\\Dell\\.nuget\\packages\\system.text.encodings.web\\6.0.0\\system.text.encodings.web.6.0.0.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\system.text.json\\6.0.10\\system.text.json.6.0.10.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\system.threading.ratelimiting\\8.0.0\\system.threading.ratelimiting.8.0.0.nupkg.sha512",
-    "C:\\Users\\Dell\\.nuget\\packages\\wtelegramclient\\4.4.8\\wtelegramclient.4.4.8.nupkg.sha512"
+    "C:\\Users\\Dell\\.nuget\\packages\\wtelegramclient\\4.4.9\\wtelegramclient.4.4.9.nupkg.sha512"
   ],
   "logs": []
 }

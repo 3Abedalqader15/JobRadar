@@ -1,14 +1,16 @@
 {
   "version": 2,
-  "dgSpecHash": "5910XK0uS8Q=",
+  "dgSpecHash": "BBVD1DzhoNY=",
   "success": true,
   "projectFilePath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\src\\JobRadar.Infrastructure\\JobRadar.Infrastructure.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Dell\\.nuget\\packages\\codehollow.feedreader\\1.2.6\\codehollow.feedreader.1.2.6.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\fluentvalidation\\11.12.0\\fluentvalidation.11.12.0.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\11.12.0\\fluentvalidation.dependencyinjectionextensions.11.12.0.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\masstransit\\8.3.6\\masstransit.8.3.6.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\masstransit.abstractions\\8.3.6\\masstransit.abstractions.8.3.6.nupkg.sha512",
+    "C:\\Users\\Dell\\.nuget\\packages\\masstransit.entityframeworkcore\\8.3.6\\masstransit.entityframeworkcore.8.3.6.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\mediatr\\12.4.1\\mediatr.12.4.1.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
@@ -69,7 +71,8 @@
     "C:\\Users\\Dell\\.nuget\\packages\\system.reflection.metadata\\6.0.1\\system.reflection.metadata.6.0.1.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\system.text.encoding.codepages\\6.0.0\\system.text.encoding.codepages.6.0.0.nupkg.sha512",
-    "C:\\Users\\Dell\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512"
+    "C:\\Users\\Dell\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512",
+    "C:\\Users\\Dell\\.nuget\\packages\\wtelegramclient\\4.4.9\\wtelegramclient.4.4.9.nupkg.sha512"
   ],
   "logs": []
 }

@@ -28,7 +28,7 @@
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.0" />
-    <PackageReference Include="WTelegramClient" Version="4.4.8" />
+    <PackageReference Include="WTelegramClient" Version="4.4.9" />
   </ItemGroup>
 
 </Project>

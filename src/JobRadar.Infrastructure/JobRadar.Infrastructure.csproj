@@ -11,7 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CodeHollow.FeedReader" Version="1.2.6" />
     <PackageReference Include="MassTransit" Version="8.3.6" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.3.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.13" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.13" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.13">
@@ -30,6 +32,7 @@
     <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageReference Include="WTelegramClient" Version="4.4.9" />
   </ItemGroup>
 
 </Project>

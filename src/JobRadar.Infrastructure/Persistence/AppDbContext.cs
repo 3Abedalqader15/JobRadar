@@ -1,5 +1,6 @@
 using JobRadar.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
 using Pgvector.EntityFrameworkCore;
 using System.Reflection;
 
@@ -38,6 +39,10 @@ public sealed class AppDbContext : DbContext
 
         // Apply all IEntityTypeConfiguration<T> from this assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

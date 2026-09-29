@@ -2,6 +2,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using JobRadar.Application;
 using JobRadar.Infrastructure;
+using JobRadar.Infrastructure.Persistence;
 using JobRadar.Infrastructure.BackgroundServices;
 using JobRadar.Infrastructure.Consumers;
 using JobRadar.Workers.Jobs;
@@ -54,6 +55,12 @@ builder.ConfigureServices((ctx, services) =>
     {
         // Register the consumer so MassTransit discovers it automatically
         x.AddConsumer<RawPostProcessingConsumer>();
+
+        x.AddEntityFrameworkOutbox<AppDbContext>(o =>
+        {
+            o.UsePostgres();
+            o.UseBusOutbox();
+        });
 
         x.UsingRabbitMq((context, cfg) =>
         {

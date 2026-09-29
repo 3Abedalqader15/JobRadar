@@ -6,11 +6,13 @@ C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debu
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\JobRadar.Api.runtimeconfig.json
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\JobRadar.Api.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\JobRadar.Api.pdb
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\CodeHollow.FeedReader.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\FluentValidation.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\FluentValidation.DependencyInjectionExtensions.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\Humanizer.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\MassTransit.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\MassTransit.Abstractions.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\MassTransit.EntityFrameworkCoreIntegration.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\MediatR.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\MediatR.Contracts.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\Microsoft.AspNetCore.OpenApi.dll
@@ -67,6 +69,7 @@ C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debu
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\System.Composition.Runtime.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\System.Composition.TypedParts.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\WTelegramClient.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.resources.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.resources.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Api\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.resources.dll

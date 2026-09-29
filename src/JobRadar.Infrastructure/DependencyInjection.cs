@@ -28,6 +28,7 @@ public static class DependencyInjection
         // ── Repositories ──────────────────────────────────────────────────────
         services.AddScoped<IJobRepository, JobRepository>();
         services.AddScoped<ISourceRepository, SourceRepository>();
+        services.AddScoped<IRawPostRepository, RawPostRepository>();
         services.AddScoped<IUserJobApplicationRepository, UserJobApplicationRepository>();
 
         // ── Unit of Work ──────────────────────────────────────────────────────
@@ -35,6 +36,8 @@ public static class DependencyInjection
 
         // ── Services ──────────────────────────────────────────────────────────
         services.AddScoped<IJobIngestionService, JobRadar.Infrastructure.Services.JobIngestionService>();
+        services.AddScoped<ISourceFetcher, JobRadar.Infrastructure.Fetchers.RssFetcher>();
+        services.AddScoped<ISourceFetcher, JobRadar.Infrastructure.Fetchers.TelegramFetcher>();
         
         // ── Caching ──────────────────────────────────────────────────────────
         services.AddDistributedMemoryCache();

@@ -3,6 +3,7 @@ using JobRadar.Domain.Enums;
 using JobRadar.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using JobRadar.Workers.Jobs;
 
 namespace JobRadar.Workers.Ingestion;
 

@@ -1,0 +1,93 @@
+<div class="job-feed-container">
+  <!-- Sidebar Filters (Reactive Forms) -->
+  <aside class="filter-sidebar">
+    <h3>Filters</h3>
+    <form [formGroup]="filterForm" class="filter-form">
+      <div class="form-group">
+        <label for="query">Semantic Search</label>
+        <input type="text" id="query" formControlName="query" placeholder="e.g. Angular Developer remote">
+      </div>
+
+      <div class="form-group">
+        <label for="location">Location</label>
+        <input type="text" id="location" formControlName="location" placeholder="e.g. Dubai, London">
+      </div>
+
+      <div class="form-group">
+        <label for="employmentType">Employment Type</label>
+        <select id="employmentType" formControlName="employmentType">
+          <option value="null">Any Type</option>
+          <option *ngFor="let type of employmentTypes" [value]="type.value">{{type.label}}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="experienceLevel">Experience Level</label>
+        <select id="experienceLevel" formControlName="experienceLevel">
+          <option value="null">Any Level</option>
+          <option *ngFor="let level of experienceLevels" [value]="level.value">{{level.label}}</option>
+        </select>
+      </div>
+      
+      <!-- Multi-select for Skills -->
+      <div class="form-group">
+        <label for="skills">Skills (Hold Ctrl)</label>
+        <select id="skills" formControlName="skills" multiple>
+          <option value="angular">Angular</option>
+          <option value="csharp">C# / .NET</option>
+          <option value="postgres">PostgreSQL</option>
+          <option value="signalr">SignalR</option>
+        </select>
+      </div>
+    </form>
+  </aside>
+
+  <!-- Job Feed Area -->
+  <main class="job-list-area">
+    <header class="feed-header">
+      <h2>JobRadar Feed</h2>
+      <span class="job-count" *ngIf="!loading()">{{ totalCount() }} jobs found</span>
+      <span class="loading-spinner" *ngIf="loading()">Loading...</span>
+    </header>
+
+    <div class="job-cards">
+      <!-- Job Card (Iterates over Signal) -->
+      <div class="job-card" *ngFor="let job of jobs()" [class.new-job]="job.isNew">
+        <div class="card-header">
+          <h3 class="job-title">
+            {{ job.title }}
+            <span class="badge new-badge" *ngIf="job.isNew">New</span>
+          </h3>
+          <span class="posted-time">{{ job.postedAt || 'Just now' }}</span>
+        </div>
+        
+        <div class="company-info">
+          <span class="company-name">{{ job.companyName }}</span>
+          <span class="location">
+            <i>📍</i> {{ job.location || 'Not Specified' }} 
+            <span *ngIf="job.isRemote" class="badge remote-badge">Remote</span>
+          </span>
+        </div>
+        
+        <!-- Skills Chips -->
+        <div class="skills-chips">
+          <!-- Fallback mock skills if API doesn't return them yet -->
+          <span class="chip" *ngFor="let skill of job.skills || ['Angular', 'C#', '.NET']">{{ skill }}</span>
+        </div>
+        
+        <div class="card-footer">
+          <!-- Semantic Search Relevance Score -->
+          <span class="relevance" *ngIf="job.relevanceScore">
+            Match: {{ (job.relevanceScore * 100) | number:'1.0-0' }}%
+          </span>
+          <button class="apply-btn">Apply Now</button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="no-jobs" *ngIf="jobs().length === 0 && !loading()">
+        No jobs found matching your criteria. Try adjusting the filters.
+      </div>
+    </div>
+  </main>
+</div>

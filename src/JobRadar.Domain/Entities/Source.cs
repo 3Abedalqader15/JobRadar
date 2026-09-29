@@ -26,6 +26,9 @@ public sealed class Source : Entity<Guid>, IAggregateRoot
     public DateTime? LastFetchedAt { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
+    public string? LastSyncIdentifier { get; private set; }
+    public int ConsecutiveFailureCount { get; private set; } = 0;
+
     // Navigations
     public User? AddedByUser { get; private set; }
 
@@ -68,7 +71,20 @@ public sealed class Source : Entity<Guid>, IAggregateRoot
     public void Pause() => Status = SourceStatus.Paused;
     public void Resume() => Status = SourceStatus.Active;
 
-    public void RecordFetch() => LastFetchedAt = DateTime.UtcNow;
+    public void RecordFetch(string? lastSyncIdentifier = null)
+    {
+        LastFetchedAt = DateTime.UtcNow;
+        if (!string.IsNullOrEmpty(lastSyncIdentifier))
+        {
+            LastSyncIdentifier = lastSyncIdentifier;
+        }
+        ConsecutiveFailureCount = 0; // reset on success
+    }
+
+    public void RecordFailure()
+    {
+        ConsecutiveFailureCount++;
+    }
 
     public void UpdateFetchInterval(int minutes)
     {

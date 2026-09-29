@@ -17,6 +17,7 @@ C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\tests\JobRadar.Applicatio
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\tests\JobRadar.Application.UnitTests\bin\Debug\net10.0\MediatR.Contracts.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\tests\JobRadar.Application.UnitTests\bin\Debug\net10.0\Microsoft.VisualStudio.CodeCoverage.Shim.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\tests\JobRadar.Application.UnitTests\bin\Debug\net10.0\Microsoft.Extensions.Caching.Abstractions.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\tests\JobRadar.Application.UnitTests\bin\Debug\net10.0\Microsoft.Extensions.Configuration.Abstractions.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\tests\JobRadar.Application.UnitTests\bin\Debug\net10.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\tests\JobRadar.Application.UnitTests\bin\Debug\net10.0\Microsoft.Extensions.Logging.Abstractions.dll
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\tests\JobRadar.Application.UnitTests\bin\Debug\net10.0\Microsoft.Extensions.Primitives.dll
