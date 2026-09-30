@@ -1,4 +1,5 @@
 using JobRadar.Domain.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MassTransit;
 using Pgvector.EntityFrameworkCore;
@@ -6,10 +7,10 @@ using System.Reflection;
 
 namespace JobRadar.Infrastructure.Persistence;
 
-public sealed class AppDbContext : DbContext
+public sealed class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
 {
     // ── Core Entities ─────────────────────────────────────────────────────────
-    public DbSet<User> Users => Set<User>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Source> Sources => Set<Source>();
     public DbSet<RawPost> RawPosts => Set<RawPost>();
     public DbSet<Job> Jobs => Set<Job>();

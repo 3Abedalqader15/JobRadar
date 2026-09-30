@@ -1,17 +1,16 @@
 using JobRadar.Domain.Common;
 using JobRadar.Domain.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace JobRadar.Domain.Entities;
 
 /// <summary>
 /// Represents a registered user of the JobRadar platform.
 /// </summary>
-public sealed class User : Entity<Guid>, IAggregateRoot
+public sealed class ApplicationUser : IdentityUser<Guid>, IAggregateRoot
 {
-    public string Email { get; private set; } = string.Empty;
-    public string PasswordHash { get; private set; } = string.Empty;
     public string FullName { get; private set; } = string.Empty;
-    public string? Phone { get; private set; }
+    public bool IsDeactivated { get; private set; } = false;
 
     /// <summary>Preferred job title keywords used for smart matching and notifications.</summary>
     public string[] PreferredJobTitles { get; private set; } = Array.Empty<string>();
@@ -47,37 +46,36 @@ public sealed class User : Entity<Guid>, IAggregateRoot
     private readonly List<UserJobApplication> _applications = new();
 
     // EF Core constructor
-    private User() { }
+    private ApplicationUser() { }
 
-    private User(
+    private ApplicationUser(
         Guid id,
         string email,
-        string passwordHash,
         string fullName,
         string? phone,
-        ExperienceLevel experienceLevel) : base(id)
+        ExperienceLevel experienceLevel)
     {
+        Id = id;
         Email = email;
-        PasswordHash = passwordHash;
+        UserName = email;
         FullName = fullName;
-        Phone = phone;
+        PhoneNumber = phone;
         ExperienceLevel = experienceLevel;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public static User Create(
+    public static ApplicationUser Create(
         string email,
-        string passwordHash,
         string fullName,
         string? phone = null,
         ExperienceLevel experienceLevel = ExperienceLevel.MidLevel)
-        => new(Guid.NewGuid(), email, passwordHash, fullName, phone, experienceLevel);
+        => new(Guid.NewGuid(), email, fullName, phone, experienceLevel);
 
     public void UpdateProfile(string fullName, string? phone, ExperienceLevel experienceLevel)
     {
         FullName = fullName;
-        Phone = phone;
+        PhoneNumber = phone;
         ExperienceLevel = experienceLevel;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -102,6 +100,18 @@ public sealed class User : Entity<Guid>, IAggregateRoot
     public void UnlinkTelegram()
     {
         TelegramChatId = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Deactivate()
+    {
+        IsDeactivated = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Activate()
+    {
+        IsDeactivated = false;
         UpdatedAt = DateTime.UtcNow;
     }
 }

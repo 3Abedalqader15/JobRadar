@@ -28,15 +28,18 @@ public class JobsController : ControllerBase
     }
 
     [HttpPost("{id:guid}/apply")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<IActionResult> Apply(
         Guid id,
         [FromBody] ApplyRequest request,
         CancellationToken cancellationToken)
     {
-        // Ideally the user ID should come from authentication claims.
-        // Since auth isn't fully set up for this request, we fallback to a generated ID
-        // or one passed from the frontend for testing.
-        var userId = request.UserId ?? Guid.NewGuid();
+        // Extract the user ID from the JWT claims
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(new { Error = "Invalid user identity." });
+        }
 
         var command = new JobRadar.Application.Features.JobApplications.Commands.ApplyForJob.ApplyForJobCommand(
             id,

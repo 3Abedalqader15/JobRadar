@@ -30,7 +30,7 @@ public sealed class Source : Entity<Guid>, IAggregateRoot
     public int ConsecutiveFailureCount { get; private set; } = 0;
 
     // Navigations
-    public User? AddedByUser { get; private set; }
+    public ApplicationUser? AddedByUser { get; private set; }
 
     public IReadOnlyCollection<RawPost> RawPosts => _rawPosts.AsReadOnly();
     private readonly List<RawPost> _rawPosts = new();

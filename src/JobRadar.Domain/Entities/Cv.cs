@@ -26,7 +26,7 @@ public sealed class Cv : Entity<Guid>, IAggregateRoot
     public DateTime UpdatedAt { get; private set; }
 
     // Navigations
-    public User? User { get; private set; }
+    public ApplicationUser? User { get; private set; }
     public CvTemplate? Template { get; private set; }
 
     public IReadOnlyCollection<CvJobMatchAnalysis> Analyses => _analyses.AsReadOnly();

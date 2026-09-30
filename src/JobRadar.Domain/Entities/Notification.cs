@@ -20,7 +20,7 @@ public sealed class Notification : Entity<Guid>
     public DateTime CreatedAt { get; private set; }
 
     // Navigations
-    public User? User { get; private set; }
+    public ApplicationUser? User { get; private set; }
     public Job? Job { get; private set; }
 
     // EF Core constructor

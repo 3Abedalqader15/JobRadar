@@ -11,7 +11,7 @@ public sealed class UserSavedJob
     public DateTime SavedAt { get; private set; }
 
     // Navigations
-    public User? User { get; private set; }
+    public ApplicationUser? User { get; private set; }
     public Job? Job { get; private set; }
 
     // EF Core constructor

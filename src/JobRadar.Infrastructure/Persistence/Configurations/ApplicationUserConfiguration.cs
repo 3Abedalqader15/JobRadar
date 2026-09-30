@@ -5,15 +5,17 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace JobRadar.Infrastructure.Persistence.Configurations;
 
-public sealed class UserConfiguration : IEntityTypeConfiguration<User>
+public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>
 {
-    public void Configure(EntityTypeBuilder<User> builder)
+    public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
         builder.ToTable("users");
 
+        // Identity properties (will be added to the users table by migration)
         builder.HasKey(u => u.Id);
         builder.Property(u => u.Id).HasColumnName("id");
 
+        // Map existing required columns to Identity's properties
         builder.Property(u => u.Email)
             .HasColumnName("email")
             .HasMaxLength(320)
@@ -24,14 +26,20 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(500)
             .IsRequired();
 
+        // Custom properties
         builder.Property(u => u.FullName)
             .HasColumnName("full_name")
             .HasMaxLength(200)
             .IsRequired();
 
-        builder.Property(u => u.Phone)
+        builder.Property(u => u.PhoneNumber)
             .HasColumnName("phone")
             .HasMaxLength(30);
+
+        builder.Property(u => u.IsDeactivated)
+            .HasColumnName("is_deactivated")
+            .HasDefaultValue(false)
+            .IsRequired();
 
         builder.Property(u => u.PreferredJobTitles)
             .HasColumnName("preferred_job_titles")

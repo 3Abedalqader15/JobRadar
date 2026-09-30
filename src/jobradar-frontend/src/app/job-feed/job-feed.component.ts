@@ -116,7 +116,9 @@ export class JobFeedComponent implements OnInit, OnDestroy {
       this.jobService.applyToJob(job.id).subscribe({
         next: (res) => alert(`Successfully applied for ${job.title} at ${job.companyName}!`),
         error: (err) => {
-          if (err.error?.error) {
+          if (err.status === 401) {
+            alert('Please login to apply for this job.');
+          } else if (err.error?.error) {
             alert(err.error.error);
           } else {
             alert('Failed to apply. Please try again later.');

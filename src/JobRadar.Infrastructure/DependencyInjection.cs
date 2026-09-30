@@ -2,6 +2,7 @@ using JobRadar.Application.Abstractions;
 using JobRadar.Infrastructure.Persistence;
 using JobRadar.Infrastructure.Persistence.Repositories;
 using JobRadar.Infrastructure.Services;
+using JobRadar.Infrastructure.Services.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<ISourceRepository, SourceRepository>();
         services.AddScoped<IRawPostRepository, RawPostRepository>();
         services.AddScoped<IUserJobApplicationRepository, UserJobApplicationRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         // ── Unit of Work ──────────────────────────────────────────────────────
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -38,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IJobIngestionService, JobRadar.Infrastructure.Services.JobIngestionService>();
         services.AddScoped<ISourceFetcher, JobRadar.Infrastructure.Fetchers.RssFetcher>();
         services.AddScoped<ISourceFetcher, JobRadar.Infrastructure.Fetchers.TelegramFetcher>();
+        services.AddSingleton<IJwtTokenService, JwtTokenService>();
         
         // ── Caching ──────────────────────────────────────────────────────────
         services.AddDistributedMemoryCache();
