@@ -27,7 +27,7 @@ public sealed class Source : Entity<Guid>, IAggregateRoot
     public DateTime CreatedAt { get; private set; }
 
     public string? LastSyncIdentifier { get; private set; }
-    public int ConsecutiveFailureCount { get; private set; } = 0;
+    public int ConsecutiveFailureCount { get; private set; }
 
     // Navigations
     public ApplicationUser? AddedByUser { get; private set; }

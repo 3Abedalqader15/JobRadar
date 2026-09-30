@@ -40,7 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IJobIngestionService, JobRadar.Infrastructure.Services.JobIngestionService>();
         services.AddScoped<ISourceFetcher, JobRadar.Infrastructure.Fetchers.RssFetcher>();
         services.AddScoped<ISourceFetcher, JobRadar.Infrastructure.Fetchers.TelegramFetcher>();
-        services.AddSingleton<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
         
         // ── Caching ──────────────────────────────────────────────────────────
         services.AddDistributedMemoryCache();

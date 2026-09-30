@@ -213,3 +213,15 @@ C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\Debug\net8.0\JobRadar.Workers.pdb
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\Debug\net8.0\JobRadar.Workers.genruntimeconfig.cache
 C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\obj\Debug\net8.0\ref\JobRadar.Workers.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.Internal.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.Bcl.Cryptography.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.Extensions.Identity.Core.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.Extensions.Identity.Stores.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\System.Formats.Asn1.dll
+C:\Users\Dell\.gemini\antigravity-ide\scratch\JobRadar\src\JobRadar.Workers\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll

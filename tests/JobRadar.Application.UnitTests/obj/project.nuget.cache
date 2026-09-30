@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "rad7CbuBovo=",
+  "dgSpecHash": "zfqFn+WEzeQ=",
   "success": true,
-  "projectFilePath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\tests\\JobRadar.Application.UnitTests\\JobRadar.Application.UnitTests.csproj",
+  "projectFilePath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\tests\\JobRadar.Application.UnitTests\\JobRadar.Application.UnitTests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Dell\\.nuget\\packages\\castle.core\\5.1.1\\castle.core.5.1.1.nupkg.sha512",
     "C:\\Users\\Dell\\.nuget\\packages\\coverlet.collector\\6.0.4\\coverlet.collector.6.0.4.nupkg.sha512",
@@ -47,9 +47,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "Package 'Npgsql' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x9vc-6hfv-hg8c",
-      "projectPath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\tests\\JobRadar.Application.UnitTests\\JobRadar.Application.UnitTests.csproj",
+      "projectPath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\tests\\JobRadar.Application.UnitTests\\JobRadar.Application.UnitTests.csproj",
       "warningLevel": 1,
-      "filePath": "c:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\tests\\JobRadar.Application.UnitTests\\JobRadar.Application.UnitTests.csproj",
+      "filePath": "C:\\Users\\Dell\\.gemini\\antigravity-ide\\scratch\\JobRadar\\tests\\JobRadar.Application.UnitTests\\JobRadar.Application.UnitTests.csproj",
       "libraryId": "Npgsql",
       "targetGraphs": [
         "net10.0"

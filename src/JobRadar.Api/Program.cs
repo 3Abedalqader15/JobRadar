@@ -160,7 +160,10 @@ app.UseRateLimiter();
 app.MapControllers();
 app.MapHub<JobRadar.Api.Hubs.JobHub>(JobRadar.Api.Hubs.JobHub.HubUrl);
 
-app.Run();
+// ── Seed Data ──────────────────────────────────────────────────────────────
+await JobRadar.Infrastructure.Persistence.IdentityDataSeeder.SeedAsync(app.Services);
+
+await app.RunAsync();
 
 // Make Program accessible for integration tests
 public partial class Program { }

@@ -31,19 +31,19 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(builder);
 
         // Enable the pgvector extension in PostgreSQL
-        modelBuilder.HasPostgresExtension("vector");
+        builder.HasPostgresExtension("vector");
 
         // Apply all IEntityTypeConfiguration<T> from this assembly
-        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
+        builder.AddInboxStateEntity();
+        builder.AddOutboxMessageEntity();
+        builder.AddOutboxStateEntity();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

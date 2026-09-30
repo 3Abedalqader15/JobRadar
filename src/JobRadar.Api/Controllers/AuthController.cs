@@ -112,9 +112,9 @@ public class AuthController : ControllerBase
 
     private string GetIpAddress()
     {
-        if (Request.Headers.ContainsKey("X-Forwarded-For"))
+        if (Request.Headers.TryGetValue("X-Forwarded-For", out var value))
         {
-            return Request.Headers["X-Forwarded-For"]!;
+            return value!;
         }
         else
         {

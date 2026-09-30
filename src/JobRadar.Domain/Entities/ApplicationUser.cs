@@ -10,7 +10,7 @@ namespace JobRadar.Domain.Entities;
 public sealed class ApplicationUser : IdentityUser<Guid>, IAggregateRoot
 {
     public string FullName { get; private set; } = string.Empty;
-    public bool IsDeactivated { get; private set; } = false;
+    public bool IsDeactivated { get; private set; }
 
     /// <summary>Preferred job title keywords used for smart matching and notifications.</summary>
     public string[] PreferredJobTitles { get; private set; } = Array.Empty<string>();
