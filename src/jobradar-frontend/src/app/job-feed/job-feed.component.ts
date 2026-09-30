@@ -38,7 +38,7 @@ export class JobFeedComponent implements OnInit, OnDestroy {
 
   constructor(private fb: FormBuilder, private jobService: JobFeedService) {
     this.filterForm = this.fb.group({
-      query: [''],
+      query: ['Developer'],
       location: [''],
       employmentType: [null],
       experienceLevel: [null],
@@ -84,7 +84,7 @@ export class JobFeedComponent implements OnInit, OnDestroy {
     const filters = this.filterForm.value;
     
     const payload = {
-      query: filters.query || '',
+      query: (filters.query && filters.query.trim()) ? filters.query.trim() : 'Developer',
       location: filters.location || null,
       employmentType: filters.employmentType !== 'null' ? Number(filters.employmentType) : null,
       experienceLevel: filters.experienceLevel !== 'null' ? Number(filters.experienceLevel) : null,
@@ -106,5 +106,23 @@ export class JobFeedComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       }
     });
+  }
+
+  applyForJob(job: JobSearchResultDto): void {
+    if (job.externalApplyUrl) {
+      window.open(job.externalApplyUrl, '_blank');
+    } else {
+      // Call internal API
+      this.jobService.applyToJob(job.id).subscribe({
+        next: (res) => alert(`Successfully applied for ${job.title} at ${job.companyName}!`),
+        error: (err) => {
+          if (err.error?.error) {
+            alert(err.error.error);
+          } else {
+            alert('Failed to apply. Please try again later.');
+          }
+        }
+      });
+    }
   }
 }

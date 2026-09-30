@@ -10,6 +10,7 @@ export interface JobSearchResultDto {
   postedAt?: string; // Optional field for UI
   skills?: string[]; // Optional field for UI chips
   isNew?: boolean;   // UI state to mark newly pushed jobs
+  externalApplyUrl?: string;
 }
 
 export interface PagedResult<T> {

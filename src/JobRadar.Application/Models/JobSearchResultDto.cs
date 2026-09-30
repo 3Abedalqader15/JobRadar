@@ -12,4 +12,5 @@ public class JobSearchResultDto
     public EmploymentType EmploymentType { get; init; }
     public ExperienceLevel ExperienceLevel { get; init; }
     public double RelevanceScore { get; init; }
+    public string? ExternalApplyUrl { get; init; }
 }

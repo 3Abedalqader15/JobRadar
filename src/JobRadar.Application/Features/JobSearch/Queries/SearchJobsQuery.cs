@@ -141,7 +141,8 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
                 IsRemote = j.IsRemote,
                 EmploymentType = j.EmploymentType,
                 ExperienceLevel = j.ExperienceLevel,
-                RelevanceScore = scores[i]
+                RelevanceScore = scores[i],
+                ExternalApplyUrl = j.ExternalApplyUrl
             });
         }
 

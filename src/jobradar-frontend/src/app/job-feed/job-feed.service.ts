@@ -43,4 +43,8 @@ export class JobFeedService {
     // Make sure API base URL is configured via environment or proxy
     return this.http.post<PagedResult<JobSearchResultDto>>('/api/jobs/search', filters);
   }
+
+  public applyToJob(jobId: string, notes?: string): Observable<any> {
+    return this.http.post(`/api/jobs/${jobId}/apply`, { notes });
+  }
 }

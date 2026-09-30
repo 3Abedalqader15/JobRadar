@@ -80,7 +80,7 @@
           <span class="relevance" *ngIf="job.relevanceScore">
             Match: {{ (job.relevanceScore * 100) | number:'1.0-0' }}%
           </span>
-          <button class="apply-btn">Apply Now</button>
+          <button class="apply-btn" (click)="applyForJob(job)">Apply Now</button>
         </div>
       </div>
 

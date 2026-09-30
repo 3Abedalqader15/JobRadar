@@ -1,6 +1,7 @@
 using JobRadar.Api.Middleware;
 using JobRadar.Application;
 using JobRadar.Infrastructure;
+using MassTransit;
 using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
 using System.Threading.RateLimiting;
@@ -14,15 +15,22 @@ builder.Host.UseSerilog((ctx, lc) =>
 // ── Services ───────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowBlazor", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
+builder.Services.AddSignalR();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingInMemory();
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -83,10 +91,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobRadar API v1"));
 }
 app.UseHttpsRedirection();
-app.UseCors("AllowBlazor");
+app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.UseRateLimiter();
 app.MapControllers();
+app.MapHub<JobRadar.Api.Hubs.JobHub>(JobRadar.Api.Hubs.JobHub.HubUrl);
 
 app.Run();
 

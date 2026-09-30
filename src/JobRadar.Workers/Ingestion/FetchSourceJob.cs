@@ -2,12 +2,13 @@ using JobRadar.Application.Features.Sources.Commands.IngestSource;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace JobRadar.Workers.Jobs;
+namespace JobRadar.Workers.Ingestion;
 
 /// <summary>
-/// Hangfire job that delegates to MediatR to fetch a specific source.
+/// Hangfire job for backwards compatibility with existing serialized jobs in database.
+/// Delegates to MediatR to fetch a specific source.
 /// </summary>
-public sealed class FetchSourceJob
+public class FetchSourceJob
 {
     private readonly ISender _sender;
     private readonly ILogger<FetchSourceJob> _logger;
