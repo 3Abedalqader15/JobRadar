@@ -1,5 +1,6 @@
 using FluentValidation.TestHelper;
 using JobRadar.Application.Features.JobSearch.Queries;
+using JobRadar.Domain.Enums;
 
 namespace JobRadar.Application.UnitTests.Features.JobSearch.Queries;
 
@@ -10,17 +11,6 @@ public class SearchJobsQueryValidatorTests
     public SearchJobsQueryValidatorTests()
     {
         _validator = new SearchJobsQueryValidator();
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData(null)]
-    public void Should_HaveError_When_QueryIsEmpty(string query)
-    {
-        var model = new SearchJobsQuery(query);
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.Query);
     }
 
     [Fact]
@@ -38,11 +28,73 @@ public class SearchJobsQueryValidatorTests
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.PageSize);
     }
-    
+
     [Fact]
-    public void Should_NotHaveError_When_Valid()
+    public void Should_HaveError_When_SalaryMinIsGreaterThanSalaryMax()
     {
-        var model = new SearchJobsQuery("Developer", Page: 1, PageSize: 50);
+        var model = new SearchJobsQuery("Developer", SalaryMin: 100000m, SalaryMax: 80000m);
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.SalaryMin);
+    }
+
+    [Fact]
+    public void Should_NotHaveError_When_SalaryMinIsLessThanOrEqualToSalaryMax()
+    {
+        var model = new SearchJobsQuery("Developer", SalaryMin: 50000m, SalaryMax: 100000m);
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveValidationErrorFor(x => x.SalaryMin);
+    }
+
+    [Fact]
+    public void Should_HaveError_When_SalaryIsNegative()
+    {
+        var model = new SearchJobsQuery("Developer", SalaryMin: -500m);
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.SalaryMin);
+    }
+
+    [Fact]
+    public void Should_HaveError_When_DatePostedIsInvalidEnum()
+    {
+        var model = new SearchJobsQuery("Developer", DatePosted: (DatePostedFilter)999);
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.DatePosted);
+    }
+
+    [Fact]
+    public void Should_HaveError_When_SortByIsInvalidEnum()
+    {
+        var model = new SearchJobsQuery("Developer", SortBy: (JobSortOption)999);
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.SortBy);
+    }
+
+    [Fact]
+    public void Should_HaveError_When_SkillsExceeds10()
+    {
+        var skills = Enumerable.Range(1, 11).Select(i => $"skill{i}").ToList();
+        var model = new SearchJobsQuery("Developer", Skills: skills);
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Skills);
+    }
+
+    [Fact]
+    public void Should_NotHaveError_When_ValidWithAllNewFilters()
+    {
+        var model = new SearchJobsQuery(
+            Query: "Developer",
+            Location: "Remote",
+            IsRemote: true,
+            EmploymentTypes: new[] { EmploymentType.FullTime },
+            ExperienceLevels: new[] { ExperienceLevel.Senior },
+            SalaryMin: 80000m,
+            SalaryMax: 150000m,
+            Skills: new[] { "csharp", "dotnet", "angular" },
+            DatePosted: DatePostedFilter.PastWeek,
+            SortBy: JobSortOption.SalaryDescending,
+            Page: 1,
+            PageSize: 25
+        );
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
     }

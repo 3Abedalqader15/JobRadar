@@ -1,0 +1,38 @@
+<div class="toast-viewport" aria-live="polite" aria-atomic="true">
+  @for (toast of notificationService.toasts(); track toast.id) {
+    <div class="toast-card" [ngClass]="'toast-' + toast.type" (click)="onToastClick(toast)">
+      <div class="toast-indicator"></div>
+      
+      <div class="toast-icon-wrap">
+        @switch (toast.type) {
+          @case ('job') {
+            <span class="toast-icon">⚡</span>
+          }
+          @case ('success') {
+            <span class="toast-icon">✓</span>
+          }
+          @case ('warning') {
+            <span class="toast-icon">⚠️</span>
+          }
+          @default {
+            <span class="toast-icon">ℹ️</span>
+          }
+        }
+      </div>
+
+      <div class="toast-body">
+        <div class="toast-header-row">
+          <span class="toast-title">{{ toast.title }}</span>
+          @if (toast.metaBadge) {
+            <span class="toast-badge">{{ toast.metaBadge }}</span>
+          }
+        </div>
+        <p class="toast-message">{{ toast.message }}</p>
+      </div>
+
+      <button type="button" class="toast-close" (click)="dismiss(toast, $event)" aria-label="Dismiss">
+        &times;
+      </button>
+    </div>
+  }
+</div>

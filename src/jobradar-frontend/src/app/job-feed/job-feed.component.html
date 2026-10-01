@@ -4,7 +4,23 @@
     <div class="navbar-brand">
       <span class="brand-icon">⚡</span>
       <span class="brand-name">JobRadar</span>
+      <span class="brand-badge">PRO SEARCH</span>
     </div>
+
+    <!-- Live Sync Pulse -->
+    <div class="navbar-center-status">
+      <div class="pulse-indicator" [class.connected]="jobService.connectionStateSignal() === 'connected'">
+        <span class="pulse-dot"></span>
+        <span class="pulse-text">
+          @if (jobService.connectionStateSignal() === 'connected') {
+            Live Sync Active
+          } @else {
+            Connecting Live Stream...
+          }
+        </span>
+      </div>
+    </div>
+
     <div class="navbar-actions">
       @if (authService.currentUserSignal(); as user) {
         @if (authService.isAdminOrHR()) {
@@ -25,124 +41,248 @@
     </div>
   </nav>
 
-  <!-- Hero Section -->
+  <!-- Hero & Command Center -->
   <div class="hero-section">
     <div class="hero-orb hero-orb-1"></div>
     <div class="hero-orb hero-orb-2"></div>
+    
     <div class="hero-content">
+      <div class="hero-chip">
+        <span>🚀 Model A Hybrid Parallel Engine & HNSW Vectors</span>
+      </div>
       <h1 class="hero-title">
-        Find Your <span class="gradient-text">Dream Job</span>
+        Discover Opportunities at <span class="gradient-text">Lightning Speed</span>
       </h1>
-      <p class="hero-subtitle">AI-powered semantic job search tailored to your skills and experience</p>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span class="hero-stat-num">{{ totalCount() }}</span>
-          <span class="hero-stat-label">Jobs Available</span>
-        </div>
-        <div class="hero-stat">
-          <span class="hero-stat-num">AI</span>
-          <span class="hero-stat-label">Powered Search</span>
-        </div>
-        <div class="hero-stat">
-          <span class="hero-stat-num">Real-time</span>
-          <span class="hero-stat-label">Job Updates</span>
-        </div>
+      <p class="hero-subtitle">
+        Trigram text matching + 1536-dim vector embeddings fused in parallel for sub-second precision.
+      </p>
+
+      <!-- Quick Preset Pills -->
+      <div class="quick-presets">
+        <button type="button" class="preset-btn" [class.active]="filterForm.get('isRemote')?.value" (click)="toggleRemotePreset()">
+          🌍 Remote Only
+        </button>
+        <button type="button" class="preset-btn" [class.active]="filterForm.get('datePosted')?.value === 1" (click)="setTodayPreset()">
+          🕒 Posted Today
+        </button>
+        <button type="button" class="preset-btn" [class.active]="filterForm.get('salaryMin')?.value >= 100000" (click)="setHighSalaryPreset()">
+          💰 $100k+ High Pay
+        </button>
+        <button type="button" class="preset-btn reset" (click)="resetFilters()">
+          ↺ Reset Filters
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Main Content -->
+  <!-- Main Grid Content -->
   <div class="main-content">
-    <!-- Sidebar Filters -->
+    <!-- Left Multi-Faceted Filter Panel -->
     <aside class="filter-sidebar">
       <div class="filter-header">
-        <h3>🔍 Search & Filter</h3>
+        <div class="filter-title-wrap">
+          <span class="filter-title-icon">⚙️</span>
+          <h3>Faceted Search Filters</h3>
+        </div>
+        @if (selectedSkills().length > 0 || filterForm.get('query')?.value || filterForm.get('location')?.value) {
+          <button type="button" class="clear-filters-link" (click)="resetFilters()">Clear</button>
+        }
       </div>
+
       <form [formGroup]="filterForm" class="filter-form">
+        <!-- Keyword Search -->
         <div class="filter-group">
-          <label for="query">Semantic Search</label>
-          <input
-            type="text"
-            id="query"
-            formControlName="query"
-            placeholder="e.g. Angular Developer remote"
-            class="filter-input"
-          />
+          <label for="query">Keyword or Semantic Query</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon">🔍</span>
+            <input
+              type="text"
+              id="query"
+              formControlName="query"
+              placeholder="e.g. Senior .NET Architect remote"
+              class="filter-input with-icon"
+            />
+          </div>
         </div>
 
+        <!-- Location Search -->
         <div class="filter-group">
           <label for="location">Location</label>
-          <input
-            type="text"
-            id="location"
-            formControlName="location"
-            placeholder="e.g. Dubai, London"
-            class="filter-input"
-          />
+          <div class="input-icon-wrap">
+            <span class="input-icon">📍</span>
+            <input
+              type="text"
+              id="location"
+              formControlName="location"
+              placeholder="e.g. London, Dubai, New York"
+              class="filter-input with-icon"
+            />
+          </div>
         </div>
 
+        <!-- Remote Toggle -->
+        <div class="filter-checkbox-row">
+          <label class="checkbox-container">
+            <input type="checkbox" id="isRemote" formControlName="isRemote" />
+            <span class="checkmark"></span>
+            <span class="checkbox-label">Remote Work Only</span>
+          </label>
+        </div>
+
+        <!-- Sort Option -->
+        <div class="filter-group">
+          <label for="sortBy">Sort Results By</label>
+          <select id="sortBy" formControlName="sortBy" class="filter-select">
+            @for (opt of sortOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Date Posted Dropdown -->
+        <div class="filter-group">
+          <label for="datePosted">Date Posted</label>
+          <select id="datePosted" formControlName="datePosted" class="filter-select">
+            @for (dateOpt of datePostedOptions; track dateOpt.value) {
+              <option [value]="dateOpt.value">{{ dateOpt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Employment Type -->
         <div class="filter-group">
           <label for="employmentType">Employment Type</label>
           <select id="employmentType" formControlName="employmentType" class="filter-select">
-            <option value="null">Any Type</option>
+            <option value="null">All Employment Types</option>
             @for (type of employmentTypes; track type.value) {
               <option [value]="type.value">{{ type.label }}</option>
             }
           </select>
         </div>
 
+        <!-- Experience Level -->
         <div class="filter-group">
           <label for="experienceLevel">Experience Level</label>
           <select id="experienceLevel" formControlName="experienceLevel" class="filter-select">
-            <option value="null">Any Level</option>
+            <option value="null">All Experience Levels</option>
             @for (level of experienceLevels; track level.value) {
               <option [value]="level.value">{{ level.label }}</option>
             }
           </select>
         </div>
-      </form>
 
-      <!-- Quick Tips -->
-      <div class="filter-tip">
-        <p>💡 <strong>Tip:</strong> Use natural language like <em>"remote senior frontend"</em> for best results.</p>
-      </div>
+        <!-- Salary Range Filter -->
+        <div class="filter-group">
+          <label>Salary Range (USD / Year)</label>
+          <div class="salary-dual-inputs">
+            <input
+              type="number"
+              id="salaryMin"
+              formControlName="salaryMin"
+              placeholder="Min ($)"
+              class="filter-input-half"
+              min="0"
+              step="5000"
+            />
+            <span class="salary-separator">—</span>
+            <input
+              type="number"
+              id="salaryMax"
+              formControlName="salaryMax"
+              placeholder="Max ($)"
+              class="filter-input-half"
+              min="0"
+              step="5000"
+            />
+          </div>
+        </div>
+
+        <!-- Skills Cloud Filter -->
+        <div class="filter-group">
+          <label>Required Tech Skills (Relational Join)</label>
+          <div class="skills-cloud">
+            @for (skill of popularSkills; track skill) {
+              <button
+                type="button"
+                class="skill-chip-btn"
+                [class.active]="selectedSkills().includes(skill)"
+                (click)="toggleSkill(skill)"
+              >
+                {{ skill }}
+                @if (selectedSkills().includes(skill)) {
+                  <span class="chip-remove">✓</span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      </form>
     </aside>
 
-    <!-- Job Feed Area -->
+    <!-- Right Listings Area -->
     <main class="feed-area">
+      <!-- Feed Meta & Speed Header -->
       <div class="feed-header">
         <div class="feed-header-left">
-          <h2>Job Listings</h2>
-          @if (!loading()) {
-            <span class="results-count">{{ totalCount() }} positions found</span>
+          <h2>Job Opportunities</h2>
+          <span class="results-count">{{ totalCount() }} verified positions</span>
+        </div>
+
+        <div class="feed-header-right">
+          @if (searchLatencyMs() !== null) {
+            <div class="latency-meter">
+              <span class="lightning-icon">⚡</span>
+              <span class="latency-time">{{ searchLatencyMs() }}ms</span>
+              <span class="latency-mode">Parallel Hybrid</span>
+            </div>
+          }
+
+          @if (loading()) {
+            <div class="mini-loader-pulse">
+              <span class="pulse-ring"></span>
+              <span class="loader-txt">Optimizing...</span>
+            </div>
           }
         </div>
-        @if (loading()) {
-          <div class="feed-loading">
-            <div class="mini-spinner"></div>
-            <span>Searching...</span>
-          </div>
-        }
       </div>
 
-      <!-- Loading state -->
+      <!-- Shimmer Skeletons when Loading -->
       @if (loading() && jobs().length === 0) {
-        <div class="loading-overlay">
-          <div class="spinner-lg"></div>
-          <p>Finding the best matches for you...</p>
+        <div class="job-grid">
+          @for (item of [1,2,3,4,5,6]; track item) {
+            <div class="skeleton-card">
+              <div class="skeleton-header">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-meta">
+                  <div class="skeleton-line line-title"></div>
+                  <div class="skeleton-line line-company"></div>
+                </div>
+              </div>
+              <div class="skeleton-tags">
+                <div class="skeleton-pill"></div>
+                <div class="skeleton-pill"></div>
+                <div class="skeleton-pill"></div>
+              </div>
+              <div class="skeleton-footer">
+                <div class="skeleton-pill pill-sm"></div>
+                <div class="skeleton-btn"></div>
+              </div>
+            </div>
+          }
         </div>
       }
 
-      <!-- Job Cards Grid -->
-      <div class="job-grid">
+      <!-- Real Job Cards Grid -->
+      <div class="job-grid" [class.grid-faded]="loading() && jobs().length > 0">
         @for (job of jobs(); track job.id) {
           <div class="job-card" [class.new-job]="job.isNew">
             @if (job.isNew) {
-              <div class="new-badge">🔥 New</div>
+              <div class="new-badge">🔥 New Match</div>
             }
+
             <div class="job-card-top">
               <div class="company-logo">
-                {{ job.companyName?.charAt(0)?.toUpperCase() || '?' }}
+                {{ job.companyName ? job.companyName.charAt(0).toUpperCase() : '?' }}
               </div>
               <div class="job-meta">
                 <h3 class="job-title">{{ job.title }}</h3>
@@ -150,6 +290,7 @@
               </div>
             </div>
 
+            <!-- Tags Row -->
             <div class="job-tags">
               @if (job.isRemote) {
                 <span class="tag tag-remote">🌍 Remote</span>
@@ -157,31 +298,43 @@
               @if (job.location && !job.isRemote) {
                 <span class="tag tag-location">📍 {{ job.location }}</span>
               }
-              @if (job.employmentType !== undefined) {
+              @if (job.employmentType) {
                 <span class="tag tag-type">{{ getEmploymentLabel(job.employmentType) }}</span>
               }
-              @if (job.experienceLevel !== undefined) {
+              @if (job.experienceLevel) {
                 <span class="tag tag-exp">{{ getExperienceLabel(job.experienceLevel) }}</span>
+              }
+              @if (job.salaryMin || job.salaryMax) {
+                <span class="tag tag-salary">💵 {{ formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency) }}</span>
               }
             </div>
 
+            <!-- Skills Row -->
             @if (job.skills && job.skills.length > 0) {
               <div class="skills-row">
-                @for (skill of job.skills.slice(0, 4); track skill) {
+                @for (skill of job.skills.slice(0, 5); track skill) {
                   <span class="skill-chip">{{ skill }}</span>
+                }
+                @if (job.skills.length > 5) {
+                  <span class="skill-more">+{{ job.skills.length - 5 }}</span>
                 }
               </div>
             }
 
+            <!-- Card Footer -->
             <div class="job-card-footer">
-              @if (job.relevanceScore) {
-                <div class="match-score">
-                  <span class="match-label">Match</span>
-                  <span class="match-value">{{ (job.relevanceScore * 100) | number:'1.0-0' }}%</span>
-                </div>
-              } @else {
-                <span class="posted-at">{{ job.postedAt | date:'MMM d' }}</span>
-              }
+              <div class="card-footer-left">
+                @if (job.relevanceScore) {
+                  <div class="match-score">
+                    <span class="match-icon">🎯</span>
+                    <span class="match-value">{{ (job.relevanceScore * 100) | number:'1.0-0' }}% Match</span>
+                  </div>
+                }
+                @if (job.postedAt) {
+                  <span class="posted-at">{{ job.postedAt | date:'mediumDate' }}</span>
+                }
+              </div>
+
               <button
                 [id]="'btn-apply-' + job.id"
                 class="apply-btn"
@@ -193,11 +346,15 @@
           </div>
         }
 
+        <!-- Empty Results -->
         @if (jobs().length === 0 && !loading()) {
           <div class="empty-jobs">
-            <span>🔍</span>
-            <h3>No jobs found</h3>
-            <p>Try adjusting your search or filters</p>
+            <span class="empty-icon">🛰️</span>
+            <h3>No positions found</h3>
+            <p>We couldn't find any positions matching your exact criteria. Try broadening your keywords or resetting filters.</p>
+            <button type="button" class="btn-reset-empty" (click)="resetFilters()">
+              Clear All Filters
+            </button>
           </div>
         }
       </div>

@@ -99,6 +99,26 @@ public static class IdentityDataSeeder
                 await db.SaveChangesAsync();
                 logger.LogInformation("Manual source seeded with ID {Id}.", manualSourceId);
             }
+
+            // 4. Ensure PostgreSQL Full-Text, Trigram, and Composite Performance Indexes
+            try
+            {
+                logger.LogInformation("Ensuring PostgreSQL performance indexes (pg_trgm, FTS, GIN)...");
+                await db.Database.ExecuteSqlRawAsync(@"
+                    CREATE EXTENSION IF NOT EXISTS pg_trgm;
+                    CREATE INDEX IF NOT EXISTS ix_jobs_trgm_title ON jobs USING gin (title gin_trgm_ops);
+                    CREATE INDEX IF NOT EXISTS ix_jobs_trgm_company ON jobs USING gin (company_name gin_trgm_ops);
+                    CREATE INDEX IF NOT EXISTS ix_jobs_trgm_location ON jobs USING gin (location gin_trgm_ops);
+                    CREATE INDEX IF NOT EXISTS ix_jobs_active_posted_desc ON jobs (is_active, posted_at DESC);
+                    CREATE INDEX IF NOT EXISTS ix_jobs_active_salary ON jobs (is_active, salary_min, salary_max);
+                    CREATE INDEX IF NOT EXISTS ix_jobs_fts ON jobs USING gin (to_tsvector('english', title || ' ' || company_name || ' ' || coalesce(location, '') || ' ' || description));
+                ");
+                logger.LogInformation("PostgreSQL performance indexes verified successfully.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Could not apply PostgreSQL performance indexes automatically. Skipping.");
+            }
         }
         catch (Exception ex)
         {

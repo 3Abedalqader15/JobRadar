@@ -74,7 +74,13 @@ public sealed class JobPostingsController : ControllerBase
 
         try
         {
-            await _hubContext.Clients.All.SendAsync("ReceiveNewJob", new
+            var matchingGroups = JobHub.ComputeMatchingGroups(
+                command.IsRemote,
+                command.Location,
+                command.EmploymentType,
+                command.ExperienceLevel);
+
+            var notificationPayload = new
             {
                 id = id,
                 title = command.Title,
@@ -86,7 +92,9 @@ public sealed class JobPostingsController : ControllerBase
                 externalApplyUrl = command.ExternalApplyUrl,
                 postedAt = DateTime.UtcNow,
                 isNew = true
-            }, cancellationToken);
+            };
+
+            await _hubContext.Clients.Groups(matchingGroups).SendAsync("ReceiveRelevantJob", notificationPayload, cancellationToken);
         }
         catch
         {
