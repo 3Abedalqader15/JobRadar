@@ -35,11 +35,16 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
             return new RegisterResult(false, result.Errors.Select(e => e.Description).ToArray());
         }
 
+        // Assign role: only "HR" is whitelisted beyond default "User"
+        var allowedRoles = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "User", "HR" };
+        var roleToAssign = allowedRoles.Contains(request.Role) ? request.Role : "User";
+        await _userManager.AddToRoleAsync(user, roleToAssign);
+
         // Bypassing normal EF outbox transaction because UserManager.CreateAsync calls SaveChangesAsync internally.
         // This is safe since the user is successfully created in the DB at this point.
         await _publishEndpoint.Publish(new UserRegisteredEvent(user.Id, user.Email!, user.FullName, user.CreatedAt), cancellationToken);
 
-        _logger.LogInformation("User {UserId} registered successfully.", user.Id);
+        _logger.LogInformation("User {UserId} registered successfully with role {Role}.", user.Id, roleToAssign);
 
         return new RegisterResult(true, Array.Empty<string>());
     }

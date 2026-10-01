@@ -2,7 +2,9 @@ using JobRadar.Application.Features.Auth.Commands.Login;
 using JobRadar.Application.Features.Auth.Commands.Logout;
 using JobRadar.Application.Features.Auth.Commands.RefreshToken;
 using JobRadar.Application.Features.Auth.Commands.Register;
+using JobRadar.Domain.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobRadar.Api.Controllers;
@@ -12,10 +14,12 @@ namespace JobRadar.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public AuthController(IMediator mediator)
+    public AuthController(IMediator mediator, UserManager<ApplicationUser> userManager)
     {
         _mediator = mediator;
+        _userManager = userManager;
     }
 
     [HttpPost("register")]
@@ -43,10 +47,18 @@ public class AuthController : ControllerBase
 
         SetTokenCookie(result.RefreshToken);
 
+        // Fetch user info to return roles and full name
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        var roles = user != null ? await _userManager.GetRolesAsync(user) : Array.Empty<string>();
+
         return Ok(new
         {
             AccessToken = result.AccessToken,
-            RefreshToken = result.RefreshToken // Optional: return in body or just keep in cookie
+            RefreshToken = result.RefreshToken,
+            UserId = user?.Id.ToString(),
+            Email = user?.Email,
+            FullName = user?.FullName,
+            Roles = roles
         });
     }
 

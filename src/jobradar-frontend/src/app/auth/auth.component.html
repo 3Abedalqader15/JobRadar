@@ -1,31 +1,196 @@
-<div class="auth-container">
-  <h2>{{ isLoginMode ? 'Login' : 'Sign Up' }}</h2>
-  
-  <div *ngIf="error" class="error">{{ error }}</div>
-  
-  <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
-    
-    <div class="form-group" *ngIf="!isLoginMode">
-      <label for="fullName">Full Name</label>
-      <input type="text" id="fullName" class="form-control" formControlName="fullName" placeholder="John Doe">
+<div class="auth-page">
+  <!-- Background -->
+  <div class="auth-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Card -->
+  <div class="auth-card">
+    <!-- Logo -->
+    <div class="auth-logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">JobRadar</span>
     </div>
 
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input type="email" id="email" class="form-control" formControlName="email" placeholder="email@example.com">
+    <!-- Mode Tabs -->
+    <div class="auth-tabs">
+      <button
+        id="tab-login"
+        class="auth-tab"
+        [class.active]="isLogin"
+        (click)="setMode('login')"
+      >Sign In</button>
+      <button
+        id="tab-register"
+        class="auth-tab"
+        [class.active]="isRegister"
+        (click)="setMode('register')"
+      >Create Account</button>
     </div>
 
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" class="form-control" formControlName="password" placeholder="Password">
-    </div>
+    <!-- Error Banner -->
+    @if (error) {
+      <div class="auth-error" role="alert">
+        <span>⚠️</span> {{ error }}
+      </div>
+    }
 
-    <button type="submit" class="btn" [disabled]="authForm.invalid || loading">
-      {{ loading ? 'Processing...' : (isLoginMode ? 'Login' : 'Sign Up') }}
-    </button>
-  </form>
+    <!-- LOGIN FORM -->
+    @if (isLogin) {
+      <form id="login-form" [formGroup]="loginForm" (ngSubmit)="onLogin()" novalidate>
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input
+            id="login-email"
+            type="email"
+            class="form-input"
+            formControlName="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            [class.invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          />
+          @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+            <span class="field-error">Please enter a valid email</span>
+          }
+        </div>
 
-  <div class="toggle-link" (click)="toggleMode()">
-    {{ isLoginMode ? 'Don\'t have an account? Sign up.' : 'Already have an account? Login.' }}
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input
+            id="login-password"
+            type="password"
+            class="form-input"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            [class.invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          />
+          @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+            <span class="field-error">Password must be at least 6 characters</span>
+          }
+        </div>
+
+        <button
+          id="btn-login"
+          type="submit"
+          class="btn-submit"
+          [disabled]="loading"
+        >
+          @if (loading) {
+            <span class="btn-spinner"></span> Signing in...
+          } @else {
+            Sign In →
+          }
+        </button>
+
+        <p class="auth-switch">
+          Don't have an account?
+          <button type="button" class="link-btn" (click)="setMode('register')">Create one</button>
+        </p>
+      </form>
+    }
+
+    <!-- REGISTER FORM -->
+    @if (isRegister) {
+      <form id="register-form" [formGroup]="registerForm" (ngSubmit)="onRegister()" novalidate>
+
+        <!-- Role Selector -->
+        <div class="role-selector">
+          <p class="role-label">I am registering as:</p>
+          <div class="role-options">
+            <button
+              id="role-job-seeker"
+              type="button"
+              class="role-option"
+              [class.active]="selectedRole === 'User'"
+              (click)="setRole('User')"
+            >
+              <span class="role-icon">🔍</span>
+              <span class="role-name">Job Seeker</span>
+              <span class="role-desc">Find your dream job</span>
+            </button>
+            <button
+              id="role-hr"
+              type="button"
+              class="role-option"
+              [class.active]="selectedRole === 'HR'"
+              (click)="setRole('HR')"
+            >
+              <span class="role-icon">🏢</span>
+              <span class="role-name">HR / Recruiter</span>
+              <span class="role-desc">Post job openings</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="reg-name">Full Name</label>
+          <input
+            id="reg-name"
+            type="text"
+            class="form-input"
+            formControlName="fullName"
+            placeholder="John Smith"
+            autocomplete="name"
+            [class.invalid]="registerForm.get('fullName')?.invalid && registerForm.get('fullName')?.touched"
+          />
+          @if (registerForm.get('fullName')?.invalid && registerForm.get('fullName')?.touched) {
+            <span class="field-error">Full name is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="reg-email">Email Address</label>
+          <input
+            id="reg-email"
+            type="email"
+            class="form-input"
+            formControlName="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            [class.invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+          />
+          @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+            <span class="field-error">Please enter a valid email</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input
+            id="reg-password"
+            type="password"
+            class="form-input"
+            formControlName="password"
+            placeholder="Min 8 characters"
+            autocomplete="new-password"
+            [class.invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+          />
+          @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
+            <span class="field-error">Password must be at least 8 characters</span>
+          }
+        </div>
+
+        <button
+          id="btn-register"
+          type="submit"
+          class="btn-submit"
+          [disabled]="loading"
+        >
+          @if (loading) {
+            <span class="btn-spinner"></span> Creating account...
+          } @else {
+            Create Account →
+          }
+        </button>
+
+        <p class="auth-switch">
+          Already have an account?
+          <button type="button" class="link-btn" (click)="setMode('login')">Sign in</button>
+        </p>
+      </form>
+    }
   </div>
 </div>

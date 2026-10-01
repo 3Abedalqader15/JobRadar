@@ -3,6 +3,7 @@ using JobRadar.Application.Features.JobPostings.Commands.DeleteJobPosting;
 using JobRadar.Application.Features.JobPostings.Queries.GetJobPostingById;
 using JobRadar.Application.Features.JobPostings.Queries.GetJobPostings;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobRadar.Api.Controllers;
@@ -21,6 +22,7 @@ public sealed class JobPostingsController : ControllerBase
 
     /// <summary>
     /// Returns a paginated list of job postings, optionally filtered by a search term.
+    /// Accessible by everyone (public listing).
     /// </summary>
     [HttpGet(Name = "GetJobPostings")]
     [ProducesResponseType(typeof(GetJobPostingsResponse), StatusCodes.Status200OK)]
@@ -37,7 +39,7 @@ public sealed class JobPostingsController : ControllerBase
     }
 
     /// <summary>
-    /// Returns a single job posting by its ID.
+    /// Returns a single job posting by its ID. Publicly accessible.
     /// </summary>
     [HttpGet("{id:guid}", Name = "GetJobPostingById")]
     [ProducesResponseType(typeof(JobDetailDto), StatusCodes.Status200OK)]
@@ -51,10 +53,13 @@ public sealed class JobPostingsController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new job posting. Returns the ID of the created resource.
+    /// Creates a new job posting. Requires Admin or HR role.
     /// </summary>
     [HttpPost(Name = "CreateJobPosting")]
+    [Authorize(Roles = "Admin,HR")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Create(
         [FromBody] CreateJobPostingCommand command,
@@ -68,10 +73,13 @@ public sealed class JobPostingsController : ControllerBase
     }
 
     /// <summary>
-    /// Deletes a job posting by its ID.
+    /// Deletes a job posting by its ID. Requires Admin role only.
     /// </summary>
     [HttpDelete("{id:guid}", Name = "DeleteJobPosting")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(
         Guid id,

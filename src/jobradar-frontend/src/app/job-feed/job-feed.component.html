@@ -1,93 +1,206 @@
-<div class="job-feed-container">
-  <!-- Sidebar Filters (Reactive Forms) -->
-  <aside class="filter-sidebar">
-    <h3>Filters</h3>
-    <form [formGroup]="filterForm" class="filter-form">
-      <div class="form-group">
-        <label for="query">Semantic Search</label>
-        <input type="text" id="query" formControlName="query" placeholder="e.g. Angular Developer remote">
-      </div>
-
-      <div class="form-group">
-        <label for="location">Location</label>
-        <input type="text" id="location" formControlName="location" placeholder="e.g. Dubai, London">
-      </div>
-
-      <div class="form-group">
-        <label for="employmentType">Employment Type</label>
-        <select id="employmentType" formControlName="employmentType">
-          <option value="null">Any Type</option>
-          <option *ngFor="let type of employmentTypes" [value]="type.value">{{type.label}}</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="experienceLevel">Experience Level</label>
-        <select id="experienceLevel" formControlName="experienceLevel">
-          <option value="null">Any Level</option>
-          <option *ngFor="let level of experienceLevels" [value]="level.value">{{level.label}}</option>
-        </select>
-      </div>
-      
-      <!-- Multi-select for Skills -->
-      <div class="form-group">
-        <label for="skills">Skills (Hold Ctrl)</label>
-        <select id="skills" formControlName="skills" multiple>
-          <option value="angular">Angular</option>
-          <option value="csharp">C# / .NET</option>
-          <option value="postgres">PostgreSQL</option>
-          <option value="signalr">SignalR</option>
-        </select>
-      </div>
-    </form>
-  </aside>
-
-  <!-- Job Feed Area -->
-  <main class="job-list-area">
-    <header class="feed-header">
-      <h2>JobRadar Feed</h2>
-      <span class="job-count" *ngIf="!loading()">{{ totalCount() }} jobs found</span>
-      <span class="loading-spinner" *ngIf="loading()">Loading...</span>
-    </header>
-
-    <div class="job-cards">
-      <!-- Job Card (Iterates over Signal) -->
-      <div class="job-card" *ngFor="let job of jobs()" [class.new-job]="job.isNew">
-        <div class="card-header">
-          <h3 class="job-title">
-            {{ job.title }}
-            <span class="badge new-badge" *ngIf="job.isNew">New</span>
-          </h3>
-          <span class="posted-time">{{ job.postedAt || 'Just now' }}</span>
+<div class="page-layout">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-name">JobRadar</span>
+    </div>
+    <div class="navbar-actions">
+      @if (authService.currentUserSignal(); as user) {
+        @if (authService.isAdminOrHR()) {
+          <a id="nav-admin-link" routerLink="/admin" class="nav-admin-btn">
+            <span>⚙️</span> Dashboard
+          </a>
+        }
+        <div class="nav-user">
+          <div class="nav-avatar">{{ user.fullName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() }}</div>
+          <span class="nav-username">{{ user.fullName || user.email }}</span>
         </div>
-        
-        <div class="company-info">
-          <span class="company-name">{{ job.companyName }}</span>
-          <span class="location">
-            <i>📍</i> {{ job.location || 'Not Specified' }} 
-            <span *ngIf="job.isRemote" class="badge remote-badge">Remote</span>
-          </span>
-        </div>
-        
-        <!-- Skills Chips -->
-        <div class="skills-chips">
-          <!-- Fallback mock skills if API doesn't return them yet -->
-          <span class="chip" *ngFor="let skill of job.skills || ['Angular', 'C#', '.NET']">{{ skill }}</span>
-        </div>
-        
-        <div class="card-footer">
-          <!-- Semantic Search Relevance Score -->
-          <span class="relevance" *ngIf="job.relevanceScore">
-            Match: {{ (job.relevanceScore * 100) | number:'1.0-0' }}%
-          </span>
-          <button class="apply-btn" (click)="applyForJob(job)">Apply Now</button>
-        </div>
-      </div>
+        <button id="nav-logout-btn" class="btn-nav-logout" (click)="logout()">Logout</button>
+      } @else {
+        <a id="nav-login-link" routerLink="/login" class="btn-nav-login">
+          Sign In / Register
+        </a>
+      }
+    </div>
+  </nav>
 
-      <!-- Empty State -->
-      <div class="no-jobs" *ngIf="jobs().length === 0 && !loading()">
-        No jobs found matching your criteria. Try adjusting the filters.
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Find Your <span class="gradient-text">Dream Job</span>
+      </h1>
+      <p class="hero-subtitle">AI-powered semantic job search tailored to your skills and experience</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-num">{{ totalCount() }}</span>
+          <span class="hero-stat-label">Jobs Available</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">AI</span>
+          <span class="hero-stat-label">Powered Search</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">Real-time</span>
+          <span class="hero-stat-label">Job Updates</span>
+        </div>
       </div>
     </div>
-  </main>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Sidebar Filters -->
+    <aside class="filter-sidebar">
+      <div class="filter-header">
+        <h3>🔍 Search & Filter</h3>
+      </div>
+      <form [formGroup]="filterForm" class="filter-form">
+        <div class="filter-group">
+          <label for="query">Semantic Search</label>
+          <input
+            type="text"
+            id="query"
+            formControlName="query"
+            placeholder="e.g. Angular Developer remote"
+            class="filter-input"
+          />
+        </div>
+
+        <div class="filter-group">
+          <label for="location">Location</label>
+          <input
+            type="text"
+            id="location"
+            formControlName="location"
+            placeholder="e.g. Dubai, London"
+            class="filter-input"
+          />
+        </div>
+
+        <div class="filter-group">
+          <label for="employmentType">Employment Type</label>
+          <select id="employmentType" formControlName="employmentType" class="filter-select">
+            <option value="null">Any Type</option>
+            @for (type of employmentTypes; track type.value) {
+              <option [value]="type.value">{{ type.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="experienceLevel">Experience Level</label>
+          <select id="experienceLevel" formControlName="experienceLevel" class="filter-select">
+            <option value="null">Any Level</option>
+            @for (level of experienceLevels; track level.value) {
+              <option [value]="level.value">{{ level.label }}</option>
+            }
+          </select>
+        </div>
+      </form>
+
+      <!-- Quick Tips -->
+      <div class="filter-tip">
+        <p>💡 <strong>Tip:</strong> Use natural language like <em>"remote senior frontend"</em> for best results.</p>
+      </div>
+    </aside>
+
+    <!-- Job Feed Area -->
+    <main class="feed-area">
+      <div class="feed-header">
+        <div class="feed-header-left">
+          <h2>Job Listings</h2>
+          @if (!loading()) {
+            <span class="results-count">{{ totalCount() }} positions found</span>
+          }
+        </div>
+        @if (loading()) {
+          <div class="feed-loading">
+            <div class="mini-spinner"></div>
+            <span>Searching...</span>
+          </div>
+        }
+      </div>
+
+      <!-- Loading state -->
+      @if (loading() && jobs().length === 0) {
+        <div class="loading-overlay">
+          <div class="spinner-lg"></div>
+          <p>Finding the best matches for you...</p>
+        </div>
+      }
+
+      <!-- Job Cards Grid -->
+      <div class="job-grid">
+        @for (job of jobs(); track job.id) {
+          <div class="job-card" [class.new-job]="job.isNew">
+            @if (job.isNew) {
+              <div class="new-badge">🔥 New</div>
+            }
+            <div class="job-card-top">
+              <div class="company-logo">
+                {{ job.companyName?.charAt(0)?.toUpperCase() || '?' }}
+              </div>
+              <div class="job-meta">
+                <h3 class="job-title">{{ job.title }}</h3>
+                <span class="company-name">{{ job.companyName }}</span>
+              </div>
+            </div>
+
+            <div class="job-tags">
+              @if (job.isRemote) {
+                <span class="tag tag-remote">🌍 Remote</span>
+              }
+              @if (job.location && !job.isRemote) {
+                <span class="tag tag-location">📍 {{ job.location }}</span>
+              }
+              @if (job.employmentType !== undefined) {
+                <span class="tag tag-type">{{ getEmploymentLabel(job.employmentType) }}</span>
+              }
+              @if (job.experienceLevel !== undefined) {
+                <span class="tag tag-exp">{{ getExperienceLabel(job.experienceLevel) }}</span>
+              }
+            </div>
+
+            @if (job.skills && job.skills.length > 0) {
+              <div class="skills-row">
+                @for (skill of job.skills.slice(0, 4); track skill) {
+                  <span class="skill-chip">{{ skill }}</span>
+                }
+              </div>
+            }
+
+            <div class="job-card-footer">
+              @if (job.relevanceScore) {
+                <div class="match-score">
+                  <span class="match-label">Match</span>
+                  <span class="match-value">{{ (job.relevanceScore * 100) | number:'1.0-0' }}%</span>
+                </div>
+              } @else {
+                <span class="posted-at">{{ job.postedAt | date:'MMM d' }}</span>
+              }
+              <button
+                [id]="'btn-apply-' + job.id"
+                class="apply-btn"
+                (click)="applyForJob(job)"
+              >
+                Apply Now →
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (jobs().length === 0 && !loading()) {
+          <div class="empty-jobs">
+            <span>🔍</span>
+            <h3>No jobs found</h3>
+            <p>Try adjusting your search or filters</p>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
 </div>

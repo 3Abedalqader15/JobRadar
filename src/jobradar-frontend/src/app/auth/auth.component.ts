@@ -2,81 +2,110 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from './auth.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+
+type Mode = 'login' | 'register';
+type UserRole = 'User' | 'HR';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './auth.component.html',
-  styles: [`
-    .auth-container { max-width: 400px; margin: 40px auto; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 8px; background: white; }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-    .form-control { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-    .btn { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    .btn:hover { background: #0056b3; }
-    .toggle-link { text-align: center; margin-top: 15px; color: #007bff; cursor: pointer; }
-    .error { color: red; font-size: 0.9em; margin-bottom: 10px; }
-  `]
+  styleUrls: ['./auth.component.css']
 })
 export class AuthComponent {
-  authForm: FormGroup;
-  isLoginMode = true;
+  mode: Mode = 'login';
+  selectedRole: UserRole = 'User';
   error: string | null = null;
   loading = false;
+
+  loginForm: FormGroup;
+  registerForm: FormGroup;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
   ) {
-    this.authForm = this.fb.group({
+    this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      fullName: ['']
     });
+
+    this.registerForm = this.fb.group({
+      fullName: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+    });
+
+    // If already logged in, redirect
+    if (this.authService.isLoggedIn()) {
+      this.redirectAfterLogin();
+    }
   }
 
-  toggleMode() {
-    this.isLoginMode = !this.isLoginMode;
-    if (this.isLoginMode) {
-      this.authForm.get('fullName')?.clearValidators();
-    } else {
-      this.authForm.get('fullName')?.setValidators([Validators.required]);
-    }
-    this.authForm.get('fullName')?.updateValueAndValidity();
+  setMode(mode: Mode) {
+    this.mode = mode;
     this.error = null;
   }
 
-  onSubmit() {
-    if (this.authForm.invalid) {
-      return;
-    }
+  setRole(role: UserRole) {
+    this.selectedRole = role;
+  }
 
+  get isLogin() { return this.mode === 'login'; }
+  get isRegister() { return this.mode === 'register'; }
+
+  onLogin() {
+    if (this.loginForm.invalid) { this.loginForm.markAllAsTouched(); return; }
     this.loading = true;
     this.error = null;
-    const val = this.authForm.value;
+    const { email, password } = this.loginForm.value;
 
-    const authObs = this.isLoginMode
-      ? this.authService.login({ email: val.email, password: val.password })
-      : this.authService.register({ email: val.email, password: val.password, fullName: val.fullName });
-
-    authObs.subscribe({
+    this.authService.login({ email, password }).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigate(['/']); // Redirect to home/job feed
+        this.redirectAfterLogin();
       },
-      error: (err) => {
+      error: err => {
         this.loading = false;
-        if (err.error && err.error.message) {
-           this.error = err.error.message;
-        } else if (err.error && err.error.error) {
-           this.error = err.error.error;
-        } else {
-           this.error = 'An error occurred during authentication.';
-        }
+        this.error = err.error?.errors?.[0] ?? err.error?.message ?? 'Invalid credentials. Please try again.';
       }
     });
+  }
+
+  onRegister() {
+    if (this.registerForm.invalid) { this.registerForm.markAllAsTouched(); return; }
+    this.loading = true;
+    this.error = null;
+    const { fullName, email, password } = this.registerForm.value;
+
+    this.authService.register({ fullName, email, password, role: this.selectedRole }).subscribe({
+      next: () => {
+        this.loading = false;
+        // Auto-login after register
+        this.authService.login({ email, password }).subscribe({
+          next: () => this.redirectAfterLogin(),
+          error: () => {
+            this.setMode('login');
+            this.error = 'Registration successful! Please login.';
+          }
+        });
+      },
+      error: err => {
+        this.loading = false;
+        const errors = err.error?.errors;
+        this.error = Array.isArray(errors) ? errors[0] : (err.error?.message ?? 'Registration failed. Please try again.');
+      }
+    });
+  }
+
+  private redirectAfterLogin() {
+    if (this.authService.isAdminOrHR()) {
+      this.router.navigate(['/admin']);
+    } else {
+      this.router.navigate(['/']);
+    }
   }
 }

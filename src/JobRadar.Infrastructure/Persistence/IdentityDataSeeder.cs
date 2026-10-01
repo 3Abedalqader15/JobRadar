@@ -1,6 +1,7 @@
 using JobRadar.Domain.Entities;
 using JobRadar.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,8 +20,8 @@ public static class IdentityDataSeeder
 
         try
         {
-            // 1. Seed standard roles
-            string[] defaultRoles = ["Admin", "User"];
+            // 1. Seed standard roles (Admin, User, HR)
+            string[] defaultRoles = ["Admin", "User", "HR"];
             foreach (var roleName in defaultRoles)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
@@ -77,6 +78,26 @@ public static class IdentityDataSeeder
                     logger.LogInformation("Assigning 'Admin' role to existing user {AdminEmail}", adminEmail);
                     await userManager.AddToRoleAsync(existingAdmin, "Admin");
                 }
+            }
+
+            // 3. Seed the "Manual" source (well-known ID used for Admin/HR job postings)
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var manualSourceId = new Guid("00000000-0000-0000-0000-000000000001");
+            var manualSourceExists = await db.Sources.AnyAsync(s => s.Id == manualSourceId);
+            if (!manualSourceExists)
+            {
+                logger.LogInformation("Seeding Manual source.");
+                var source = Source.Create(
+                    name: "Manual",
+                    type: SourceType.ManualShare,
+                    url: "https://jobradar.com",
+                    fetchIntervalMinutes: 0
+                );
+                // Override auto-generated ID with the well-known manual source ID
+                db.Entry(source).Property("Id").CurrentValue = manualSourceId;
+                db.Sources.Add(source);
+                await db.SaveChangesAsync();
+                logger.LogInformation("Manual source seeded with ID {Id}.", manualSourceId);
             }
         }
         catch (Exception ex)

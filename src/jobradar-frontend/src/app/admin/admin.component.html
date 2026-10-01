@@ -1,0 +1,418 @@
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">JobRadar</span>
+      <span class="admin-badge">Admin</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button
+        id="tab-jobs"
+        class="nav-item"
+        [class.active]="activeTab() === 'jobs'"
+        (click)="setTab('jobs')"
+      >
+        <span class="nav-icon">💼</span>
+        <span>Job Postings</span>
+        <span class="nav-count">{{ jobsTotal() }}</span>
+      </button>
+
+      <button
+        id="tab-create"
+        class="nav-item"
+        [class.active]="activeTab() === 'create'"
+        (click)="setTab('create')"
+      >
+        <span class="nav-icon">➕</span>
+        <span>Create Posting</span>
+      </button>
+
+      <button
+        id="tab-applications"
+        class="nav-item"
+        [class.active]="activeTab() === 'applications'"
+        (click)="setTab('applications')"
+      >
+        <span class="nav-icon">📋</span>
+        <span>Applications</span>
+        <span class="nav-count">{{ appsTotal() }}</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">{{ authService.currentUserSignal()?.fullName?.charAt(0)?.toUpperCase() || 'A' }}</div>
+        <div class="user-details">
+          <span class="user-name">{{ authService.currentUserSignal()?.fullName || 'Admin' }}</span>
+          <span class="user-role">{{ authService.currentUserSignal()?.roles?.[0] || 'Admin' }}</span>
+        </div>
+      </div>
+      <button id="btn-logout" class="btn-logout" (click)="logout()" title="Logout">
+        <span>🚪</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="header-left">
+        @if (activeTab() === 'jobs') {
+          <h1>Job Postings</h1>
+          <p class="header-sub">Manage all job listings on the platform</p>
+        }
+        @if (activeTab() === 'create') {
+          <h1>Create Job Posting</h1>
+          <p class="header-sub">Add a new job opportunity to the platform</p>
+        }
+        @if (activeTab() === 'applications') {
+          <h1>Applications</h1>
+          <p class="header-sub">Review all submitted job applications</p>
+        }
+      </div>
+      <div class="header-right">
+        <a href="/" class="btn-view-site">
+          <span>🌐</span> View Site
+        </a>
+        @if (activeTab() === 'jobs') {
+          <button id="btn-new-job" class="btn-primary" (click)="setTab('create')">
+            <span>+</span> New Posting
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- Jobs Tab -->
+    @if (activeTab() === 'jobs') {
+      <section class="tab-content">
+        @if (jobsLoading()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading job postings...</p>
+          </div>
+        } @else if (jobs().length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">📭</span>
+            <h3>No Job Postings Yet</h3>
+            <p>Start by creating your first job posting.</p>
+            <button class="btn-primary" (click)="setTab('create')">Create First Posting</button>
+          </div>
+        } @else {
+          <div class="stats-row">
+            <div class="stat-card">
+              <span class="stat-num">{{ jobsTotal() }}</span>
+              <span class="stat-label">Total Postings</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num">{{ jobs().length }}</span>
+              <span class="stat-label">Shown</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num">{{ appsTotal() }}</span>
+              <span class="stat-label">Total Applications</span>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Position</th>
+                  <th>Company</th>
+                  <th>Location</th>
+                  <th>Type</th>
+                  <th>Experience</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (job of jobs(); track job.id) {
+                  <tr class="table-row">
+                    <td>
+                      <div class="job-title-cell">
+                        <span class="job-title">{{ job.title }}</span>
+                      </div>
+                    </td>
+                    <td><span class="company-name">{{ job.companyName }}</span></td>
+                    <td>
+                      <span class="location-badge">
+                        @if (job.isRemote) { 🌍 Remote }
+                        @else { 📍 {{ job.location || '—' }} }
+                      </span>
+                    </td>
+                    <td><span class="type-badge">{{ getEmploymentLabel(job.employmentType) }}</span></td>
+                    <td><span class="exp-badge">{{ getExperienceLabel(job.experienceLevel) }}</span></td>
+                    <td>
+                      @if (job.isActive) {
+                        <span class="status-active">● Active</span>
+                      } @else {
+                        <span class="status-inactive">● Inactive</span>
+                      }
+                    </td>
+                    <td>
+                      <div class="action-buttons">
+                        <button
+                          class="btn-action btn-danger"
+                          [id]="'btn-delete-' + job.id"
+                          (click)="deleteJob(job.id)"
+                          title="Delete"
+                        >🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Create Job Tab -->
+    @if (activeTab() === 'create') {
+      <section class="tab-content">
+        @if (createSuccess()) {
+          <div class="alert-success">
+            <span>✅</span> Job posting created successfully!
+          </div>
+        }
+        @if (createError()) {
+          <div class="alert-error">
+            <span>❌</span> {{ createError() }}
+          </div>
+        }
+
+        <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="create-form" id="create-job-form" novalidate>
+          <div class="form-grid">
+            <!-- Title -->
+            <div class="form-group full-width">
+              <label for="field-title">Job Title *</label>
+              <input
+                id="field-title"
+                type="text"
+                class="form-input"
+                formControlName="title"
+                placeholder="e.g. Senior Frontend Engineer"
+                [class.invalid]="createForm.get('title')?.invalid && createForm.get('title')?.touched"
+              />
+              @if (createForm.get('title')?.invalid && createForm.get('title')?.touched) {
+                <span class="field-error">Title is required (min 3 characters)</span>
+              }
+            </div>
+
+            <!-- Company -->
+            <div class="form-group">
+              <label for="field-company">Company Name *</label>
+              <input
+                id="field-company"
+                type="text"
+                class="form-input"
+                formControlName="companyName"
+                placeholder="e.g. Acme Corp"
+                [class.invalid]="createForm.get('companyName')?.invalid && createForm.get('companyName')?.touched"
+              />
+              @if (createForm.get('companyName')?.invalid && createForm.get('companyName')?.touched) {
+                <span class="field-error">Company name is required</span>
+              }
+            </div>
+
+            <!-- Location -->
+            <div class="form-group">
+              <label for="field-location">Location</label>
+              <input
+                id="field-location"
+                type="text"
+                class="form-input"
+                formControlName="location"
+                placeholder="e.g. Riyadh, Saudi Arabia"
+              />
+            </div>
+
+            <!-- Employment Type -->
+            <div class="form-group">
+              <label for="field-employment-type">Employment Type *</label>
+              <select id="field-employment-type" class="form-select" formControlName="employmentType">
+                @for (type of employmentTypes; track type.value) {
+                  <option [value]="type.value">{{ type.label }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Experience Level -->
+            <div class="form-group">
+              <label for="field-experience-level">Experience Level *</label>
+              <select id="field-experience-level" class="form-select" formControlName="experienceLevel">
+                @for (lvl of experienceLevels; track lvl.value) {
+                  <option [value]="lvl.value">{{ lvl.label }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Salary Min -->
+            <div class="form-group">
+              <label for="field-salary-min">Salary Min (optional)</label>
+              <input
+                id="field-salary-min"
+                type="number"
+                class="form-input"
+                formControlName="salaryMin"
+                placeholder="e.g. 5000"
+              />
+            </div>
+
+            <!-- Salary Max -->
+            <div class="form-group">
+              <label for="field-salary-max">Salary Max (optional)</label>
+              <input
+                id="field-salary-max"
+                type="number"
+                class="form-input"
+                formControlName="salaryMax"
+                placeholder="e.g. 10000"
+              />
+            </div>
+
+            <!-- Currency -->
+            <div class="form-group">
+              <label for="field-currency">Currency</label>
+              <select id="field-currency" class="form-select" formControlName="salaryCurrency">
+                <option value="USD">USD</option>
+                <option value="SAR">SAR</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="AED">AED</option>
+              </select>
+            </div>
+
+            <!-- External Apply URL -->
+            <div class="form-group full-width">
+              <label for="field-apply-url">External Apply URL (optional)</label>
+              <input
+                id="field-apply-url"
+                type="url"
+                class="form-input"
+                formControlName="externalApplyUrl"
+                placeholder="https://company.com/careers/job-id"
+              />
+            </div>
+
+            <!-- Remote Toggle -->
+            <div class="form-group full-width">
+              <label class="toggle-label">
+                <input
+                  id="field-is-remote"
+                  type="checkbox"
+                  class="toggle-input"
+                  formControlName="isRemote"
+                />
+                <span class="toggle-switch"></span>
+                <span class="toggle-text">Remote Position</span>
+              </label>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full-width">
+              <label for="field-description">Job Description *</label>
+              <textarea
+                id="field-description"
+                class="form-textarea"
+                formControlName="description"
+                rows="8"
+                placeholder="Describe the role, responsibilities, requirements, and benefits..."
+                [class.invalid]="createForm.get('description')?.invalid && createForm.get('description')?.touched"
+              ></textarea>
+              @if (createForm.get('description')?.invalid && createForm.get('description')?.touched) {
+                <span class="field-error">Description is required (min 20 characters)</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn-secondary"
+              (click)="setTab('jobs')"
+            >Cancel</button>
+            <button
+              id="btn-submit-create"
+              type="submit"
+              class="btn-primary"
+              [disabled]="createLoading()"
+            >
+              @if (createLoading()) {
+                <span class="btn-spinner"></span> Creating...
+              } @else {
+                ➕ Create Job Posting
+              }
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <!-- Applications Tab -->
+    @if (activeTab() === 'applications') {
+      <section class="tab-content">
+        @if (appsLoading()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading applications...</p>
+          </div>
+        } @else if (applications().length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">📭</span>
+            <h3>No Applications Yet</h3>
+            <p>Applications will appear here once users start applying.</p>
+          </div>
+        } @else {
+          <div class="stats-row">
+            <div class="stat-card">
+              <span class="stat-num">{{ appsTotal() }}</span>
+              <span class="stat-label">Total Applications</span>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Applicant</th>
+                  <th>Email</th>
+                  <th>Job Title</th>
+                  <th>Company</th>
+                  <th>Status</th>
+                  <th>Applied At</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (app of applications(); track app.id) {
+                  <tr class="table-row">
+                    <td>
+                      <div class="applicant-cell">
+                        <div class="applicant-avatar">{{ app.userFullName?.charAt(0)?.toUpperCase() || '?' }}</div>
+                        <span>{{ app.userFullName }}</span>
+                      </div>
+                    </td>
+                    <td><span class="email-text">{{ app.userEmail }}</span></td>
+                    <td><span class="job-title">{{ app.jobTitle }}</span></td>
+                    <td><span class="company-name">{{ app.companyName }}</span></td>
+                    <td>
+                      <span class="app-status app-status-{{ app.status.toLowerCase() }}">
+                        {{ app.status }}
+                      </span>
+                    </td>
+                    <td><span class="date-text">{{ app.appliedAt | date:'MMM d, y' }}</span></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+  </main>
+</div>
