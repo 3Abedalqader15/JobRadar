@@ -9,13 +9,16 @@ public sealed class CreateJobPostingCommandHandler
 {
     private readonly IJobRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmbeddingService _embeddingService;
 
     public CreateJobPostingCommandHandler(
         IJobRepository repository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IEmbeddingService embeddingService)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
+        _embeddingService = embeddingService;
     }
 
     public async Task<Guid> Handle(
@@ -41,6 +44,17 @@ public sealed class CreateJobPostingCommandHandler
                 request.SalaryMin.Value,
                 request.SalaryMax.Value,
                 request.SalaryCurrency ?? "USD");
+        }
+
+        try
+        {
+            var textToEmbed = $"{job.Title} {job.CompanyName} {job.Location} {job.Description}";
+            var embedding = await _embeddingService.GenerateAsync(textToEmbed, cancellationToken);
+            job.SetEmbedding(embedding);
+        }
+        catch
+        {
+            // AI embedding generation failure should not block job creation
         }
 
         await _repository.AddAsync(job, cancellationToken);

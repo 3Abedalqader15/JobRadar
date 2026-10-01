@@ -1,3 +1,4 @@
+using JobRadar.Api.Hubs;
 using JobRadar.Application.Features.JobPostings.Commands.CreateJobPosting;
 using JobRadar.Application.Features.JobPostings.Commands.DeleteJobPosting;
 using JobRadar.Application.Features.JobPostings.Queries.GetJobPostingById;
@@ -5,6 +6,7 @@ using JobRadar.Application.Features.JobPostings.Queries.GetJobPostings;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace JobRadar.Api.Controllers;
 
@@ -14,10 +16,12 @@ namespace JobRadar.Api.Controllers;
 public sealed class JobPostingsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IHubContext<JobHub> _hubContext;
 
-    public JobPostingsController(IMediator mediator)
+    public JobPostingsController(IMediator mediator, IHubContext<JobHub> hubContext)
     {
         _mediator = mediator;
+        _hubContext = hubContext;
     }
 
     /// <summary>
@@ -54,6 +58,7 @@ public sealed class JobPostingsController : ControllerBase
 
     /// <summary>
     /// Creates a new job posting. Requires Admin or HR role.
+    /// Broadcasts the new job in real-time to active clients via SignalR.
     /// </summary>
     [HttpPost(Name = "CreateJobPosting")]
     [Authorize(Roles = "Admin,HR")]
@@ -66,6 +71,28 @@ public sealed class JobPostingsController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var id = await _mediator.Send(command, cancellationToken);
+
+        try
+        {
+            await _hubContext.Clients.All.SendAsync("ReceiveNewJob", new
+            {
+                id = id,
+                title = command.Title,
+                companyName = command.CompanyName,
+                location = command.Location,
+                isRemote = command.IsRemote,
+                employmentType = (int)command.EmploymentType,
+                experienceLevel = (int)command.ExperienceLevel,
+                externalApplyUrl = command.ExternalApplyUrl,
+                postedAt = DateTime.UtcNow,
+                isNew = true
+            }, cancellationToken);
+        }
+        catch
+        {
+            // Non-blocking real-time notification
+        }
+
         return CreatedAtAction(
             nameof(GetById),
             new { id },
