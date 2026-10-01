@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JobRadar.Application.UnitTests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9789abc2ee2c46c2e7de63b51c76a3f5d1cf586b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+30b4e8f69d35ec744ec0ac15d9ec6473ea71bc29")]
 [assembly: System.Reflection.AssemblyProductAttribute("JobRadar.Application.UnitTests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JobRadar.Application.UnitTests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
