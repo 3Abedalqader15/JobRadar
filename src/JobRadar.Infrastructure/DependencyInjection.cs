@@ -55,6 +55,22 @@ public static class DependencyInjection
         services.AddScoped<ILlmExtractionService, GeminiExtractionService>();
         services.AddScoped<IEmbeddingService, GeminiEmbeddingService>();
 
+        // ── Web Crawlers & Automated Periodic Ingestion ───────────────────────
+        services.AddHttpClient("JobCrawler", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) JobRadarCrawler/1.0 (+https://jobradar.io)");
+        });
+
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.ArbeitnowCrawlerProvider>();
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.RemotiveCrawlerProvider>();
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.WeWorkRemotelyRssCrawlerProvider>();
+
+        services.AddScoped<IAutomatedJobIngestionService, JobRadar.Infrastructure.Services.AutomatedJobIngestionService>();
+        services.AddScoped<IJobRealtimeNotifier, JobRadar.Infrastructure.Services.NullJobRealtimeNotifier>();
+
+        services.AddHostedService<JobRadar.Infrastructure.BackgroundServices.PeriodicJobCrawlerBackgroundService>();
+
         return services;
     }
 }

@@ -35,6 +35,7 @@ export class JobFeedComponent implements OnInit, OnDestroy {
   jobs = signal<JobSearchResultDto[]>([]);
   totalCount = signal<number>(0);
   loading = signal<boolean>(false);
+  syncing = signal<boolean>(false);
   searchLatencyMs = signal<number | null>(null);
 
   // Popular skills cloud for 1-click filtering
@@ -201,6 +202,37 @@ export class JobFeedComponent implements OnInit, OnDestroy {
           type: 'warning',
           title: 'Search Request',
           message: err.error?.error || 'Could not fetch jobs. Please check connection.'
+        });
+      }
+    });
+  }
+
+  syncJobsNow(): void {
+    if (this.syncing()) return;
+    this.syncing.set(true);
+
+    this.notificationService.show({
+      type: 'job',
+      title: 'Global Job Crawler Running 🌐',
+      message: 'Scanning international boards (Arbeitnow, Remotive, WeWorkRemotely)...'
+    });
+
+    this.jobService.syncNow().subscribe({
+      next: (res) => {
+        this.syncing.set(false);
+        this.notificationService.show({
+          type: 'success',
+          title: 'Crawling Completed 🚀',
+          message: res.message || `Sync completed. ${res.newJobsCreated} new jobs ingested.`
+        });
+        this.loadJobs();
+      },
+      error: (err) => {
+        this.syncing.set(false);
+        this.notificationService.show({
+          type: 'warning',
+          title: 'Crawler Message',
+          message: err.error?.message || 'Sync operation encountered an issue or timed out.'
         });
       }
     });

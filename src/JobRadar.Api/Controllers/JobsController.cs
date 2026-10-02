@@ -1,3 +1,4 @@
+using JobRadar.Application.Abstractions;
 using JobRadar.Application.Features.JobSearch.Queries;
 using JobRadar.Application.Models;
 using MediatR;
@@ -11,10 +12,24 @@ namespace JobRadar.Api.Controllers;
 public class JobsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IAutomatedJobIngestionService _jobIngestionService;
 
-    public JobsController(IMediator mediator)
+    public JobsController(IMediator mediator, IAutomatedJobIngestionService jobIngestionService)
     {
         _mediator = mediator;
+        _jobIngestionService = jobIngestionService;
+    }
+
+    [HttpPost("sync-now")]
+    public async Task<IActionResult> SyncNow(CancellationToken cancellationToken)
+    {
+        var count = await _jobIngestionService.RunCrawlCycleAsync(cancellationToken);
+        return Ok(new
+        {
+            success = true,
+            newJobsCreated = count,
+            message = $"Crawler completed successfully. {count} new jobs were ingested."
+        });
     }
 
     [HttpPost("search")]

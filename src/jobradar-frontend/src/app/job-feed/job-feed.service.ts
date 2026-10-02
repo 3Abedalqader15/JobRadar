@@ -171,6 +171,10 @@ export class JobFeedService {
     return this.http.post<PagedResult<JobSearchResultDto>>('/api/jobs/search', criteria);
   }
 
+  public syncNow(): Observable<{ success: boolean; newJobsCreated: number; message: string }> {
+    return this.http.post<{ success: boolean; newJobsCreated: number; message: string }>('/api/jobs/sync-now', {});
+  }
+
   public applyToJob(jobId: string, notes?: string): Observable<any> {
     return this.http.post(`/api/jobs/${jobId}/apply`, { notes });
   }

@@ -29,6 +29,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSignalR();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<JobRadar.Application.Abstractions.IJobRealtimeNotifier, JobRadar.Api.Services.SignalRJobRealtimeNotifier>();
 
 builder.Services.AddIdentityCore<JobRadar.Domain.Entities.ApplicationUser>(options =>
 {

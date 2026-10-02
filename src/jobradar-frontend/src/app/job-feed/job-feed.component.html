@@ -7,7 +7,7 @@
       <span class="brand-badge">PRO SEARCH</span>
     </div>
 
-    <!-- Live Sync Pulse -->
+    <!-- Live Sync Pulse & Crawler Button -->
     <div class="navbar-center-status">
       <div class="pulse-indicator" [class.connected]="jobService.connectionStateSignal() === 'connected'">
         <span class="pulse-dot"></span>
@@ -19,6 +19,16 @@
           }
         </span>
       </div>
+      <button 
+        id="btn-sync-crawler-nav" 
+        type="button" 
+        class="btn-sync-crawler-nav" 
+        [disabled]="syncing()" 
+        (click)="syncJobsNow()"
+        title="Search & Ingest latest jobs from global boards automatically">
+        <span class="sync-icon" [class.spin]="syncing()">🔄</span>
+        <span>{{ syncing() ? 'Crawling...' : 'Auto-Crawl Web' }}</span>
+      </button>
     </div>
 
     <div class="navbar-actions">
@@ -229,6 +239,17 @@
         </div>
 
         <div class="feed-header-right">
+          <button 
+            id="btn-feed-sync" 
+            type="button" 
+            class="btn-sync-crawler-feed" 
+            [disabled]="syncing()" 
+            (click)="syncJobsNow()"
+            title="Trigger automated background job search and ingest posts immediately">
+            <span class="sync-icon" [class.spin]="syncing()">🔄</span>
+            <span>{{ syncing() ? 'Scanning Boards...' : 'Auto-Crawl Web' }}</span>
+          </button>
+
           @if (searchLatencyMs() !== null) {
             <div class="latency-meter">
               <span class="lightning-icon">⚡</span>
