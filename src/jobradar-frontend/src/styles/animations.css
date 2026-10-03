@@ -1,0 +1,154 @@
+/*
+ * ══════════════════════════════════════════════════════════════════
+ *  JOBRADAR ANIMATIONS & MOTION
+ *  Signature radar sweep/pulse + micro-interactions.
+ *  Includes graceful degradation under prefers-reduced-motion.
+ * ══════════════════════════════════════════════════════════════════
+ */
+
+/* ── Radar Pulse Keyframes ─────────────────────────────────────── */
+@keyframes radar-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  75% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+@keyframes radar-pulse-fade {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+
+/* ── Utility Classes for Radar Dot ────────────────────────────── */
+.live-dot-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.live-dot-core {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-signal);
+  position: relative;
+  z-index: 2;
+}
+
+.live-dot-ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-signal);
+  animation: radar-ring var(--duration-radar) var(--ease-radar) infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Second echo ring for larger radar markers */
+.live-dot-ring-echo {
+  animation-delay: 0.7s;
+  opacity: 0.5;
+}
+
+/* ── Spinner ──────────────────────────────────────────────────── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 0.9s linear infinite;
+}
+
+/* ── Shimmer / Skeleton Loading ───────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-hover) 25%,
+    var(--color-border) 50%,
+    var(--color-surface-hover) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s var(--ease-standard) infinite;
+}
+
+/* ── Entrance & Reveal ────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--duration-base) var(--ease-decel) forwards;
+}
+
+.animate-slide-up {
+  animation: slideInUp var(--duration-base) var(--ease-decel) forwards;
+}
+
+.animate-slide-right {
+  animation: slideInRight var(--duration-base) var(--ease-decel) forwards;
+}
+
+/* ── Accessibility: Reduced Motion ────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .live-dot-ring {
+    animation: none !important;
+    display: none !important;
+  }
+
+  .live-dot-core {
+    opacity: 1 !important;
+  }
+}
