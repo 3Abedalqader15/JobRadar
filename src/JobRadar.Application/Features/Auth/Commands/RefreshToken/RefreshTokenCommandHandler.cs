@@ -29,24 +29,30 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         _logger = logger;
     }
 
+    private static readonly string[] InvalidAccessTokenError = ["Invalid access token."];
+    private static readonly string[] InvalidTokenClaimsError = ["Invalid token claims."];
+    private static readonly string[] UserNotFoundOrDeactivatedError = ["User not found or deactivated."];
+    private static readonly string[] InvalidRefreshTokenError = ["Invalid refresh token."];
+    private static readonly string[] InvalidOrExpiredRefreshTokenError = ["Invalid or expired refresh token."];
+
     public async Task<RefreshTokenResult> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         var principal = _jwtTokenService.GetPrincipalFromExpiredToken(request.ExpiredAccessToken);
         if (principal == null)
         {
-            return new RefreshTokenResult(false, string.Empty, string.Empty, new[] { "Invalid access token." });
+            return new RefreshTokenResult(false, string.Empty, string.Empty, InvalidAccessTokenError);
         }
 
         var userIdString = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdString, out var userId))
         {
-            return new RefreshTokenResult(false, string.Empty, string.Empty, new[] { "Invalid token claims." });
+            return new RefreshTokenResult(false, string.Empty, string.Empty, InvalidTokenClaimsError);
         }
 
         var user = await _userManager.FindByIdAsync(userIdString);
         if (user == null || user.IsDeactivated)
         {
-            return new RefreshTokenResult(false, string.Empty, string.Empty, new[] { "User not found or deactivated." });
+            return new RefreshTokenResult(false, string.Empty, string.Empty, UserNotFoundOrDeactivatedError);
         }
 
         var hashedToken = _jwtTokenService.HashRefreshToken(request.RefreshToken);
@@ -54,7 +60,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         if (storedToken == null || storedToken.UserId != userId)
         {
-            return new RefreshTokenResult(false, string.Empty, string.Empty, new[] { "Invalid refresh token." });
+            return new RefreshTokenResult(false, string.Empty, string.Empty, InvalidRefreshTokenError);
         }
 
         // Reuse detection
@@ -69,12 +75,12 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             }
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             
-            return new RefreshTokenResult(false, string.Empty, string.Empty, new[] { "Invalid refresh token." });
+            return new RefreshTokenResult(false, string.Empty, string.Empty, InvalidRefreshTokenError);
         }
 
         if (!storedToken.IsActive)
         {
-            return new RefreshTokenResult(false, string.Empty, string.Empty, new[] { "Invalid or expired refresh token." });
+            return new RefreshTokenResult(false, string.Empty, string.Empty, InvalidOrExpiredRefreshTokenError);
         }
 
         // Revoke current token

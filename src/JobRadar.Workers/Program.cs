@@ -42,12 +42,10 @@ builder.ConfigureServices((ctx, services) =>
                 QueuePollInterval = TimeSpan.FromSeconds(15)
             }));
 
-    var queues = new[] { "default", "ingestion", "cleanup" };
-
     services.AddHangfireServer(options =>
     {
         options.WorkerCount = Environment.ProcessorCount * 2;
-        options.Queues = queues;
+        options.Queues = WorkerQueues.Names;
     });
 
     // ── MassTransit ──────────────────────────────────────────────────────────
@@ -133,3 +131,8 @@ using (var scope = host.Services.CreateScope())
 }
 
 await host.RunAsync();
+
+internal static class WorkerQueues
+{
+    public static readonly string[] Names = ["default", "ingestion", "cleanup"];
+}

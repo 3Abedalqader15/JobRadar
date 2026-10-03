@@ -41,16 +41,16 @@ public sealed class IngestSourceCommandHandler : IRequestHandler<IngestSourceCom
     {
         var source = await _sourceRepository.GetByIdAsync(request.SourceId, cancellationToken);
         if (source == null)
-            throw new Exception("Source not found.");
+            throw new KeyNotFoundException($"Source with ID '{request.SourceId}' was not found.");
 
         if (source.Status != SourceStatus.Active)
-            throw new Exception($"Source is in status {source.Status}");
+            throw new InvalidOperationException($"Source is in status {source.Status}");
 
         var fetcher = _fetchers.FirstOrDefault(f => f.CanHandle(source.Type));
         if (fetcher == null)
         {
             _logger.LogError("No fetcher registered for source type {Type}", source.Type);
-            throw new Exception($"No fetcher for {source.Type}");
+            throw new InvalidOperationException($"No fetcher for source type {source.Type}");
         }
 
         try
@@ -96,7 +96,7 @@ public sealed class IngestSourceCommandHandler : IRequestHandler<IngestSourceCom
             var failureThreshold = int.TryParse(_configuration["Ingestion:FailureThreshold"], out var t) ? t : 5;
             if (source.ConsecutiveFailureCount >= failureThreshold)
             {
-                _logger.LogWarning("Source {SourceId} reached failure threshold. Pausing.", source.Id);
+                _logger.LogWarning(ex, "Source {SourceId} reached failure threshold. Pausing.", source.Id);
                 source.Pause();
             }
 

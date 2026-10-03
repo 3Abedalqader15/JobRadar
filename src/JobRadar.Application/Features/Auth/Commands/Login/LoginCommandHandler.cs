@@ -28,22 +28,26 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResult>
         _logger = logger;
     }
 
+    private static readonly string[] InvalidCredentialsError = ["Invalid credentials."];
+    private static readonly string[] AccountDeactivatedError = ["Account is deactivated."];
+    private static readonly string[] AccountLockedOutError = ["Account is locked out."];
+
     public async Task<LoginResult> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
-            return new LoginResult(false, string.Empty, string.Empty, new[] { "Invalid credentials." });
+            return new LoginResult(false, string.Empty, string.Empty, InvalidCredentialsError);
         }
 
         if (user.IsDeactivated)
         {
-            return new LoginResult(false, string.Empty, string.Empty, new[] { "Account is deactivated." });
+            return new LoginResult(false, string.Empty, string.Empty, AccountDeactivatedError);
         }
 
         if (await _userManager.IsLockedOutAsync(user))
         {
-            return new LoginResult(false, string.Empty, string.Empty, new[] { "Account is locked out." });
+            return new LoginResult(false, string.Empty, string.Empty, AccountLockedOutError);
         }
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
@@ -51,7 +55,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResult>
         if (!isPasswordValid)
         {
             await _userManager.AccessFailedAsync(user);
-            return new LoginResult(false, string.Empty, string.Empty, new[] { "Invalid credentials." });
+            return new LoginResult(false, string.Empty, string.Empty, InvalidCredentialsError);
         }
 
         await _userManager.ResetAccessFailedCountAsync(user);

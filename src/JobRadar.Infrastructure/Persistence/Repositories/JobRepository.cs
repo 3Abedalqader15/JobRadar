@@ -103,7 +103,7 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
         {
             var lowerSkills = criteria.Skills.Select(s => s.ToLowerInvariant()).ToList();
             query = query.Where(j => j.JobSkills.Any(js =>
-                js.Skill != null && (lowerSkills.Contains(js.Skill.Slug.ToLower()) || lowerSkills.Contains(js.Skill.Name.ToLower()))));
+                js.Skill != null && (lowerSkills.Contains(js.Skill.Slug.ToLowerInvariant()) || lowerSkills.Contains(js.Skill.Name.ToLowerInvariant()))));
         }
 
         // 6. Date Posted Filter
@@ -196,12 +196,14 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
 
     public async Task<bool> ExistsByTitleAndCompanyAsync(string title, string companyName, CancellationToken cancellationToken = default)
     {
-        var normTitle = title.Trim().ToLower();
-        var normCompany = companyName.Trim().ToLower();
+        var normTitle = title.Trim().ToLowerInvariant();
+        var normCompany = companyName.Trim().ToLowerInvariant();
 
+#pragma warning disable CA1862 // EF Core LINQ-to-Entities translates ToLowerInvariant() directly to SQL LOWER()
         return await DbSet
             .AsNoTracking()
-            .AnyAsync(j => j.Title.ToLower() == normTitle && j.CompanyName.ToLower() == normCompany, cancellationToken);
+            .AnyAsync(j => j.Title.ToLowerInvariant() == normTitle && j.CompanyName.ToLowerInvariant() == normCompany, cancellationToken);
+#pragma warning restore CA1862
     }
 
     public async Task AddWithSkillsAsync(Job job, IEnumerable<string> skillNames, CancellationToken cancellationToken = default)
@@ -215,8 +217,11 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
             var normSkill = skillName.Trim();
             if (string.IsNullOrWhiteSpace(normSkill)) continue;
 
+            var lowerSkill = normSkill.ToLowerInvariant();
+#pragma warning disable CA1862 // EF Core LINQ-to-Entities translates ToLowerInvariant() directly to SQL LOWER()
             var skill = Context.Skills.Local.FirstOrDefault(s => s.Name.Equals(normSkill, StringComparison.OrdinalIgnoreCase))
-                ?? await Context.Skills.FirstOrDefaultAsync(s => s.Name.ToLower() == normSkill.ToLower(), cancellationToken);
+                ?? await Context.Skills.FirstOrDefaultAsync(s => s.Name.ToLowerInvariant() == lowerSkill, cancellationToken);
+#pragma warning restore CA1862
 
             if (skill == null)
             {

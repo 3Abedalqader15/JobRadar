@@ -78,6 +78,10 @@ public class SearchJobsQueryValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Skills);
     }
 
+    private static readonly EmploymentType[] ValidEmploymentTypes = [EmploymentType.FullTime];
+    private static readonly ExperienceLevel[] ValidExperienceLevels = [ExperienceLevel.Senior];
+    private static readonly string[] ValidSkills = ["csharp", "dotnet", "angular"];
+
     [Fact]
     public void Should_NotHaveError_When_ValidWithAllNewFilters()
     {
@@ -85,11 +89,11 @@ public class SearchJobsQueryValidatorTests
             Query: "Developer",
             Location: "Remote",
             IsRemote: true,
-            EmploymentTypes: new[] { EmploymentType.FullTime },
-            ExperienceLevels: new[] { ExperienceLevel.Senior },
+            EmploymentTypes: ValidEmploymentTypes,
+            ExperienceLevels: ValidExperienceLevels,
             SalaryMin: 80000m,
             SalaryMax: 150000m,
-            Skills: new[] { "csharp", "dotnet", "angular" },
+            Skills: ValidSkills,
             DatePosted: DatePostedFilter.PastWeek,
             SortBy: JobSortOption.SalaryDescending,
             Page: 1,

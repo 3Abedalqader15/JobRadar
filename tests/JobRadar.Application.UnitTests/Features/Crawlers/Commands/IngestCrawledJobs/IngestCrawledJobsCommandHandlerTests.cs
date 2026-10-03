@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using JobRadar.Application.Abstractions;
 using JobRadar.Application.Features.Crawlers.Commands.IngestCrawledJobs;
@@ -10,12 +11,17 @@ using Xunit;
 
 namespace JobRadar.Application.UnitTests.Features.Crawlers.Commands.IngestCrawledJobs;
 
+[SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores", Justification = "Unit test naming convention")]
 public class IngestCrawledJobsCommandHandlerTests
 {
+    private static readonly string[] InitialSkills = ["C#", ".NET", "PostgreSQL"];
+    private static readonly string[] DuplicateEntrySkills = ["C#", ".NET"];
+    private static readonly string[] FrontendSkills = ["Angular", "TypeScript"];
+
     private readonly Mock<IJobRepository> _jobRepositoryMock = new();
     private readonly Mock<ISourceRepository> _sourceRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
-    private readonly Mock<IJobEmbeddingQueue> _embeddingQueueMock = new();
+    private readonly Mock<IJobEmbeddingChannel> _embeddingChannelMock = new();
     private readonly Mock<IJobRealtimeNotifier> _realtimeNotifierMock = new();
     private readonly Mock<ILogger<IngestCrawledJobsCommandHandler>> _loggerMock = new();
     private readonly Mock<IJobCrawlerProvider> _crawlerMock = new();
@@ -61,7 +67,7 @@ public class IngestCrawledJobsCommandHandlerTests
                 SalaryCurrency: "USD",
                 ExternalApplyUrl: duplicateUrl,
                 PostedAt: DateTime.UtcNow,
-                Skills: new[] { "C#", ".NET", "PostgreSQL" },
+                Skills: InitialSkills,
                 ProviderName: "MockCrawler"
             ),
             new(
@@ -77,7 +83,7 @@ public class IngestCrawledJobsCommandHandlerTests
                 SalaryCurrency: "USD",
                 ExternalApplyUrl: duplicateUrl, // Same URL
                 PostedAt: DateTime.UtcNow,
-                Skills: new[] { "C#", ".NET" },
+                Skills: DuplicateEntrySkills,
                 ProviderName: "MockCrawler"
             )
         };
@@ -100,7 +106,7 @@ public class IngestCrawledJobsCommandHandlerTests
             _jobRepositoryMock.Object,
             _sourceRepositoryMock.Object,
             _unitOfWorkMock.Object,
-            _embeddingQueueMock.Object,
+            _embeddingChannelMock.Object,
             _realtimeNotifierMock.Object,
             _loggerMock.Object);
 
@@ -114,7 +120,7 @@ public class IngestCrawledJobsCommandHandlerTests
             r => r.AddWithSkillsAsync(It.Is<Job>(j => j.ExternalApplyUrl == duplicateUrl), It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
-        _embeddingQueueMock.Verify(
+        _embeddingChannelMock.Verify(
             e => e.EnqueueAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
             Times.Once);
 
@@ -158,7 +164,7 @@ public class IngestCrawledJobsCommandHandlerTests
                 SalaryCurrency: "EUR",
                 ExternalApplyUrl: existingUrl,
                 PostedAt: DateTime.UtcNow,
-                Skills: new[] { "Angular", "TypeScript" },
+                Skills: FrontendSkills,
                 ProviderName: "MockCrawler"
             )
         };
@@ -177,7 +183,7 @@ public class IngestCrawledJobsCommandHandlerTests
             _jobRepositoryMock.Object,
             _sourceRepositoryMock.Object,
             _unitOfWorkMock.Object,
-            _embeddingQueueMock.Object,
+            _embeddingChannelMock.Object,
             _realtimeNotifierMock.Object,
             _loggerMock.Object);
 
@@ -191,7 +197,7 @@ public class IngestCrawledJobsCommandHandlerTests
             r => r.AddWithSkillsAsync(It.IsAny<Job>(), It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
             Times.Never);
 
-        _embeddingQueueMock.Verify(
+        _embeddingChannelMock.Verify(
             e => e.EnqueueAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }

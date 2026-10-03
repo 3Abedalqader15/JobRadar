@@ -12,7 +12,7 @@ public sealed class IngestCrawledJobsCommandHandler : IRequestHandler<IngestCraw
     private readonly IJobRepository _jobRepository;
     private readonly ISourceRepository _sourceRepository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IJobEmbeddingQueue _embeddingQueue;
+    private readonly IJobEmbeddingChannel _embeddingChannel;
     private readonly IJobRealtimeNotifier _realtimeNotifier;
     private readonly ILogger<IngestCrawledJobsCommandHandler> _logger;
 
@@ -21,7 +21,7 @@ public sealed class IngestCrawledJobsCommandHandler : IRequestHandler<IngestCraw
         IJobRepository jobRepository,
         ISourceRepository sourceRepository,
         IUnitOfWork unitOfWork,
-        IJobEmbeddingQueue embeddingQueue,
+        IJobEmbeddingChannel embeddingChannel,
         IJobRealtimeNotifier realtimeNotifier,
         ILogger<IngestCrawledJobsCommandHandler> logger)
     {
@@ -29,7 +29,7 @@ public sealed class IngestCrawledJobsCommandHandler : IRequestHandler<IngestCraw
         _jobRepository = jobRepository;
         _sourceRepository = sourceRepository;
         _unitOfWork = unitOfWork;
-        _embeddingQueue = embeddingQueue;
+        _embeddingChannel = embeddingChannel;
         _realtimeNotifier = realtimeNotifier;
         _logger = logger;
     }
@@ -142,7 +142,7 @@ public sealed class IngestCrawledJobsCommandHandler : IRequestHandler<IngestCraw
                     _logger.LogInformation("Created job post: {Title} at {Company} (ID: {JobId})", job.Title, job.CompanyName, job.Id);
 
                     // 6. Enqueue for background semantic embedding generation
-                    await _embeddingQueue.EnqueueAsync(job.Id, cancellationToken);
+                    await _embeddingChannel.EnqueueAsync(job.Id, cancellationToken);
 
                     // 7. Broadcast in Real-Time to relevant SignalR criteria groups
                     await _realtimeNotifier.NotifyJobCreatedAsync(

@@ -37,6 +37,14 @@ public class SearchJobsQueryHandlerTests
             _mockLogger.Object);
     }
 
+    private static readonly JsonSerializerOptions CachedJsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly float[] DefaultEmbedding = [0f];
+    private static readonly double[] EmptyScores = [];
+    private static readonly string[] DotnetSkill = ["dotnet"];
+    private static readonly string[] AngularSkill = ["angular"];
+    private static readonly string[] DotnetAngularSkills = ["dotnet", "angular"];
+    private static readonly string[] AngularDotnetSkills = ["angular", "dotnet"];
+
     [Fact]
     public async Task Handle_ReturnsCachedResults_When_CacheHit()
     {
@@ -49,7 +57,7 @@ public class SearchJobsQueryHandlerTests
             Page = 1,
             PageSize = 10
         };
-        var cacheJson = JsonSerializer.Serialize(cachedResult, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        var cacheJson = JsonSerializer.Serialize(cachedResult, CachedJsonOptions);
 
         _mockCache.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Encoding.UTF8.GetBytes(cacheJson));
@@ -98,7 +106,7 @@ public class SearchJobsQueryHandlerTests
     }
 
     [Fact]
-    public void TwoSearches_WithDifferentFilters_ProduceDifferentCacheKeys()
+    public async Task TwoSearches_WithDifferentFilters_ProduceDifferentCacheKeys()
     {
         // Arrange
         var query1 = new SearchJobsQuery("Developer", Page: 1);
@@ -110,13 +118,13 @@ public class SearchJobsQueryHandlerTests
             .Callback<string, CancellationToken>((key, ct) => keys.Add(key));
 
         _mockEmbeddingService.Setup(s => s.GenerateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new float[] { 0f });
+            .ReturnsAsync(DefaultEmbedding);
         _mockJobRepo.Setup(r => r.SearchJobsAdvancedAsync(It.IsAny<JobSearchCriteria>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new List<Job>(), new double[0], 0));
+            .ReturnsAsync((new List<Job>(), EmptyScores, 0));
 
         // Act
-        _handler.Handle(query1, CancellationToken.None).GetAwaiter().GetResult();
-        _handler.Handle(query2, CancellationToken.None).GetAwaiter().GetResult();
+        await _handler.Handle(query1, CancellationToken.None);
+        await _handler.Handle(query2, CancellationToken.None);
 
         // Assert
         var resultsKey1 = keys[0];
@@ -127,11 +135,11 @@ public class SearchJobsQueryHandlerTests
     }
 
     [Fact]
-    public void TwoSearches_WithDifferentSalaryOrSkills_ProduceDifferentCacheKeys()
+    public async Task TwoSearches_WithDifferentSalaryOrSkills_ProduceDifferentCacheKeys()
     {
-        var query1 = new SearchJobsQuery("Developer", SalaryMin: 50000m, Skills: new[] { "dotnet" });
-        var query2 = new SearchJobsQuery("Developer", SalaryMin: 80000m, Skills: new[] { "dotnet" });
-        var query3 = new SearchJobsQuery("Developer", SalaryMin: 50000m, Skills: new[] { "angular" });
+        var query1 = new SearchJobsQuery("Developer", SalaryMin: 50000m, Skills: DotnetSkill);
+        var query2 = new SearchJobsQuery("Developer", SalaryMin: 80000m, Skills: DotnetSkill);
+        var query3 = new SearchJobsQuery("Developer", SalaryMin: 50000m, Skills: AngularSkill);
 
         var keys = new List<string>();
         _mockCache.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -139,14 +147,14 @@ public class SearchJobsQueryHandlerTests
             .Callback<string, CancellationToken>((key, ct) => keys.Add(key));
 
         _mockEmbeddingService.Setup(s => s.GenerateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new float[] { 0f });
+            .ReturnsAsync(DefaultEmbedding);
         _mockJobRepo.Setup(r => r.SearchJobsAdvancedAsync(It.IsAny<JobSearchCriteria>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new List<Job>(), new double[0], 0));
+            .ReturnsAsync((new List<Job>(), EmptyScores, 0));
 
         // Act
-        _handler.Handle(query1, CancellationToken.None).GetAwaiter().GetResult();
-        _handler.Handle(query2, CancellationToken.None).GetAwaiter().GetResult();
-        _handler.Handle(query3, CancellationToken.None).GetAwaiter().GetResult();
+        await _handler.Handle(query1, CancellationToken.None);
+        await _handler.Handle(query2, CancellationToken.None);
+        await _handler.Handle(query3, CancellationToken.None);
 
         var key1 = keys[0];
         var key2 = keys[2];
@@ -158,11 +166,11 @@ public class SearchJobsQueryHandlerTests
     }
 
     [Fact]
-    public void TwoSearches_WithDifferentSkillOrder_ProduceIdenticalCacheKeys()
+    public async Task TwoSearches_WithDifferentSkillOrder_ProduceIdenticalCacheKeys()
     {
         // Canonical sorting should ensure skill order does not invalidate cache
-        var query1 = new SearchJobsQuery("Developer", Skills: new[] { "dotnet", "angular" });
-        var query2 = new SearchJobsQuery("Developer", Skills: new[] { "angular", "dotnet" });
+        var query1 = new SearchJobsQuery("Developer", Skills: DotnetAngularSkills);
+        var query2 = new SearchJobsQuery("Developer", Skills: AngularDotnetSkills);
 
         var keys = new List<string>();
         _mockCache.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -170,13 +178,13 @@ public class SearchJobsQueryHandlerTests
             .Callback<string, CancellationToken>((key, ct) => keys.Add(key));
 
         _mockEmbeddingService.Setup(s => s.GenerateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new float[] { 0f });
+            .ReturnsAsync(DefaultEmbedding);
         _mockJobRepo.Setup(r => r.SearchJobsAdvancedAsync(It.IsAny<JobSearchCriteria>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new List<Job>(), new double[0], 0));
+            .ReturnsAsync((new List<Job>(), EmptyScores, 0));
 
         // Act
-        _handler.Handle(query1, CancellationToken.None).GetAwaiter().GetResult();
-        _handler.Handle(query2, CancellationToken.None).GetAwaiter().GetResult();
+        await _handler.Handle(query1, CancellationToken.None);
+        await _handler.Handle(query2, CancellationToken.None);
 
         var key1 = keys[0];
         var key2 = keys[2];

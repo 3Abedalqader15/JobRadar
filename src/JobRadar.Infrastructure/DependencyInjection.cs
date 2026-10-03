@@ -66,7 +66,7 @@ public static class DependencyInjection
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.RemotiveCrawlerProvider>();
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.WeWorkRemotelyRssCrawlerProvider>();
 
-        services.AddSingleton<IJobEmbeddingQueue, JobRadar.Infrastructure.BackgroundServices.JobEmbeddingQueue>();
+        services.AddSingleton<IJobEmbeddingChannel, JobRadar.Infrastructure.BackgroundServices.JobEmbeddingChannel>();
         services.AddScoped<IJobRealtimeNotifier, JobRadar.Infrastructure.Services.NullJobRealtimeNotifier>();
 
         return services;

@@ -86,7 +86,7 @@ public class LinkedInScraper : IDisposable
 
     public void Dispose()
     {
-        _browser?.DisposeAsync().GetAwaiter().GetResult();
+        _browser?.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _playwright?.Dispose();
         GC.SuppressFinalize(this);
     }

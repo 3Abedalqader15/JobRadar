@@ -130,8 +130,8 @@ public sealed class RemotiveCrawlerProvider : IJobCrawlerProvider
 
     private static decimal ParseMatchValue(string s)
     {
-        var clean = s.Replace("$", "").Replace(",", "").Trim().ToLowerInvariant();
-        if (clean.EndsWith("k"))
+        var clean = s.Replace("$", "", StringComparison.Ordinal).Replace(",", "", StringComparison.Ordinal).Trim().ToLowerInvariant();
+        if (clean.EndsWith('k'))
         {
             if (decimal.TryParse(clean[..^1], out var kVal))
             {

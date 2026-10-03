@@ -1,4 +1,6 @@
 ## .NET / C# Build Artifacts
+**/bin/
+**/obj/
 bin/
 obj/
 *.user

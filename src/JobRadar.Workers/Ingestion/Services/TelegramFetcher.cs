@@ -48,12 +48,12 @@ public class TelegramFetcher : IDisposable
         {
             switch (level)
             {
-                case 1: _logger.LogTrace(message); break;
-                case 2: _logger.LogDebug(message); break;
-                case 3: _logger.LogInformation(message); break;
-                case 4: _logger.LogWarning(message); break;
-                case 5: _logger.LogError(message); break;
-                default: _logger.LogInformation(message); break;
+                case 1: _logger.LogTrace("{TelegramMessage}", message); break;
+                case 2: _logger.LogDebug("{TelegramMessage}", message); break;
+                case 3: _logger.LogInformation("{TelegramMessage}", message); break;
+                case 4: _logger.LogWarning("{TelegramMessage}", message); break;
+                case 5: _logger.LogError("{TelegramMessage}", message); break;
+                default: _logger.LogInformation("{TelegramMessage}", message); break;
             }
         };
 

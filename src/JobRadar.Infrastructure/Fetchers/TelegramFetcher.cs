@@ -1,3 +1,4 @@
+using System.Globalization;
 using JobRadar.Application.Abstractions;
 using JobRadar.Domain.Entities;
 using JobRadar.Domain.Enums;
@@ -38,14 +39,14 @@ internal sealed class TelegramFetcher : ISourceFetcher, IDisposable
         // It encrypts the session file based on the api_hash (default).
         // First-time manual login is required to generate this session file.
         // See documentation: WTelegramClient login
-        WTelegram.Helpers.Log = (lvl, str) => _logger.LogTrace("WTelegramClient: {msg}", str);
+        WTelegram.Helpers.Log = (lvl, str) => _logger.LogTrace("WTelegramClient: {Message}", str);
         
         _client = new Client(Config, new FileStream(_sessionPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite));
         
         await _client.LoginUserIfNeeded();
     }
 
-    private string Config(string what)
+    private string? Config(string what)
     {
         return what switch
         {
@@ -67,7 +68,7 @@ internal sealed class TelegramFetcher : ISourceFetcher, IDisposable
         var resolved = await _client!.Contacts_ResolveUsername(username);
         if (resolved.UserOrChat is not Channel channel)
         {
-            throw new Exception($"Could not resolve {username} to a Telegram channel.");
+            throw new InvalidOperationException($"Could not resolve {username} to a Telegram channel.");
         }
 
         int offsetId = 0;
@@ -92,14 +93,14 @@ internal sealed class TelegramFetcher : ISourceFetcher, IDisposable
                 results.Add(new FetchedPostInfo(
                     RawUrl: $"https://t.me/{username}/{msg.id}",
                     RawContent: msg.message,
-                    SyncIdentifier: msg.id.ToString(),
+                    SyncIdentifier: msg.id.ToString(CultureInfo.InvariantCulture),
                     FetchedAt: msg.date
                 ));
             }
         }
 
         // Order from oldest to newest so sync identifier gets updated correctly
-        return results.OrderBy(r => int.Parse(r.SyncIdentifier)).ToList();
+        return results.OrderBy(r => int.TryParse(r.SyncIdentifier, out var parsedId) ? parsedId : 0).ToList();
     }
 
     public void Dispose()
