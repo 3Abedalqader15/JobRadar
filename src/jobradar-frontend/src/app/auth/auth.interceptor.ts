@@ -1,30 +1,28 @@
 import { HttpInterceptorFn, HttpErrorResponse, HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthService } from './auth.service';
+import { AuthService, AuthResponse } from './auth.service';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError, BehaviorSubject, filter, take, Observable } from 'rxjs';
 
 let isRefreshing = false;
-let refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
+let refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  let authReq = req;
   const token = authService.getToken();
-  if (token) {
-    authReq = req.clone({
-      headers: req.headers.set('Authorization', `Bearer ${token}`)
-    });
-  }
+  const authReq = req.clone({
+    withCredentials: true,
+    headers: token ? req.headers.set('Authorization', `Bearer ${token}`) : req.headers
+  });
 
   return next(authReq).pipe(
     catchError((error) => {
       if (error instanceof HttpErrorResponse && error.status === 401 && !req.url.includes('/api/auth/')) {
         return handle401Error(authReq, next, authService, router);
       }
-      return throwError(() => error) as Observable<HttpEvent<unknown>>;
+      return throwError(() => error);
     })
   );
 };
@@ -35,17 +33,20 @@ function handle401Error(request: HttpRequest<unknown>, next: HttpHandlerFn, auth
     refreshTokenSubject.next(null);
 
     return authService.refreshToken().pipe(
-      switchMap((token: any) => {
+      switchMap((res: AuthResponse) => {
         isRefreshing = false;
-        refreshTokenSubject.next(token.token);
+        const newAccessToken = res.accessToken ?? authService.getToken();
+        refreshTokenSubject.next(newAccessToken);
         return next(request.clone({
-          headers: request.headers.set('Authorization', `Bearer ${token.token}`)
+          withCredentials: true,
+          headers: request.headers.set('Authorization', `Bearer ${newAccessToken}`)
         }));
       }),
       catchError((err) => {
         isRefreshing = false;
-        authService.logout().subscribe(() => {
-            router.navigate(['/login']);
+        authService.logout().subscribe({
+          next: () => router.navigate(['/login']),
+          error: () => router.navigate(['/login'])
         });
         return throwError(() => err);
       })
@@ -56,6 +57,7 @@ function handle401Error(request: HttpRequest<unknown>, next: HttpHandlerFn, auth
       take(1),
       switchMap(jwt => {
         return next(request.clone({
+          withCredentials: true,
           headers: request.headers.set('Authorization', `Bearer ${jwt}`)
         }));
       })

@@ -65,21 +65,23 @@ public class AuthController : ControllerBase
         });
     }
 
+    [HttpPost("refresh")]
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest? request = null)
     {
-        var refreshToken = request.RefreshToken ?? Request.Cookies["refreshToken"];
+        var refreshToken = request?.RefreshToken ?? Request.Cookies["refreshToken"];
         if (string.IsNullOrEmpty(refreshToken))
         {
-            return BadRequest(new { Message = "Token is required" });
+            return Unauthorized(new { Message = "Refresh token is missing." });
         }
 
-        var command = new RefreshTokenCommand(request.AccessToken, refreshToken, GetIpAddress());
+        var command = new RefreshTokenCommand(request?.AccessToken, refreshToken, GetIpAddress());
         var result = await _mediator.Send(command);
 
         if (!result.Success)
         {
-            return BadRequest(new { result.Errors });
+            Response.Cookies.Delete("refreshToken");
+            return Unauthorized(new { result.Errors });
         }
 
         SetTokenCookie(result.RefreshToken);
@@ -87,28 +89,33 @@ public class AuthController : ControllerBase
         return Ok(new
         {
             AccessToken = result.AccessToken,
-            RefreshToken = result.RefreshToken
+            RefreshToken = result.RefreshToken,
+            UserId = result.UserId,
+            Email = result.Email,
+            FullName = result.FullName,
+            Roles = result.Roles ?? Array.Empty<string>()
         });
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
+    public async Task<IActionResult> Logout([FromBody] LogoutRequest? request = null)
     {
-        var refreshToken = request.RefreshToken ?? Request.Cookies["refreshToken"];
+        var refreshToken = request?.RefreshToken ?? Request.Cookies["refreshToken"];
         if (string.IsNullOrEmpty(refreshToken))
         {
-            return BadRequest(new { Message = "Token is required" });
+            Response.Cookies.Delete("refreshToken");
+            return Ok(new { Message = "Logout successful" });
         }
 
         var command = new LogoutCommand(refreshToken, GetIpAddress());
         var result = await _mediator.Send(command);
 
+        Response.Cookies.Delete("refreshToken");
+
         if (!result.Success)
         {
             return BadRequest(new { result.Errors });
         }
-
-        Response.Cookies.Delete("refreshToken");
 
         return Ok(new { Message = "Logout successful" });
     }
@@ -146,7 +153,7 @@ public class LoginRequest
 
 public class RefreshTokenRequest
 {
-    public string AccessToken { get; set; } = string.Empty;
+    public string? AccessToken { get; set; }
     public string? RefreshToken { get; set; } // Optional, can be fetched from cookies
 }
 

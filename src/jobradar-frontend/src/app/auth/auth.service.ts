@@ -1,11 +1,11 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, catchError, of, shareReplay } from 'rxjs';
 import { Router } from '@angular/router';
 
 export interface AuthResponse {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   userId: string;
   email: string;
   fullName: string;
@@ -23,6 +23,8 @@ export interface CurrentUser {
   providedIn: 'root'
 })
 export class AuthService {
+  // In-memory access token signal — NEVER written to localStorage or sessionStorage
+  public accessTokenSignal = signal<string | null>(null);
   public currentUserSignal = signal<CurrentUser | null>(null);
 
   // Computed helpers
@@ -34,23 +36,27 @@ export class AuthService {
   );
   public isAdminOrHR = computed(() => this.isAdmin() || this.isHR());
 
+  private restoreSession$?: Observable<AuthResponse | null>;
+
   constructor(private http: HttpClient, private router: Router) {
-    this.restoreSession();
+    this.restoreSession().subscribe();
   }
 
-  private restoreSession() {
-    const token = localStorage.getItem('jwt');
-    const userId = localStorage.getItem('userId');
-    const email = localStorage.getItem('email');
-    const fullName = localStorage.getItem('fullName') ?? '';
-    const roles = JSON.parse(localStorage.getItem('roles') ?? '[]');
-    if (token && userId && email) {
-      this.currentUserSignal.set({ userId, email, fullName, roles });
+  public restoreSession(): Observable<AuthResponse | null> {
+    if (!this.restoreSession$) {
+      this.restoreSession$ = this.refreshToken().pipe(
+        catchError(() => {
+          this.clearSession();
+          return of(null);
+        }),
+        shareReplay(1)
+      );
     }
+    return this.restoreSession$;
   }
 
   login(credentials: { email: string; password: string }): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/api/auth/login', credentials).pipe(
+    return this.http.post<AuthResponse>('/api/auth/login', credentials, { withCredentials: true }).pipe(
       tap(res => this.handleAuthResponse(res))
     );
   }
@@ -61,12 +67,16 @@ export class AuthService {
       password: userData.password,
       fullName: userData.fullName,
       role: userData.role ?? 'User'
-    });
+    }, { withCredentials: true });
   }
 
   logout(): Observable<any> {
-    return this.http.post('/api/auth/logout', {}).pipe(
-      tap(() => this.clearSession())
+    return this.http.post('/api/auth/logout', {}, { withCredentials: true }).pipe(
+      tap(() => this.clearSession()),
+      catchError(() => {
+        this.clearSession();
+        return of(null);
+      })
     );
   }
 
@@ -76,19 +86,14 @@ export class AuthService {
   }
 
   refreshToken(): Observable<AuthResponse> {
-    const refreshToken = localStorage.getItem('refreshToken');
-    return this.http.post<AuthResponse>('/api/auth/refresh-token', { refreshToken }).pipe(
+    const body = this.accessTokenSignal() ? { accessToken: this.accessTokenSignal() } : {};
+    return this.http.post<AuthResponse>('/api/auth/refresh', body, { withCredentials: true }).pipe(
       tap(res => this.handleAuthResponse(res))
     );
   }
 
   private handleAuthResponse(res: AuthResponse) {
-    localStorage.setItem('jwt', res.accessToken);
-    localStorage.setItem('refreshToken', res.refreshToken);
-    localStorage.setItem('userId', res.userId);
-    localStorage.setItem('email', res.email);
-    localStorage.setItem('fullName', res.fullName ?? '');
-    localStorage.setItem('roles', JSON.stringify(res.roles ?? []));
+    this.accessTokenSignal.set(res.accessToken);
     this.currentUserSignal.set({
       userId: res.userId,
       email: res.email,
@@ -98,17 +103,16 @@ export class AuthService {
   }
 
   private clearSession() {
-    ['jwt', 'refreshToken', 'userId', 'email', 'fullName', 'roles'].forEach(k =>
-      localStorage.removeItem(k)
-    );
+    this.restoreSession$ = undefined;
+    this.accessTokenSignal.set(null);
     this.currentUserSignal.set(null);
   }
 
   getToken(): string | null {
-    return localStorage.getItem('jwt');
+    return this.accessTokenSignal();
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    return !!this.accessTokenSignal();
   }
 }

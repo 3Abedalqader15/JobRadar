@@ -39,7 +39,7 @@
           </a>
         }
         <div class="nav-user">
-          <div class="nav-avatar">{{ user.fullName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() }}</div>
+          <div class="nav-avatar">{{ (user.fullName ? user.fullName.charAt(0) : user.email.charAt(0)).toUpperCase() }}</div>
           <span class="nav-username">{{ user.fullName || user.email }}</span>
         </div>
         <button id="nav-logout-btn" class="btn-nav-logout" (click)="logout()">Logout</button>

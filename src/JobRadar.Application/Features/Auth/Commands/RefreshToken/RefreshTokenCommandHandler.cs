@@ -37,31 +37,15 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
     public async Task<RefreshTokenResult> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var principal = _jwtTokenService.GetPrincipalFromExpiredToken(request.ExpiredAccessToken);
-        if (principal == null)
-        {
-            return new RefreshTokenResult(false, string.Empty, string.Empty, InvalidAccessTokenError);
-        }
-
-        var userIdString = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(userIdString, out var userId))
-        {
-            return new RefreshTokenResult(false, string.Empty, string.Empty, InvalidTokenClaimsError);
-        }
-
-        var user = await _userManager.FindByIdAsync(userIdString);
-        if (user == null || user.IsDeactivated)
-        {
-            return new RefreshTokenResult(false, string.Empty, string.Empty, UserNotFoundOrDeactivatedError);
-        }
-
         var hashedToken = _jwtTokenService.HashRefreshToken(request.RefreshToken);
         var storedToken = await _refreshTokenRepository.GetByTokenHashAsync(hashedToken, cancellationToken);
 
-        if (storedToken == null || storedToken.UserId != userId)
+        if (storedToken == null)
         {
             return new RefreshTokenResult(false, string.Empty, string.Empty, InvalidRefreshTokenError);
         }
+
+        var userId = storedToken.UserId;
 
         // Reuse detection
         if (storedToken.IsRevoked)
@@ -83,6 +67,26 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return new RefreshTokenResult(false, string.Empty, string.Empty, InvalidOrExpiredRefreshTokenError);
         }
 
+        // If an expired access token was provided, optionally verify it matches the stored token user
+        if (!string.IsNullOrWhiteSpace(request.ExpiredAccessToken))
+        {
+            var principal = _jwtTokenService.GetPrincipalFromExpiredToken(request.ExpiredAccessToken);
+            if (principal != null)
+            {
+                var userIdString = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(userIdString, out var tokenUserId) && tokenUserId != userId)
+                {
+                    return new RefreshTokenResult(false, string.Empty, string.Empty, InvalidTokenClaimsError);
+                }
+            }
+        }
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null || user.IsDeactivated)
+        {
+            return new RefreshTokenResult(false, string.Empty, string.Empty, UserNotFoundOrDeactivatedError);
+        }
+
         // Revoke current token
         var newPlainRefreshToken = _jwtTokenService.GenerateRefreshToken();
         var newHashedToken = _jwtTokenService.HashRefreshToken(newPlainRefreshToken);
@@ -102,7 +106,16 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var newAccessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
+        var roles = await _userManager.GetRolesAsync(user);
 
-        return new RefreshTokenResult(true, newAccessToken, newPlainRefreshToken, Array.Empty<string>());
+        return new RefreshTokenResult(
+            true,
+            newAccessToken,
+            newPlainRefreshToken,
+            Array.Empty<string>(),
+            user.Id.ToString(),
+            user.Email,
+            user.FullName,
+            roles.ToArray());
     }
 }
