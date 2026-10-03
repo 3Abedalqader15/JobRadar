@@ -24,7 +24,8 @@ public sealed class GeminiExtractionService : ILlmExtractionService
     private readonly ResiliencePipeline _pipeline;
 
     private const string Model = "gemini-3.7-flash";
-    private const float ConfidenceThreshold = 0.60f;
+    private readonly float _confidenceThreshold;
+    private readonly string _systemPrompt;
 
     // Cached serialization options (CA1869)
     private static readonly JsonSerializerOptions _camelCaseOptions = new()
@@ -60,13 +61,6 @@ public sealed class GeminiExtractionService : ILlmExtractionService
         }
         """);
 
-    private static readonly string _systemPrompt =
-        "You are a structured data extraction assistant. " +
-        "Analyze the provided text and determine if it is a job posting. " +
-        "If it is, extract the fields accurately. " +
-        "Set is_job_posting=false and confidence<0.6 if the content is not a real job posting. " +
-        "Return only the JSON object matching the schema — no markdown, no explanation.";
-
     public GeminiExtractionService(
         IHttpClientFactory httpClientFactory,
         IConfiguration configuration,
@@ -75,7 +69,15 @@ public sealed class GeminiExtractionService : ILlmExtractionService
         _http = httpClientFactory.CreateClient("Gemini");
         _apiKey = configuration["Gemini:ApiKey"]
             ?? throw new InvalidOperationException("Missing configuration key: Gemini:ApiKey");
+        _confidenceThreshold = configuration.GetValue<float>("Gemini:ConfidenceThreshold", 0.70f);
         _logger = logger;
+
+        _systemPrompt =
+            "You are a structured data extraction assistant. " +
+            "Analyze the provided text and determine if it is a job posting. " +
+            "If it is, extract the fields accurately. " +
+            $"Set is_job_posting=false and confidence<{_confidenceThreshold:F2} if the content is not a real job posting. " +
+            "Return only the JSON object matching the schema — no markdown, no explanation.";
 
         _pipeline = new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions
@@ -154,11 +156,11 @@ public sealed class GeminiExtractionService : ILlmExtractionService
 
         if (raw is null) return null;
 
-        if (!raw.IsJobPosting || raw.Confidence < ConfidenceThreshold)
+        if (!raw.IsJobPosting || raw.Confidence < _confidenceThreshold)
         {
             _logger.LogInformation(
-                "Content rejected: IsJobPosting={IsJob}, Confidence={Conf:F2}",
-                raw.IsJobPosting, raw.Confidence);
+                "Content rejected: IsJobPosting={IsJob}, Confidence={Conf:F2} (Threshold={Threshold:F2})",
+                raw.IsJobPosting, raw.Confidence, _confidenceThreshold);
             return null;
         }
 

@@ -16,11 +16,14 @@ builder.Host.UseSerilog((ctx, lc) =>
     lc.ReadFrom.Configuration(ctx.Configuration));
 
 // ── Services ───────────────────────────────────────────────────────────────
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:4200", "https://localhost:4200" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.SetIsOriginAllowed(_ => true)
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -37,7 +40,7 @@ builder.Services.AddIdentityCore<JobRadar.Domain.Entities.ApplicationUser>(optio
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 6;
+    options.Password.RequiredLength = 8;
     
     options.SignIn.RequireConfirmedEmail = builder.Configuration.GetValue<bool>("Identity:RequireConfirmedEmail", false);
 })
@@ -115,6 +118,8 @@ builder.Services.AddSwaggerGen(options =>
 // });
 
 var searchJobsPolicy = builder.Configuration.GetSection("RateLimiting:SearchJobsPolicy");
+var authPolicy = builder.Configuration.GetSection("RateLimiting:AuthPolicy");
+
 builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("SearchJobsPolicy", opt =>
@@ -124,6 +129,25 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = searchJobsPolicy.GetValue<int>("QueueLimit", 5);
     });
+
+    var authPermitLimit = authPolicy.GetValue<int>("PermitLimit", 5);
+    var authWindowSeconds = authPolicy.GetValue<int>("WindowSeconds", 60);
+    var authQueueLimit = authPolicy.GetValue<int>("QueueLimit", 0);
+
+    options.AddPolicy("AuthPolicy", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            clientIp,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = authPermitLimit,
+                Window = TimeSpan.FromSeconds(authWindowSeconds),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = authQueueLimit
+            });
+    });
+
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 

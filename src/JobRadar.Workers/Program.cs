@@ -81,6 +81,7 @@ builder.ConfigureServices((ctx, services) =>
     // ── Register job classes and services for DI ─────────────────────────
     services.AddScoped<JobIngestionJob>();
     services.AddScoped<StaleJobCleanupJob>();
+    services.AddScoped<ExternalJobCrawlDispatcherJob>();
     
     services.AddScoped<RssFeedFetcher>();
     services.AddScoped<TelegramFetcher>();
@@ -95,6 +96,7 @@ var host = builder.Build();
 using (var scope = host.Services.CreateScope())
 {
     JobStorage.Current = scope.ServiceProvider.GetRequiredService<JobStorage>();
+    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
     // Every minute: check if any source is due for fetching
     RecurringJob.AddOrUpdate<IngestionDispatcherJob>(
@@ -102,6 +104,23 @@ using (var scope = host.Services.CreateScope())
         queue: "ingestion",
         methodCall: job => job.ExecuteAsync(),
         cronExpression: Cron.Minutely(),
+        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+    // Recurring external job crawl dispatcher (configured interval)
+    var crawlIntervalMinutes = config.GetValue<int>("JobCrawler:IntervalMinutes", 60);
+    string crawlCron = crawlIntervalMinutes switch
+    {
+        <= 1 => Cron.Minutely(),
+        < 60 => $"*/{crawlIntervalMinutes} * * * *",
+        60 => Cron.Hourly(),
+        _ => $"0 */{Math.Max(1, crawlIntervalMinutes / 60)} * * *"
+    };
+
+    RecurringJob.AddOrUpdate<ExternalJobCrawlDispatcherJob>(
+        recurringJobId: "external-job-crawl-dispatcher",
+        queue: "ingestion",
+        methodCall: job => job.ExecuteAsync(CancellationToken.None),
+        cronExpression: crawlCron,
         new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
     // Every day at midnight: remove stale postings

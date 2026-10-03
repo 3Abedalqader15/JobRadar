@@ -45,4 +45,8 @@ public interface IJobRepository
     Task<(IReadOnlyList<Job> Jobs, double[] Scores, int TotalCount)> SearchJobsAdvancedAsync(
         JobSearchCriteria criteria,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<string>> GetExistingUrlsAsync(IEnumerable<string> urls, CancellationToken cancellationToken = default);
+    Task<bool> ExistsByTitleAndCompanyAsync(string title, string companyName, CancellationToken cancellationToken = default);
+    Task AddWithSkillsAsync(Job job, IEnumerable<string> skillNames, CancellationToken cancellationToken = default);
 }

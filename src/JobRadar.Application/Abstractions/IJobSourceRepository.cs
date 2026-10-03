@@ -8,6 +8,7 @@ namespace JobRadar.Application.Abstractions;
 public interface ISourceRepository
 {
     Task<Source?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Source?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Source>> GetAllActiveAsync(CancellationToken cancellationToken = default);
     Task AddAsync(Source source, CancellationToken cancellationToken = default);
     Task UpdateAsync(Source source, CancellationToken cancellationToken = default);

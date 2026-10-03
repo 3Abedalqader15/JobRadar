@@ -36,47 +36,54 @@ public static class IdentityDataSeeder
             }
 
             // 2. Seed Default Admin User
-            var adminEmail = configuration["AdminSeed:Email"] ?? "admin@jobradar.com";
-            var adminPassword = configuration["AdminSeed:Password"] ?? "Admin@JobRadar2026!";
+            var adminEmail = configuration["AdminSeed:Email"];
+            var adminPassword = configuration["AdminSeed:Password"];
             var adminFullName = configuration["AdminSeed:FullName"] ?? "JobRadar Administrator";
 
-            var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
-            if (existingAdmin == null)
+            if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
             {
-                logger.LogInformation("Seeding default admin user: {AdminEmail}", adminEmail);
-                var admin = ApplicationUser.Create(
-                    email: adminEmail,
-                    fullName: adminFullName,
-                    experienceLevel: ExperienceLevel.Lead
-                );
-
-                admin.EmailConfirmed = true;
-
-                var createResult = await userManager.CreateAsync(admin, adminPassword);
-                if (createResult.Succeeded)
+                logger.LogWarning("AdminSeed:Email or AdminSeed:Password configuration is missing or empty. Skipping admin user seeding entirely.");
+            }
+            else
+            {
+                var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
+                if (existingAdmin == null)
                 {
-                    var roleResult = await userManager.AddToRoleAsync(admin, "Admin");
-                    if (roleResult.Succeeded)
+                    logger.LogInformation("Seeding default admin user: {AdminEmail}", adminEmail);
+                    var admin = ApplicationUser.Create(
+                        email: adminEmail,
+                        fullName: adminFullName,
+                        experienceLevel: ExperienceLevel.Lead
+                    );
+
+                    admin.EmailConfirmed = true;
+
+                    var createResult = await userManager.CreateAsync(admin, adminPassword);
+                    if (createResult.Succeeded)
                     {
-                        logger.LogInformation("Admin user {AdminEmail} created and assigned to 'Admin' role successfully.", adminEmail);
+                        var roleResult = await userManager.AddToRoleAsync(admin, "Admin");
+                        if (roleResult.Succeeded)
+                        {
+                            logger.LogInformation("Admin user {AdminEmail} created and assigned to 'Admin' role successfully.", adminEmail);
+                        }
+                        else
+                        {
+                            logger.LogError("Failed to assign 'Admin' role to {AdminEmail}: {Errors}", adminEmail, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                        }
                     }
                     else
                     {
-                        logger.LogError("Failed to assign 'Admin' role to {AdminEmail}: {Errors}", adminEmail, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                        logger.LogError("Failed to create admin user {AdminEmail}: {Errors}", adminEmail, string.Join(", ", createResult.Errors.Select(e => e.Description)));
                     }
                 }
                 else
                 {
-                    logger.LogError("Failed to create admin user {AdminEmail}: {Errors}", adminEmail, string.Join(", ", createResult.Errors.Select(e => e.Description)));
-                }
-            }
-            else
-            {
-                // Ensure existing admin is in Admin role
-                if (!await userManager.IsInRoleAsync(existingAdmin, "Admin"))
-                {
-                    logger.LogInformation("Assigning 'Admin' role to existing user {AdminEmail}", adminEmail);
-                    await userManager.AddToRoleAsync(existingAdmin, "Admin");
+                    // Ensure existing admin is in Admin role
+                    if (!await userManager.IsInRoleAsync(existingAdmin, "Admin"))
+                    {
+                        logger.LogInformation("Assigning 'Admin' role to existing user {AdminEmail}", adminEmail);
+                        await userManager.AddToRoleAsync(existingAdmin, "Admin");
+                    }
                 }
             }
 

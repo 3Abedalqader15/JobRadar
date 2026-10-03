@@ -181,4 +181,58 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
         var defaultScores = Enumerable.Repeat(1.0, list.Count).ToArray();
         return (list, defaultScores, totalCount);
     }
+
+    public async Task<IReadOnlyList<string>> GetExistingUrlsAsync(IEnumerable<string> urls, CancellationToken cancellationToken = default)
+    {
+        var urlList = urls.Where(u => !string.IsNullOrWhiteSpace(u)).Distinct().ToList();
+        if (urlList.Count == 0) return Array.Empty<string>();
+
+        return await DbSet
+            .AsNoTracking()
+            .Where(j => j.ExternalApplyUrl != null && urlList.Contains(j.ExternalApplyUrl))
+            .Select(j => j.ExternalApplyUrl!)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> ExistsByTitleAndCompanyAsync(string title, string companyName, CancellationToken cancellationToken = default)
+    {
+        var normTitle = title.Trim().ToLower();
+        var normCompany = companyName.Trim().ToLower();
+
+        return await DbSet
+            .AsNoTracking()
+            .AnyAsync(j => j.Title.ToLower() == normTitle && j.CompanyName.ToLower() == normCompany, cancellationToken);
+    }
+
+    public async Task AddWithSkillsAsync(Job job, IEnumerable<string> skillNames, CancellationToken cancellationToken = default)
+    {
+        await DbSet.AddAsync(job, cancellationToken);
+
+        if (skillNames == null) return;
+
+        foreach (var skillName in skillNames.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var normSkill = skillName.Trim();
+            if (string.IsNullOrWhiteSpace(normSkill)) continue;
+
+            var skill = Context.Skills.Local.FirstOrDefault(s => s.Name.Equals(normSkill, StringComparison.OrdinalIgnoreCase))
+                ?? await Context.Skills.FirstOrDefaultAsync(s => s.Name.ToLower() == normSkill.ToLower(), cancellationToken);
+
+            if (skill == null)
+            {
+                var slug = normSkill.ToLowerInvariant()
+                    .Replace(' ', '-')
+                    .Replace('.', '-')
+                    .Replace('#', 's');
+                skill = Skill.Create(normSkill, slug);
+                Context.Skills.Add(skill);
+            }
+
+            var alreadyMapped = Context.JobSkillMaps.Local.Any(m => m.JobId == job.Id && m.SkillId == skill.Id);
+            if (!alreadyMapped)
+            {
+                Context.JobSkillMaps.Add(new JobSkillMap(job.Id, skill.Id));
+            }
+        }
+    }
 }

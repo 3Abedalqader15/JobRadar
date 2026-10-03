@@ -6,6 +6,7 @@ using JobRadar.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace JobRadar.Api.Controllers;
 
@@ -23,6 +24,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {
         var result = await _mediator.Send(command);
@@ -35,6 +37,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var command = new LoginCommand(request.Email, request.Password, GetIpAddress());

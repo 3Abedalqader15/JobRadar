@@ -12,18 +12,15 @@ namespace JobRadar.Api.Controllers;
 public class JobsController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IAutomatedJobIngestionService _jobIngestionService;
-
-    public JobsController(IMediator mediator, IAutomatedJobIngestionService jobIngestionService)
+    public JobsController(IMediator mediator)
     {
         _mediator = mediator;
-        _jobIngestionService = jobIngestionService;
     }
 
     [HttpPost("sync-now")]
     public async Task<IActionResult> SyncNow(CancellationToken cancellationToken)
     {
-        var count = await _jobIngestionService.RunCrawlCycleAsync(cancellationToken);
+        var count = await _mediator.Send(new JobRadar.Application.Features.Crawlers.Commands.IngestCrawledJobs.IngestCrawledJobsCommand(), cancellationToken);
         return Ok(new
         {
             success = true,
