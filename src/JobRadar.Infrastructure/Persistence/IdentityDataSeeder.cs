@@ -40,9 +40,12 @@ public static class IdentityDataSeeder
             var adminPassword = configuration["AdminSeed:Password"];
             var adminFullName = configuration["AdminSeed:FullName"] ?? "JobRadar Administrator";
 
-            if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+            if (string.IsNullOrWhiteSpace(adminEmail) || 
+                string.IsNullOrWhiteSpace(adminPassword) || 
+                adminEmail.Contains("<SET_VIA_USER_SECRETS>") || 
+                adminPassword.Contains("<SET_VIA_USER_SECRETS>"))
             {
-                logger.LogWarning("AdminSeed:Email or AdminSeed:Password configuration is missing or empty. Skipping admin user seeding entirely.");
+                logger.LogWarning("AdminSeed:Email or AdminSeed:Password configuration is missing, empty, or placeholder. Skipping admin user seeding entirely.");
             }
             else
             {
