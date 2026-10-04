@@ -146,7 +146,7 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
         int skip = (criteria.Page - 1) * criteria.PageSize;
         int take = criteria.PageSize;
 
-        if (criteria.Vector != null && criteria.SortBy == JobSortOption.Relevance)
+        if (criteria.Vector != null && criteria.Vector.Length > 0 && criteria.SortBy == JobSortOption.Relevance)
         {
             var pgVector = new Vector(criteria.Vector);
 

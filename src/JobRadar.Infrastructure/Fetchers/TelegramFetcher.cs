@@ -23,8 +23,8 @@ internal sealed class TelegramFetcher : ISourceFetcher, IDisposable
         _logger = logger;
         _configuration = configuration;
         
-        _apiId = _configuration["Telegram:ApiId"] ?? throw new InvalidOperationException("Telegram:ApiId is missing.");
-        _apiHash = _configuration["Telegram:ApiHash"] ?? throw new InvalidOperationException("Telegram:ApiHash is missing.");
+        _apiId = _configuration["Telegram:ApiId"] ?? "";
+        _apiHash = _configuration["Telegram:ApiHash"] ?? "";
         _sessionPath = _configuration["Telegram:SessionPath"] ?? "telegram.session";
     }
 
@@ -60,6 +60,12 @@ internal sealed class TelegramFetcher : ISourceFetcher, IDisposable
 
     public async Task<IReadOnlyList<FetchedPostInfo>> FetchPostsAsync(Source source, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(_apiId) || string.IsNullOrWhiteSpace(_apiHash))
+        {
+            _logger.LogWarning("Telegram API ID or Hash is missing in configuration. Skipping Telegram fetch for source {Name}.", source.Name);
+            return Array.Empty<FetchedPostInfo>();
+        }
+
         await EnsureConnectedAsync();
         
         // We expect source.Url to be the channel username (e.g. @jobs_channel) or channel ID.

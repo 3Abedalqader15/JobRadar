@@ -44,13 +44,22 @@ public sealed class IngestSourceCommandHandler : IRequestHandler<IngestSourceCom
             throw new KeyNotFoundException($"Source with ID '{request.SourceId}' was not found.");
 
         if (source.Status != SourceStatus.Active)
-            throw new InvalidOperationException($"Source is in status {source.Status}");
+        {
+            _logger.LogWarning("Source {SourceId} is in status {Status}, skipping.", source.Id, source.Status);
+            return;
+        }
+
+        if (source.Type == SourceType.ManualShare)
+        {
+            _logger.LogInformation("Source {SourceId} is ManualShare, skipping background ingestion.", source.Id);
+            return;
+        }
 
         var fetcher = _fetchers.FirstOrDefault(f => f.CanHandle(source.Type));
         if (fetcher == null)
         {
-            _logger.LogError("No fetcher registered for source type {Type}", source.Type);
-            throw new InvalidOperationException($"No fetcher for source type {source.Type}");
+            _logger.LogWarning("No fetcher registered for source type {Type}, skipping.", source.Type);
+            return;
         }
 
         try

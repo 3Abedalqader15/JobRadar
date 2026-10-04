@@ -68,9 +68,15 @@ public sealed class GeminiExtractionService : ILlmExtractionService
     {
         _http = httpClientFactory.CreateClient("Gemini");
         _apiKey = configuration["Gemini:ApiKey"]
-            ?? throw new InvalidOperationException("Missing configuration key: Gemini:ApiKey");
+            ?? configuration["GEMINI_API_KEY"]
+            ?? string.Empty;
         _confidenceThreshold = configuration.GetValue<float>("Gemini:ConfidenceThreshold", 0.70f);
         _logger = logger;
+
+        if (string.IsNullOrWhiteSpace(_apiKey))
+        {
+            _logger.LogWarning("Gemini:ApiKey is not configured. AI job extraction will be skipped.");
+        }
 
         _systemPrompt =
             "You are a structured data extraction assistant. " +
@@ -103,6 +109,12 @@ public sealed class GeminiExtractionService : ILlmExtractionService
         string rawText,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(_apiKey))
+        {
+            _logger.LogWarning("Gemini:ApiKey is empty; skipping AI extraction.");
+            return null;
+        }
+
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{Model}:generateContent?key={_apiKey}";
 
         var requestBody = new

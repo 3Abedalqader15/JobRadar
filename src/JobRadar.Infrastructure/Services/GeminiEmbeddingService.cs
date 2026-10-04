@@ -30,8 +30,14 @@ public sealed class GeminiEmbeddingService : IEmbeddingService
     {
         _http = httpClientFactory.CreateClient("Gemini");
         _apiKey = configuration["Gemini:ApiKey"]
-            ?? throw new InvalidOperationException("Missing configuration key: Gemini:ApiKey");
+            ?? configuration["GEMINI_API_KEY"]
+            ?? string.Empty;
         _logger = logger;
+
+        if (string.IsNullOrWhiteSpace(_apiKey))
+        {
+            _logger.LogWarning("Gemini:ApiKey is not configured. Semantic embeddings will fall back to Trigram/FTS text search.");
+        }
 
         _pipeline = new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions
@@ -48,6 +54,12 @@ public sealed class GeminiEmbeddingService : IEmbeddingService
 
     public async Task<float[]> GenerateAsync(string text, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(_apiKey))
+        {
+            _logger.LogWarning("Gemini:ApiKey is empty; skipping vector generation for fallback.");
+            return Array.Empty<float>();
+        }
+
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{Model}:embedContent?key={_apiKey}";
 
         // For job retrieval, use asymmetric retrieval document format per Gemini docs

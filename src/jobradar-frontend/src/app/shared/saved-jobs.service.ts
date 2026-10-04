@@ -1,4 +1,4 @@
-import { Injectable, signal, inject, effect } from '@angular/core';
+import { Injectable, signal, inject, effect, untracked } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth/auth.service';
 
@@ -12,15 +12,22 @@ export class SavedJobsService {
   private authService = inject(AuthService);
 
   public savedJobIds = signal<Set<string>>(this.loadInitialSavedJobs());
+  private syncedForUserId: string | null = null;
 
   constructor() {
-    // Automatically trigger batch merge whenever the user logs in
+    // Automatically trigger batch merge only once whenever the user logs in
     effect(() => {
       const user = this.authService.currentUserSignal();
-      if (user) {
-        this.syncBatchOnLogin();
+      const currentId = user ? (user.userId || user.email) : null;
+      if (currentId && currentId !== this.syncedForUserId) {
+        this.syncedForUserId = currentId;
+        untracked(() => {
+          this.syncBatchOnLogin();
+        });
+      } else if (!currentId) {
+        this.syncedForUserId = null;
       }
-    }, { allowSignalWrites: true });
+    });
   }
 
   private loadInitialSavedJobs(): Set<string> {
@@ -78,7 +85,7 @@ export class SavedJobsService {
   }
 
   public syncBatchOnLogin(): void {
-    const localIds = Array.from(this.savedJobIds());
+    const localIds = untracked(() => Array.from(this.savedJobIds()));
     this.http.post<string[]>('/api/jobs/saved/batch', { jobIds: localIds }).subscribe({
       next: (serverIds) => {
         if (Array.isArray(serverIds)) {

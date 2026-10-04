@@ -40,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IJobIngestionService, JobRadar.Infrastructure.Services.JobIngestionService>();
         services.AddScoped<ISourceFetcher, JobRadar.Infrastructure.Fetchers.RssFetcher>();
         services.AddScoped<ISourceFetcher, JobRadar.Infrastructure.Fetchers.TelegramFetcher>();
+        services.AddScoped<ISourceFetcher, JobRadar.Infrastructure.Fetchers.CompanyCareersPageFetcher>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         
         // ── Caching ──────────────────────────────────────────────────────────
@@ -62,9 +63,15 @@ public static class DependencyInjection
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) JobRadarCrawler/1.0 (+https://jobradar.io)");
         });
 
+        // Global Crawlers
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.ArbeitnowCrawlerProvider>();
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.RemotiveCrawlerProvider>();
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.WeWorkRemotelyRssCrawlerProvider>();
+
+        // Jordanian Market Crawlers
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.BankOfJordanCrawlerProvider>();
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.AkhtabootCrawlerProvider>();
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.BaytJordanCrawlerProvider>();
 
         services.AddSingleton<IJobEmbeddingChannel, JobRadar.Infrastructure.BackgroundServices.JobEmbeddingChannel>();
         services.AddScoped<IJobRealtimeNotifier, JobRadar.Infrastructure.Services.NullJobRealtimeNotifier>();

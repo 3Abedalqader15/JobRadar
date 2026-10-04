@@ -60,17 +60,28 @@ builder.ConfigureServices((ctx, services) =>
             o.UseBusOutbox();
         });
 
-        x.UsingRabbitMq((context, cfg) =>
+        var rabbitMqConn = configuration.GetConnectionString("RabbitMQ");
+        if (!string.IsNullOrEmpty(rabbitMqConn) && rabbitMqConn != "in-memory")
         {
-            cfg.Host(configuration.GetConnectionString("RabbitMQ") ?? "amqp://guest:guest@localhost:5672");
-
-            // Dedicated queue for raw-post processing
-            cfg.ReceiveEndpoint("raw-post-processing", e =>
+            x.UsingRabbitMq((context, cfg) =>
             {
-                e.ConcurrentMessageLimit = 4; // don't hammer the LLM
-                e.ConfigureConsumer<RawPostProcessingConsumer>(context);
+                cfg.Host(rabbitMqConn);
+
+                // Dedicated queue for raw-post processing
+                cfg.ReceiveEndpoint("raw-post-processing", e =>
+                {
+                    e.ConcurrentMessageLimit = 4; // don't hammer the LLM
+                    e.ConfigureConsumer<RawPostProcessingConsumer>(context);
+                });
             });
-        });
+        }
+        else
+        {
+            x.UsingInMemory((context, cfg) =>
+            {
+                cfg.ConfigureEndpoints(context);
+            });
+        }
     });
 
     // ── Embedding batch processor (background service) ────────────────────

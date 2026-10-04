@@ -110,7 +110,10 @@ public static class IdentityDataSeeder
                 logger.LogInformation("Manual source seeded with ID {Id}.", manualSourceId);
             }
 
-            // 4. Ensure PostgreSQL Full-Text, Trigram, and Composite Performance Indexes
+            // 4. Seed Official Jordanian Recruitment Sources (Banks, Telecom, Tech, Health, Universities, Job Boards)
+            await JordanianSourcesSeeder.SeedJordanianSourcesAsync(db, logger);
+
+            // 5. Ensure PostgreSQL Full-Text, Trigram, and Composite Performance Indexes
             try
             {
                 logger.LogInformation("Ensuring PostgreSQL performance indexes (pg_trgm, FTS, GIN)...");

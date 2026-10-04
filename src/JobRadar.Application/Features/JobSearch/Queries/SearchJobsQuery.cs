@@ -147,6 +147,11 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
             }
         }
 
+        if (queryEmbedding != null && queryEmbedding.Length == 0)
+        {
+            queryEmbedding = null;
+        }
+
         // 4. Execute Advanced Multi-Faceted Query via Repository
         var criteria = new JobSearchCriteria(
             Keyword: request.Query?.Trim(),
