@@ -8,6 +8,7 @@
 @import './styles/design-tokens.css';
 @import './styles/animations.css';
 @import './styles/base.css';
+@import 'maplibre-gl/dist/maplibre-gl.css';
 
 /* ── App Root Layout ──────────────────────────────────────────── */
 app-root {

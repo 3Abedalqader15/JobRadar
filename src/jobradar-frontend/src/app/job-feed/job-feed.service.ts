@@ -178,4 +178,8 @@ export class JobFeedService {
   public applyToJob(jobId: string, notes?: string): Observable<any> {
     return this.http.post(`/api/jobs/${jobId}/apply`, { notes });
   }
+
+  public getJobDetail(jobId: string): Observable<any> {
+    return this.http.get<any>(`/api/job-postings/${jobId}`);
+  }
 }

@@ -7,6 +7,10 @@ export const routes: Routes = [
   { path: '', component: JobFeedComponent },
   { path: 'login', component: AuthComponent },
   {
+    path: 'cv-builder',
+    loadComponent: () => import('./cv-builder/cv-builder.component').then(m => m.CvBuilderComponent)
+  },
+  {
     path: 'admin',
     canActivate: [adminGuard],
     loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent)

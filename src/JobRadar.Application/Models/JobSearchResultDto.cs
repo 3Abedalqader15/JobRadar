@@ -19,4 +19,7 @@ public class JobSearchResultDto
     public double RelevanceScore { get; set; }
     public string? ExternalApplyUrl { get; set; }
     public long SearchDurationMs { get; set; }
+    public string? SourceName { get; set; }
+    public bool IsVerified { get; set; }
+    public int ApplicantsClickCount { get; set; }
 }

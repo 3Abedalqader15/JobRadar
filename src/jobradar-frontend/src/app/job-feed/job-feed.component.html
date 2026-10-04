@@ -1,148 +1,322 @@
-<div class="page-layout">
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-brand">
-      <span class="brand-icon">⚡</span>
-      <span class="brand-name">JobRadar</span>
-      <span class="brand-badge">PRO SEARCH</span>
-    </div>
-
-    <!-- Live Sync Pulse & Crawler Button -->
-    <div class="navbar-center-status">
-      <div class="pulse-indicator" [class.connected]="jobService.connectionStateSignal() === 'connected'">
-        <span class="pulse-dot"></span>
-        <span class="pulse-text">
-          @if (jobService.connectionStateSignal() === 'connected') {
-            Live Sync Active
-          } @else {
-            Connecting Live Stream...
-          }
-        </span>
-      </div>
-      <button 
-        id="btn-sync-crawler-nav" 
-        type="button" 
-        class="btn-sync-crawler-nav" 
-        [disabled]="syncing()" 
-        (click)="syncJobsNow()"
-        title="Search & Ingest latest jobs from global boards automatically">
-        <span class="sync-icon" [class.spin]="syncing()">🔄</span>
-        <span>{{ syncing() ? 'Crawling...' : 'Auto-Crawl Web' }}</span>
-      </button>
-    </div>
-
-    <div class="navbar-actions">
-      @if (authService.currentUserSignal(); as user) {
-        @if (authService.isAdminOrHR()) {
-          <a id="nav-admin-link" routerLink="/admin" class="nav-admin-btn">
-            <span>⚙️</span> Dashboard
-          </a>
-        }
-        <div class="nav-user">
-          <div class="nav-avatar">{{ (user.fullName ? user.fullName.charAt(0) : user.email.charAt(0)).toUpperCase() }}</div>
-          <span class="nav-username">{{ user.fullName || user.email }}</span>
-        </div>
-        <button id="nav-logout-btn" class="btn-nav-logout" (click)="logout()">Logout</button>
-      } @else {
-        <a id="nav-login-link" routerLink="/login" class="btn-nav-login">
-          Sign In / Register
+<div class="radar-page">
+  <!-- Top Radar Navbar -->
+  <header class="radar-nav">
+    <div class="nav-container">
+      <div class="nav-left">
+        <a routerLink="/" class="brand-link">
+          <span class="brand-radar-icon">⚡</span>
+          <span class="brand-title">JobRadar</span>
+          <span class="brand-tag">MENA LIVE</span>
         </a>
-      }
-    </div>
-  </nav>
-
-  <!-- Hero & Command Center -->
-  <div class="hero-section">
-    <div class="hero-orb hero-orb-1"></div>
-    <div class="hero-orb hero-orb-2"></div>
-    
-    <div class="hero-content">
-      <div class="hero-chip">
-        <span>🚀 Model A Hybrid Parallel Engine & HNSW Vectors</span>
       </div>
-      <h1 class="hero-title">
-        Discover Opportunities at <span class="gradient-text">Lightning Speed</span>
+
+      <!-- Live Stream Status & Global Sync -->
+      <div class="nav-center">
+        <div class="stream-status" [class.is-connected]="jobService.connectionStateSignal() === 'connected'">
+          <span class="stream-radar-beacon"></span>
+          <span class="stream-text">
+            @if (jobService.connectionStateSignal() === 'connected') {
+              Live Scanning Active
+            } @else {
+              Connecting Stream...
+            }
+          </span>
+        </div>
+
+        <button 
+          id="btn-sync-crawler-nav" 
+          type="button" 
+          class="btn-nav-crawler" 
+          [disabled]="syncing()" 
+          (click)="syncJobsNow()"
+          title="Run web crawlers across international & MENA job channels">
+          <span class="crawler-icon" [class.spin]="syncing()">🔄</span>
+          <span>{{ syncing() ? 'Scanning...' : 'Scan Boards' }}</span>
+        </button>
+      </div>
+
+      <div class="nav-right">
+        <!-- Theme Toggle Switch -->
+        <button
+          id="btn-theme-toggle"
+          type="button"
+          class="btn-theme-switch"
+          (click)="themeService.toggleTheme()"
+          [title]="themeService.currentTheme() === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+          aria-label="Toggle Color Theme"
+        >
+          @if (themeService.currentTheme() === 'dark') {
+            <span class="theme-icon">☀️ Light</span>
+          } @else {
+            <span class="theme-icon">🌙 Dark</span>
+          }
+        </button>
+
+        <!-- CV Builder & ATS Match Navigation -->
+        <a id="nav-cv-builder-link" routerLink="/cv-builder" class="btn-nav-cv" title="Simulate ATS Resume Keyword Match">
+          <span>📄 ATS Match</span>
+        </a>
+
+        @if (authService.currentUserSignal(); as user) {
+          @if (authService.isAdminOrHR()) {
+            <a id="nav-admin-link" routerLink="/admin" class="btn-nav-dashboard">
+              <span>⚙️</span> Dashboard
+            </a>
+          }
+          <div class="nav-user-pill">
+            <span class="user-avatar">{{ (user.fullName ? user.fullName.charAt(0) : user.email.charAt(0)).toUpperCase() }}</span>
+            <span class="user-name">{{ user.fullName || user.email }}</span>
+          </div>
+          <button id="nav-logout-btn" class="btn-nav-logout" (click)="logout()">Sign Out</button>
+        } @else {
+          <a id="nav-login-link" routerLink="/login" class="btn-nav-login">Sign In / Join</a>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero & Primary Radar Search Entry Point -->
+  <section class="hero-command-center">
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>Parallel Hybrid Search Engine • HNSW Semantic Vector Match</span>
+      </div>
+
+      <h1 class="hero-heading">
+        Real-Time Job Intelligence for <span class="highlight-mena">Jordan & MENA</span>
       </h1>
-      <p class="hero-subtitle">
-        Trigram text matching + 1536-dim vector embeddings fused in parallel for sub-second precision.
+      <p class="hero-subtext">
+        Aggregated live across regional job boards, verified employers, and tech communities.
       </p>
 
-      <!-- Quick Preset Pills -->
-      <div class="quick-presets">
-        <button type="button" class="preset-btn" [class.active]="filterForm.get('isRemote')?.value" (click)="toggleRemotePreset()">
-          🌍 Remote Only
-        </button>
-        <button type="button" class="preset-btn" [class.active]="filterForm.get('datePosted')?.value === 1" (click)="setTodayPreset()">
-          🕒 Posted Today
-        </button>
-        <button type="button" class="preset-btn" [class.active]="filterForm.get('salaryMin')?.value >= 100000" (click)="setHighSalaryPreset()">
-          💰 $100k+ High Pay
-        </button>
-        <button type="button" class="preset-btn reset" (click)="resetFilters()">
-          ↺ Reset Filters
-        </button>
+      <!-- Prominent Natural-Language Search Bar -->
+      <div class="hero-search-wrapper">
+        <form [formGroup]="filterForm" (ngSubmit)="loadJobs()" class="hero-search-form">
+          <div class="search-input-box">
+            <span class="search-lens-icon">🔍</span>
+            <input
+              type="text"
+              id="hero-query-input"
+              formControlName="query"
+              placeholder="Search by title, technology, or natural language query (e.g. Senior .NET Architect in Amman)..."
+              class="hero-search-input"
+              autocomplete="off"
+            />
+            <button type="submit" class="hero-search-submit" aria-label="Search">
+              Search Radar
+            </button>
+          </div>
+        </form>
+
+        <!-- Live Updating Result Count Below Search -->
+        <div class="live-counter-strip">
+          <div class="live-counter-left">
+            @if (loading()) {
+              <span class="radar-searching-text">
+                <span class="mini-spin">📡</span> Scanning radar channels...
+              </span>
+            } @else {
+              <span class="radar-result-count">
+                <strong>{{ totalCount() }}</strong> positions live on radar
+              </span>
+            }
+            @if (searchLatencyMs() !== null) {
+              <span class="latency-pill">⚡ {{ searchLatencyMs() }}ms latency</span>
+            }
+          </div>
+
+          <div class="live-counter-right">
+            @if (filterForm.get('query')?.value || filterForm.get('location')?.value || selectedSkills().length > 0 || selectedCategory()) {
+              <button type="button" class="btn-clear-hero" (click)="resetFilters()">
+                Reset all filters ✕
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Category / Industry Quick-Browse Strip -->
+        <div class="category-browse-strip" role="toolbar" aria-label="Quick category filters">
+          <span class="category-label">Quick Browse:</span>
+          <div class="category-pills-row">
+            @for (cat of categories; track cat.id) {
+              <button
+                type="button"
+                class="category-pill"
+                [class.is-active]="selectedCategory() === cat.id"
+                (click)="selectCategory(cat)"
+              >
+                <span class="cat-icon">{{ cat.icon }}</span>
+                <span class="cat-title">{{ cat.label }}</span>
+              </button>
+            }
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Main Grid Content -->
-  <div class="main-content">
-    <!-- Left Multi-Faceted Filter Panel -->
-    <aside class="filter-sidebar">
-      <div class="filter-header">
-        <div class="filter-title-wrap">
-          <span class="filter-title-icon">⚙️</span>
-          <h3>Faceted Search Filters</h3>
-        </div>
-        @if (selectedSkills().length > 0 || filterForm.get('query')?.value || filterForm.get('location')?.value) {
-          <button type="button" class="clear-filters-link" (click)="resetFilters()">Clear</button>
-        }
+  <!-- Feed Toolbar (View Mode Switch & Filter Toggle) -->
+  <div class="feed-top-bar">
+    <div class="feed-top-bar-inner">
+      <div class="feed-heading-meta">
+        <h2 class="feed-title">Latest Ingested Opportunities</h2>
+        <span class="feed-count-badge">{{ totalCount() }} verified listings</span>
       </div>
 
-      <form [formGroup]="filterForm" class="filter-form">
-        <!-- Keyword Search -->
-        <div class="filter-group">
-          <label for="query">Keyword or Semantic Query</label>
-          <div class="input-icon-wrap">
-            <span class="input-icon">🔍</span>
-            <input
-              type="text"
-              id="query"
-              formControlName="query"
-              placeholder="e.g. Senior .NET Architect remote"
-              class="filter-input with-icon"
-            />
-          </div>
-        </div>
+      <div class="feed-actions-group">
+        <!-- Saved Jobs Quick Filter -->
+        <button
+          type="button"
+          class="btn-saved-filter"
+          [class.is-active]="savedOnlyFilter()"
+          (click)="toggleSavedOnly()"
+          title="Filter saved jobs"
+        >
+          <span>⭐ Saved</span>
+          @if (savedJobsService.savedJobIds().size > 0) {
+            <span class="saved-badge">{{ savedJobsService.savedJobIds().size }}</span>
+          }
+        </button>
 
-        <!-- Location Search -->
+        <!-- Mobile Swipe Mode Triage Button -->
+        <button
+          type="button"
+          class="btn-mobile-swipe"
+          (click)="swipeModeOpen.set(true)"
+          title="Launch Mobile Swipe Triage"
+        >
+          <span>🎴 Swipe Mode</span>
+        </button>
+
+        <!-- Mobile Filter Button -->
+        <button
+          type="button"
+          class="btn-mobile-filter"
+          (click)="mobileFiltersOpen.set(!mobileFiltersOpen())"
+          aria-label="Filter listings"
+        >
+          <span>⚙️ Filters</span>
+          @if (activeFilterCount() > 0) {
+            <span class="active-badge">{{ activeFilterCount() }}</span>
+          }
+        </button>
+
+        <!-- View Mode Switch (List [Default] | Grid | Radar Pulse Map) -->
+        <div class="view-switch-control" role="group" aria-label="View layout switch">
+          <button
+            type="button"
+            class="switch-btn"
+            [class.is-active]="viewMode() === 'list'"
+            (click)="setViewMode('list')"
+            title="Dense Scannable List View (Default)"
+          >
+            <span class="btn-icon">☰</span>
+            <span class="btn-label">List</span>
+          </button>
+          <button
+            type="button"
+            class="switch-btn"
+            [class.is-active]="viewMode() === 'grid'"
+            (click)="setViewMode('grid')"
+            title="Grid Cards View"
+          >
+            <span class="btn-icon">▦</span>
+            <span class="btn-label">Grid</span>
+          </button>
+          <button
+            type="button"
+            class="switch-btn radar-map-btn"
+            [class.is-active]="viewMode() === 'map'"
+            (click)="setViewMode('map')"
+            title="Interactive Radar Pulse Map (Jordan & MENA)"
+          >
+            <span class="radar-dot-pulse"></span>
+            <span class="btn-label">Radar Map</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Skill Filter Indicator Strip -->
+    @if (selectedSkills().length > 0) {
+      <div class="active-skills-strip">
+        <span class="skills-strip-label">Filtering by skills:</span>
+        @for (skill of selectedSkills(); track skill) {
+          <button
+            type="button"
+            class="active-skill-chip"
+            (click)="toggleSkill(skill)"
+            title="Remove skill filter: {{ skill }}"
+          >
+            {{ skill }} <span class="chip-remove">✕</span>
+          </button>
+        }
+        <button type="button" class="btn-clear-skills" (click)="selectedSkills.set([])">
+          Clear all
+        </button>
+      </div>
+    }
+  </div>
+
+
+  <!-- Main Content Layout (Sidebar + Feed) -->
+  <div class="radar-layout">
+    <!-- Scannable Multi-Faceted Filter Sidebar (Desktop) / Bottom-Sheet (Mobile) -->
+    <aside
+      class="filter-sidebar"
+      [class.is-mobile-open]="mobileFiltersOpen()"
+      aria-label="Filter sidebar"
+    >
+      <div class="sidebar-header">
+        <div class="sidebar-title-wrap">
+          <span class="sidebar-icon">⚙️</span>
+          <h3 class="sidebar-title">Refine Radar Filters</h3>
+        </div>
+        <div class="sidebar-header-actions">
+          @if (activeFilterCount() > 0) {
+            <button type="button" class="btn-reset-filters" (click)="resetFilters()">Clear</button>
+          }
+          <button
+            type="button"
+            class="btn-close-mobile-sheet"
+            (click)="mobileFiltersOpen.set(false)"
+            aria-label="Close filters"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <form [formGroup]="filterForm" class="sidebar-form">
+        <!-- Location Input -->
         <div class="filter-group">
-          <label for="location">Location</label>
-          <div class="input-icon-wrap">
-            <span class="input-icon">📍</span>
+          <label for="filter-location" class="filter-label">City or Region</label>
+          <div class="filter-input-wrap">
+            <span class="input-prefix-icon">📍</span>
             <input
               type="text"
-              id="location"
+              id="filter-location"
               formControlName="location"
-              placeholder="e.g. London, Dubai, New York"
-              class="filter-input with-icon"
+              placeholder="e.g. Amman, Irbid, Dubai..."
+              class="filter-text-input with-prefix"
             />
           </div>
         </div>
 
-        <!-- Remote Toggle -->
-        <div class="filter-checkbox-row">
-          <label class="checkbox-container">
-            <input type="checkbox" id="isRemote" formControlName="isRemote" />
-            <span class="checkmark"></span>
-            <span class="checkbox-label">Remote Work Only</span>
+        <!-- Remote Work Toggle -->
+        <div class="filter-group-inline">
+          <label class="custom-toggle-label">
+            <input type="checkbox" id="filter-isRemote" formControlName="isRemote" class="toggle-checkbox" />
+            <span class="toggle-switch"></span>
+            <span class="toggle-text">🌍 Remote Opportunities Only</span>
           </label>
         </div>
 
         <!-- Sort Option -->
         <div class="filter-group">
-          <label for="sortBy">Sort Results By</label>
-          <select id="sortBy" formControlName="sortBy" class="filter-select">
+          <label for="filter-sortBy" class="filter-label">Sort Results By</label>
+          <select id="filter-sortBy" formControlName="sortBy" class="filter-select">
             @for (opt of sortOptions; track opt.value) {
               <option [value]="opt.value">{{ opt.label }}</option>
             }
@@ -151,19 +325,19 @@
 
         <!-- Date Posted Dropdown -->
         <div class="filter-group">
-          <label for="datePosted">Date Posted</label>
-          <select id="datePosted" formControlName="datePosted" class="filter-select">
-            @for (dateOpt of datePostedOptions; track dateOpt.value) {
-              <option [value]="dateOpt.value">{{ dateOpt.label }}</option>
+          <label for="filter-datePosted" class="filter-label">Date Posted</label>
+          <select id="filter-datePosted" formControlName="datePosted" class="filter-select">
+            @for (opt of datePostedOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
             }
           </select>
         </div>
 
         <!-- Employment Type -->
         <div class="filter-group">
-          <label for="employmentType">Employment Type</label>
-          <select id="employmentType" formControlName="employmentType" class="filter-select">
-            <option value="null">All Employment Types</option>
+          <label for="filter-employmentType" class="filter-label">Employment Type</label>
+          <select id="filter-employmentType" formControlName="employmentType" class="filter-select">
+            <option value="null">All Contract Types</option>
             @for (type of employmentTypes; track type.value) {
               <option [value]="type.value">{{ type.label }}</option>
             }
@@ -172,8 +346,8 @@
 
         <!-- Experience Level -->
         <div class="filter-group">
-          <label for="experienceLevel">Experience Level</label>
-          <select id="experienceLevel" formControlName="experienceLevel" class="filter-select">
+          <label for="filter-experienceLevel" class="filter-label">Experience Level</label>
+          <select id="filter-experienceLevel" formControlName="experienceLevel" class="filter-select">
             <option value="null">All Experience Levels</option>
             @for (level of experienceLevels; track level.value) {
               <option [value]="level.value">{{ level.label }}</option>
@@ -183,202 +357,611 @@
 
         <!-- Salary Range Filter -->
         <div class="filter-group">
-          <label>Salary Range (USD / Year)</label>
-          <div class="salary-dual-inputs">
+          <label class="filter-label">Salary Expectation (USD / Year)</label>
+          <div class="salary-inputs-row">
             <input
               type="number"
-              id="salaryMin"
+              id="filter-salaryMin"
               formControlName="salaryMin"
               placeholder="Min ($)"
-              class="filter-input-half"
+              class="salary-input"
               min="0"
               step="5000"
             />
-            <span class="salary-separator">—</span>
+            <span class="salary-dash">—</span>
             <input
               type="number"
-              id="salaryMax"
+              id="filter-salaryMax"
               formControlName="salaryMax"
               placeholder="Max ($)"
-              class="filter-input-half"
+              class="salary-input"
               min="0"
               step="5000"
             />
           </div>
         </div>
 
-        <!-- Skills Cloud Filter -->
+        <!-- Skills Cloud Filter (Relational Join) -->
         <div class="filter-group">
-          <label>Required Tech Skills (Relational Join)</label>
-          <div class="skills-cloud">
+          <div class="skills-cloud-header">
+            <label class="filter-label">Skill Requirements</label>
+            @if (selectedSkills().length > 0) {
+              <span class="selected-skills-count">{{ selectedSkills().length }} selected</span>
+            }
+          </div>
+          <div class="skills-cloud-container">
             @for (skill of popularSkills; track skill) {
               <button
                 type="button"
-                class="skill-chip-btn"
-                [class.active]="selectedSkills().includes(skill)"
+                class="skill-filter-pill"
+                [class.is-selected]="selectedSkills().includes(skill)"
                 (click)="toggleSkill(skill)"
               >
-                {{ skill }}
+                <span>{{ skill }}</span>
                 @if (selectedSkills().includes(skill)) {
-                  <span class="chip-remove">✓</span>
+                  <span class="pill-check">✓</span>
                 }
               </button>
             }
           </div>
         </div>
+
+        <!-- Mobile Done Button -->
+        <div class="mobile-sheet-footer">
+          <button
+            type="button"
+            class="btn-apply-mobile-filters"
+            (click)="mobileFiltersOpen.set(false)"
+          >
+            Show {{ totalCount() }} Results
+          </button>
+        </div>
       </form>
     </aside>
 
-    <!-- Right Listings Area -->
-    <main class="feed-area">
-      <!-- Feed Meta & Speed Header -->
-      <div class="feed-header">
-        <div class="feed-header-left">
-          <h2>Job Opportunities</h2>
-          <span class="results-count">{{ totalCount() }} verified positions</span>
-        </div>
+    <!-- Mobile Backdrop -->
+    @if (mobileFiltersOpen()) {
+      <div class="mobile-drawer-backdrop" (click)="mobileFiltersOpen.set(false)"></div>
+    }
 
-        <div class="feed-header-right">
-          <button 
-            id="btn-feed-sync" 
-            type="button" 
-            class="btn-sync-crawler-feed" 
-            [disabled]="syncing()" 
-            (click)="syncJobsNow()"
-            title="Trigger automated background job search and ingest posts immediately">
-            <span class="sync-icon" [class.spin]="syncing()">🔄</span>
-            <span>{{ syncing() ? 'Scanning Boards...' : 'Auto-Crawl Web' }}</span>
-          </button>
-
-          @if (searchLatencyMs() !== null) {
-            <div class="latency-meter">
-              <span class="lightning-icon">⚡</span>
-              <span class="latency-time">{{ searchLatencyMs() }}ms</span>
-              <span class="latency-mode">Parallel Hybrid</span>
-            </div>
-          }
-
-          @if (loading()) {
-            <div class="mini-loader-pulse">
-              <span class="pulse-ring"></span>
-              <span class="loader-txt">Optimizing...</span>
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- Shimmer Skeletons when Loading -->
+    <!-- Listings & Map Main Area -->
+    <main class="feed-content-area">
+      <!-- Loading Skeleton (Dense List Layout) -->
       @if (loading() && jobs().length === 0) {
-        <div class="job-grid">
-          @for (item of [1,2,3,4,5,6]; track item) {
-            <div class="skeleton-card">
-              <div class="skeleton-header">
-                <div class="skeleton-avatar"></div>
-                <div class="skeleton-meta">
-                  <div class="skeleton-line line-title"></div>
-                  <div class="skeleton-line line-company"></div>
+        <div class="skeleton-list-container">
+          @for (s of [1,2,3,4,5,6,7,8]; track s) {
+            <div class="skeleton-dense-row">
+              <div class="skeleton-avatar"></div>
+              <div class="skeleton-body">
+                <div class="skeleton-line title-line"></div>
+                <div class="skeleton-line meta-line"></div>
+                <div class="skeleton-tags-row">
+                  <div class="skeleton-pill"></div>
+                  <div class="skeleton-pill"></div>
+                  <div class="skeleton-pill"></div>
                 </div>
               </div>
-              <div class="skeleton-tags">
-                <div class="skeleton-pill"></div>
-                <div class="skeleton-pill"></div>
-                <div class="skeleton-pill"></div>
+              <div class="skeleton-action"></div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ════════════════════════════════════════════════════════════ -->
+      <!-- VIEW 1: DENSE SCANNABLE LIST VIEW (DEFAULT)                  -->
+      <!-- ════════════════════════════════════════════════════════════ -->
+      @if (viewMode() === 'list' && filteredJobs().length > 0) {
+        <div class="dense-job-list" [class.is-loading-overlay]="loading()">
+          @for (job of filteredJobs(); track job.id) {
+            <article
+              class="dense-job-row"
+              [class.is-new-item]="job.isNew"
+              [class.is-verified-job]="job.isVerified"
+              (click)="openJobDrawer(job)"
+              tabindex="0"
+              (keydown.enter)="openJobDrawer(job)"
+            >
+              <!-- Row Left: Monogram / Company Initial -->
+              <div class="dense-row-avatar" [class.verified-avatar]="job.isVerified">
+                {{ job.companyName ? job.companyName.charAt(0).toUpperCase() : '⚡' }}
               </div>
-              <div class="skeleton-footer">
-                <div class="skeleton-pill pill-sm"></div>
-                <div class="skeleton-btn"></div>
+
+              <!-- Row Center: Content & Scannable Meta -->
+              <div class="dense-row-body">
+                <!-- Row Top Bar: Company, Source Attribution, Verified Badge & Freshness -->
+                <div class="dense-row-top">
+                  <div class="company-and-source">
+                    <span class="dense-company-name">{{ job.companyName }}</span>
+
+                    <!-- Source Attribution Pill -->
+                    <span class="source-tag" [title]="'Source Channel: ' + (job.sourceName || 'Direct Ingestion')">
+                      📡 {{ job.sourceName || 'JobRadar Stream' }}
+                    </span>
+
+                    <!-- Official / Verified Badge (Admin-posted vs Aggregated) -->
+                    @if (job.isVerified) {
+                      <span class="verified-badge" title="Official Partner or Admin Verified Direct Post">
+                        ✓ Verified Direct
+                      </span>
+                    }
+                  </div>
+
+                  <!-- Freshness Decay Indicator (Dot + Decay Bar + Label) -->
+                  <div
+                    class="freshness-decay-badge"
+                    [class]="'tone-' + getFreshness(job).tone"
+                    [title]="'Freshness index: ' + getFreshness(job).pct + '% (' + getFreshness(job).label + ')'"
+                  >
+                    <span class="freshness-dot"></span>
+                    <span class="freshness-label">{{ getFreshness(job).label }}</span>
+                    <div class="freshness-track">
+                      <div class="freshness-fill" [style.width.%]="getFreshness(job).pct"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Job Title -->
+                <h3 class="dense-job-title">{{ job.title }}</h3>
+
+                <!-- Meta Badges Strip -->
+                <div class="dense-meta-strip">
+                  <!-- Location / Remote Badge -->
+                  @if (job.isRemote) {
+                    <span class="meta-pill pill-remote">🌍 Remote</span>
+                  } @else if (job.location) {
+                    <span class="meta-pill pill-location">📍 {{ job.location }}</span>
+                  }
+
+                  <!-- Employment Type -->
+                  @if (job.employmentType) {
+                    <span class="meta-pill pill-type">{{ getEmploymentLabel(job.employmentType) }}</span>
+                  }
+
+                  <!-- Experience Level -->
+                  @if (job.experienceLevel) {
+                    <span class="meta-pill pill-exp">{{ getExperienceLabel(job.experienceLevel) }}</span>
+                  }
+
+                  <!-- Salary Badge -->
+                  @if (job.salaryMin || job.salaryMax) {
+                    <span class="meta-pill pill-salary">💵 {{ formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency) }}</span>
+                  }
+
+                  <!-- Posted Age -->
+                  <span class="meta-pill pill-posted">🕒 {{ getRelativeTime(job.postedAt) }}</span>
+
+                  <!-- Live Applicant Counter (Data-Driven: ONLY shown when applicantsClickCount >= 3) -->
+                  @if (hasRealApplicants(job)) {
+                    <span class="meta-pill pill-applicant-counter" title="Verified candidate engagement">
+                      🔥 {{ getApplicantCountText(job) }}
+                    </span>
+                  }
+                </div>
+
+                <!-- Skill Chips (2-3 items + "+N more") -->
+                @if (job.skills && job.skills.length > 0) {
+                  <div class="dense-skills-row">
+                    @for (skill of job.skills.slice(0, 3); track skill) {
+                      <button
+                        type="button"
+                        class="dense-skill-chip"
+                        [class.is-active]="selectedSkills().includes(skill)"
+                        (click)="onSkillChipClick(skill, $event)"
+                        title="Filter by {{ skill }}"
+                      >
+                        {{ skill }}
+                      </button>
+                    }
+                    @if (job.skills.length > 3) {
+                      <span class="dense-skill-overflow">+{{ job.skills.length - 3 }} more</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Row Right: Radar DNA Match, Save & Action CTA -->
+              <div class="dense-row-actions">
+                <!-- Compact 5-Axis Radar Match Badge -->
+                <app-radar-chart [metrics]="getRadarMetrics(job)" mode="compact" [size]="40" />
+
+                <!-- Save Job Bookmark Button -->
+                <button
+                  type="button"
+                  class="btn-row-save"
+                  [class.is-saved]="savedJobsService.isSaved(job.id)"
+                  (click)="$event.stopPropagation(); savedJobsService.toggleSave(job.id)"
+                  [title]="savedJobsService.isSaved(job.id) ? 'Remove from saved' : 'Save job'"
+                  [attr.aria-label]="savedJobsService.isSaved(job.id) ? 'Remove from saved' : 'Save job'"
+                >
+                  {{ savedJobsService.isSaved(job.id) ? '★' : '☆' }}
+                </button>
+
+                <button
+                  type="button"
+                  class="btn-row-apply"
+                  (click)="$event.stopPropagation(); applyForJob(job)"
+                >
+                  Apply →
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+
+      <!-- ════════════════════════════════════════════════════════════ -->
+      <!-- VIEW 2: GRID CARDS VIEW                                      -->
+      <!-- ════════════════════════════════════════════════════════════ -->
+      @if (viewMode() === 'grid' && filteredJobs().length > 0) {
+        <div class="cards-grid" [class.is-loading-overlay]="loading()">
+          @for (job of filteredJobs(); track job.id) {
+            <div
+              class="radar-grid-card"
+              [class.is-new-item]="job.isNew"
+              [class.is-verified-job]="job.isVerified"
+              (click)="openJobDrawer(job)"
+            >
+              <div class="card-header">
+                <div class="dense-row-avatar">{{ job.companyName ? job.companyName.charAt(0).toUpperCase() : '⚡' }}</div>
+                <div class="card-company-meta">
+                  <span class="card-company-name">{{ job.companyName }}</span>
+                  <div class="card-source-row">
+                    <span class="source-tag">📡 {{ job.sourceName || 'Direct' }}</span>
+                    @if (job.isVerified) {
+                      <span class="verified-badge">✓ Verified</span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Compact Radar Chart in Card Header -->
+                <app-radar-chart [metrics]="getRadarMetrics(job)" mode="compact" [size]="36" />
+
+                <div class="freshness-decay-badge mini" [class]="'tone-' + getFreshness(job).tone">
+                  <span class="freshness-dot"></span>
+                </div>
+              </div>
+
+              <h3 class="card-title">{{ job.title }}</h3>
+
+              <div class="card-meta-tags">
+                @if (job.isRemote) {
+                  <span class="meta-pill pill-remote">🌍 Remote</span>
+                } @else if (job.location) {
+                  <span class="meta-pill pill-location">📍 {{ job.location }}</span>
+                }
+                @if (job.salaryMin || job.salaryMax) {
+                  <span class="meta-pill pill-salary">💵 {{ formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency) }}</span>
+                }
+                @if (hasRealApplicants(job)) {
+                  <span class="meta-pill pill-applicant-counter">🔥 {{ getApplicantCountText(job) }}</span>
+                }
+              </div>
+
+              @if (job.skills && job.skills.length > 0) {
+                <div class="dense-skills-row">
+                  @for (skill of job.skills.slice(0, 3); track skill) {
+                    <span class="dense-skill-chip">{{ skill }}</span>
+                  }
+                  @if (job.skills.length > 3) {
+                    <span class="dense-skill-overflow">+{{ job.skills.length - 3 }}</span>
+                  }
+                </div>
+              }
+
+              <div class="card-footer">
+                <div class="card-footer-left">
+                  <button
+                    type="button"
+                    class="btn-row-save"
+                    [class.is-saved]="savedJobsService.isSaved(job.id)"
+                    (click)="$event.stopPropagation(); savedJobsService.toggleSave(job.id)"
+                    [title]="savedJobsService.isSaved(job.id) ? 'Remove from saved' : 'Save job'"
+                  >
+                    {{ savedJobsService.isSaved(job.id) ? '★' : '☆' }}
+                  </button>
+                  <span class="card-posted">{{ getRelativeTime(job.postedAt) }}</span>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn-row-apply"
+                  (click)="$event.stopPropagation(); applyForJob(job)"
+                >
+                  Apply Now
+                </button>
               </div>
             </div>
           }
         </div>
       }
 
-      <!-- Real Job Cards Grid -->
-      <div class="job-grid" [class.grid-faded]="loading() && jobs().length > 0">
-        @for (job of jobs(); track job.id) {
-          <div class="job-card" [class.new-job]="job.isNew">
-            @if (job.isNew) {
-              <div class="new-badge">🔥 New Match</div>
-            }
-
-            <div class="job-card-top">
-              <div class="company-logo">
-                {{ job.companyName ? job.companyName.charAt(0).toUpperCase() : '?' }}
-              </div>
-              <div class="job-meta">
-                <h3 class="job-title">{{ job.title }}</h3>
-                <span class="company-name">{{ job.companyName }}</span>
-              </div>
+      <!-- ════════════════════════════════════════════════════════════ -->
+      <!-- VIEW 3: RADAR PULSE MAP (JORDAN & MENA)                      -->
+      <!-- ════════════════════════════════════════════════════════════ -->
+      @if (viewMode() === 'map') {
+        <div class="radar-map-wrapper">
+          <!-- Radar Scanning HUD Overlay -->
+          <div class="radar-map-hud">
+            <div class="hud-left">
+              <span class="hud-pulse-radar"></span>
+              <span class="hud-text">Active Geographic Radar • Jordan & MENA Focus</span>
             </div>
-
-            <!-- Tags Row -->
-            <div class="job-tags">
-              @if (job.isRemote) {
-                <span class="tag tag-remote">🌍 Remote</span>
-              }
-              @if (job.location && !job.isRemote) {
-                <span class="tag tag-location">📍 {{ job.location }}</span>
-              }
-              @if (job.employmentType) {
-                <span class="tag tag-type">{{ getEmploymentLabel(job.employmentType) }}</span>
-              }
-              @if (job.experienceLevel) {
-                <span class="tag tag-exp">{{ getExperienceLabel(job.experienceLevel) }}</span>
-              }
-              @if (job.salaryMin || job.salaryMax) {
-                <span class="tag tag-salary">💵 {{ formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency) }}</span>
-              }
+            <div class="hud-legend">
+              <span class="legend-item"><span class="legend-dot dot-verified"></span> Verified Direct</span>
+              <span class="legend-item"><span class="legend-dot dot-aggregated"></span> Aggregated Channel</span>
+              <span class="legend-item"><span class="legend-dot dot-pulse"></span> Real-Time Ingest Pulse</span>
             </div>
+          </div>
 
-            <!-- Skills Row -->
-            @if (job.skills && job.skills.length > 0) {
-              <div class="skills-row">
-                @for (skill of job.skills.slice(0, 5); track skill) {
-                  <span class="skill-chip">{{ skill }}</span>
-                }
-                @if (job.skills.length > 5) {
-                  <span class="skill-more">+{{ job.skills.length - 5 }}</span>
-                }
-              </div>
-            }
+          <!-- MapLibre GL Canvas Container -->
+          <div #mapContainer id="radar-map-container" class="radar-map-canvas"></div>
 
-            <!-- Card Footer -->
-            <div class="job-card-footer">
-              <div class="card-footer-left">
-                @if (job.relevanceScore) {
-                  <div class="match-score">
-                    <span class="match-icon">🎯</span>
-                    <span class="match-value">{{ (job.relevanceScore * 100) | number:'1.0-0' }}% Match</span>
-                  </div>
-                }
-                @if (job.postedAt) {
-                  <span class="posted-at">{{ job.postedAt | date:'mediumDate' }}</span>
-                }
-              </div>
-
+          <!-- Quick Preview Card on Map Marker Selection -->
+          @if (mapSelectedJob(); as preview) {
+            <div class="map-preview-card" role="dialog" aria-label="Job quick preview">
               <button
-                [id]="'btn-apply-' + job.id"
-                class="apply-btn"
-                (click)="applyForJob(job)"
+                type="button"
+                class="btn-close-map-preview"
+                (click)="mapSelectedJob.set(null)"
+                aria-label="Close Preview"
               >
-                Apply Now →
+                ✕
               </button>
-            </div>
-          </div>
-        }
 
-        <!-- Empty Results -->
-        @if (jobs().length === 0 && !loading()) {
-          <div class="empty-jobs">
+              <div class="preview-header">
+                <div class="dense-row-avatar">{{ preview.companyName ? preview.companyName.charAt(0).toUpperCase() : '⚡' }}</div>
+                <div class="preview-meta">
+                  <h4 class="preview-title">{{ preview.title }}</h4>
+                  <div class="preview-company-line">
+                    <span class="preview-company">{{ preview.companyName }}</span>
+                    @if (preview.isVerified) {
+                      <span class="verified-badge">✓ Verified</span>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="preview-tags">
+                <span class="meta-pill pill-location">📍 {{ preview.location || (preview.isRemote ? 'Remote' : 'Jordan') }}</span>
+                @if (preview.salaryMin || preview.salaryMax) {
+                  <span class="meta-pill pill-salary">💵 {{ formatSalary(preview.salaryMin, preview.salaryMax, preview.salaryCurrency) }}</span>
+                }
+                @if (hasRealApplicants(preview)) {
+                  <span class="meta-pill pill-applicant-counter">🔥 {{ getApplicantCountText(preview) }}</span>
+                }
+              </div>
+
+              <div class="preview-actions">
+                <button
+                  type="button"
+                  class="btn-preview-details"
+                  (click)="openJobDrawer(preview)"
+                >
+                  Full Details
+                </button>
+                <button
+                  type="button"
+                  class="btn-preview-apply"
+                  (click)="applyForJob(preview)"
+                >
+                  Apply Now →
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Empty Results State -->
+      @if (jobs().length === 0 && !loading()) {
+        <div class="empty-radar-state">
+          <div class="empty-radar-beacon">
+            <span class="radar-sweep"></span>
             <span class="empty-icon">🛰️</span>
-            <h3>No positions found</h3>
-            <p>We couldn't find any positions matching your exact criteria. Try broadening your keywords or resetting filters.</p>
-            <button type="button" class="btn-reset-empty" (click)="resetFilters()">
-              Clear All Filters
-            </button>
           </div>
-        }
-      </div>
+          <h3 class="empty-title">No Positions Found on Radar</h3>
+          <p class="empty-desc">
+            No active positions match your current search parameters. Try adjusting filters, clearing keywords, or switching categories.
+          </p>
+          <button type="button" class="btn-clear-empty" (click)="resetFilters()">
+            Clear All Filters & Reset Radar
+          </button>
+        </div>
+      }
+
+      <!-- Pagination Component -->
+      @if (jobs().length > 0 && viewMode() !== 'map') {
+        <app-pagination
+          [currentPage]="currentPage()"
+          [pageSize]="pageSize()"
+          [totalCount]="totalCount()"
+          [pageSizeOptions]="[12, 24, 48, 96]"
+          itemLabel="positions"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)"
+        />
+      }
     </main>
   </div>
+
+  <!-- Split-View Quick Drawer (Overlay & Panel) -->
+  @if (drawerOpen()) {
+    @if (selectedJob(); as job) {
+      <div class="drawer-backdrop" (click)="closeJobDrawer()"></div>
+      <aside class="job-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+        <!-- Drawer Top Bar -->
+        <div class="drawer-top-bar">
+          <div class="drawer-top-left">
+            @if (job.relevanceScore) {
+              <div class="match-score">
+                <span class="match-icon">🎯</span>
+                <span class="match-value">{{ (job.relevanceScore * 100) | number:'1.0-0' }}% Match</span>
+              </div>
+            }
+            @if (job.isVerified) {
+              <span class="verified-badge">✓ Verified Direct</span>
+            }
+          </div>
+          <div class="drawer-top-actions">
+            <button
+              type="button"
+              class="btn-drawer-save"
+              [class.is-saved]="savedJobsService.isSaved(job.id)"
+              (click)="savedJobsService.toggleSave(job.id)"
+              [title]="savedJobsService.isSaved(job.id) ? 'Remove from saved' : 'Save this job'"
+            >
+              {{ savedJobsService.isSaved(job.id) ? '★ Saved' : '☆ Save Job' }}
+            </button>
+            <button 
+              type="button" 
+              class="btn-drawer-close" 
+              (click)="closeJobDrawer()" 
+              aria-label="Close Job Details"
+              title="Close (Esc)">
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Drawer Scrollable Body -->
+        <div class="drawer-body">
+          <div class="drawer-header">
+            <div class="drawer-company-logo">
+              {{ job.companyName ? job.companyName.charAt(0).toUpperCase() : '?' }}
+            </div>
+            <div class="drawer-title-meta">
+              <h2 id="drawer-title" class="drawer-job-title">{{ job.title }}</h2>
+              <div class="drawer-company-info">
+                <span class="drawer-company-name">{{ job.companyName }}</span>
+                @if (job.location) {
+                  <span class="drawer-location">📍 {{ job.location }}</span>
+                }
+                <span class="source-tag">📡 {{ job.sourceName || 'Direct' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full 5-Axis Radar Chart (Job DNA Match) -->
+          <app-radar-chart [metrics]="getRadarMetrics(job)" mode="full" [size]="280" />
+
+          <!-- Quick Spec Grid -->
+          <div class="drawer-spec-grid">
+            <div class="spec-card">
+              <span class="spec-label">Workplace</span>
+              <span class="spec-val">{{ job.isRemote ? '🌍 Remote' : '🏢 On-site / Hybrid' }}</span>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">Employment</span>
+              <span class="spec-val">{{ getEmploymentLabel(job.employmentType) || 'Full Time' }}</span>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">Experience</span>
+              <span class="spec-val">{{ getExperienceLabel(job.experienceLevel) || 'All Levels' }}</span>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">Compensation</span>
+              <span class="spec-val spec-salary">{{ formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency) || 'Competitive' }}</span>
+            </div>
+          </div>
+
+          <!-- Live Activity Bar -->
+          <div class="drawer-activity-bar">
+            <div class="freshness-decay-badge" [class]="'tone-' + getFreshness(job).tone">
+              <span class="freshness-dot"></span>
+              <span class="freshness-label">{{ getFreshness(job).label }}</span>
+            </div>
+            @if (hasRealApplicants(job)) {
+              <span class="meta-pill pill-applicant-counter">🔥 {{ getApplicantCountText(job) }}</span>
+            }
+          </div>
+
+          <!-- Skills Section -->
+          @if (job.skills && job.skills.length > 0) {
+            <div class="drawer-section">
+              <h4 class="drawer-section-title">Required Skills & Technologies (Click to filter)</h4>
+              <div class="drawer-skills-list">
+                @for (skill of job.skills; track skill) {
+                  <button 
+                    type="button" 
+                    class="skill-chip clickable" 
+                    [class.active]="selectedSkills().includes(skill)"
+                    (click)="onSkillChipClick(skill, $event)"
+                    title="Filter by {{ skill }}">
+                    {{ skill }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Job Description -->
+          <div class="drawer-section">
+            <h4 class="drawer-section-title">Role Overview &amp; Responsibilities</h4>
+            @if (loadingDetail()) {
+              <div class="drawer-loading-skeleton">
+                <div class="skeleton-line title-line"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line" style="width:75%"></div>
+                <div class="skeleton-line"></div>
+              </div>
+            } @else if (drawerJobDetail()?.description) {
+              <div class="drawer-description-text">
+                @for (token of formatDescription(drawerJobDetail().description); track $index) {
+                  @if (token.type === 'heading') {
+                    <h5 class="desc-section-heading">{{ token.text }}</h5>
+                  } @else if (token.type === 'bullet') {
+                    <div class="desc-bullet-item">
+                      <span class="desc-bullet-dot">&#9658;</span>
+                      <span>{{ token.text }}</span>
+                    </div>
+                  } @else {
+                    <p class="desc-paragraph">{{ token.text }}</p>
+                  }
+                }
+              </div>
+            } @else {
+              <div class="drawer-description-text">
+                <p class="desc-paragraph">This position was sourced by the JobRadar Real-Time Ingestion Engine from {{ job.sourceName || 'partner networks' }}.</p>
+                <p class="desc-paragraph">Click the <strong>Apply for this Role</strong> button below to open the official employer application.</p>
+              </div>
+            }
+          </div>
+
+
+          <div class="drawer-section drawer-meta-footer">
+            <span class="text-faint">Job ID: {{ job.id }}</span>
+            @if (job.postedAt) {
+              <span class="text-faint">Posted: {{ job.postedAt | date:'mediumDate' }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Sticky Drawer Action Footer -->
+        <div class="drawer-footer">
+          <button 
+            type="button" 
+            class="btn-drawer-cancel" 
+            (click)="closeJobDrawer()">
+            Close
+          </button>
+          <button 
+            type="button" 
+            class="btn-drawer-apply" 
+            (click)="applyForJob(job)">
+            Apply for this Role →
+          </button>
+        </div>
+      </aside>
+    }
+  }
+
+  <!-- Mobile Swipe Mode Overlay -->
+  @if (swipeModeOpen()) {
+    <app-swipe-card
+      [jobs]="filteredJobs()"
+      (viewDetails)="openJobDrawer($event); swipeModeOpen.set(false)"
+      (closeSwipe)="swipeModeOpen.set(false)"
+    />
+  }
 </div>

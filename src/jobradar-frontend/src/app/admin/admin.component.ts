@@ -1,9 +1,11 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AdminService, JobPostingItem, ApplicationItem, CreateJobPostingDto } from './admin.service';
 import { AuthService } from '../auth/auth.service';
+import { ThemeService } from '../theme.service';
+import { PaginationComponent } from '../shared/pagination.component';
 import { Router } from '@angular/router';
 
 type Tab = 'jobs' | 'applications' | 'create';
@@ -11,22 +13,27 @@ type Tab = 'jobs' | 'applications' | 'create';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, PaginationComponent],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
 export class AdminComponent implements OnInit {
+  public themeService = inject(ThemeService);
   activeTab = signal<Tab>('jobs');
 
-  // Jobs state
+  // Jobs state & pagination
   jobs = signal<JobPostingItem[]>([]);
   jobsTotal = signal(0);
   jobsLoading = signal(false);
+  jobsPage = signal(1);
+  jobsPageSize = signal(10);
 
-  // Applications state
+  // Applications state & pagination
   applications = signal<ApplicationItem[]>([]);
   appsTotal = signal(0);
   appsLoading = signal(false);
+  appsPage = signal(1);
+  appsPageSize = signal(10);
 
   // Create form
   createForm: FormGroup;
@@ -35,7 +42,6 @@ export class AdminComponent implements OnInit {
   createError = signal<string | null>(null);
 
   // Hard-coded source id — in a real app you'd fetch from /api/sources
-  // We'll let Admin pick a "Manual" source with a fixed well-known id or create via the form
   defaultSourceId = '00000000-0000-0000-0000-000000000001';
 
   employmentTypes = [
@@ -86,7 +92,7 @@ export class AdminComponent implements OnInit {
 
   loadJobs() {
     this.jobsLoading.set(true);
-    this.adminService.getJobPostings().subscribe({
+    this.adminService.getJobPostings(this.jobsPage(), this.jobsPageSize()).subscribe({
       next: res => {
         this.jobs.set(res.items);
         this.jobsTotal.set(res.totalCount);
@@ -96,9 +102,20 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  onJobsPageChange(page: number) {
+    this.jobsPage.set(page);
+    this.loadJobs();
+  }
+
+  onJobsPageSizeChange(size: number) {
+    this.jobsPageSize.set(size);
+    this.jobsPage.set(1);
+    this.loadJobs();
+  }
+
   loadApplications() {
     this.appsLoading.set(true);
-    this.adminService.getApplications().subscribe({
+    this.adminService.getApplications(this.appsPage(), this.appsPageSize()).subscribe({
       next: res => {
         this.applications.set(res.items);
         this.appsTotal.set(res.totalCount);
@@ -106,6 +123,17 @@ export class AdminComponent implements OnInit {
       },
       error: () => this.appsLoading.set(false)
     });
+  }
+
+  onAppsPageChange(page: number) {
+    this.appsPage.set(page);
+    this.loadApplications();
+  }
+
+  onAppsPageSizeChange(size: number) {
+    this.appsPageSize.set(size);
+    this.appsPage.set(1);
+    this.loadApplications();
   }
 
   deleteJob(id: string) {

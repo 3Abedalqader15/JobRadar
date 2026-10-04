@@ -74,6 +74,21 @@
         }
       </div>
       <div class="header-right">
+        <!-- Theme Toggle -->
+        <button
+          id="btn-theme-toggle-admin"
+          type="button"
+          class="btn-theme-toggle"
+          (click)="themeService.toggleTheme()"
+          [title]="themeService.currentTheme() === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+        >
+          @if (themeService.currentTheme() === 'dark') {
+            <span>☀️ Light</span>
+          } @else {
+            <span>🌙 Dark</span>
+          }
+        </button>
+
         <a href="/" class="btn-view-site">
           <span>🌐</span> View Site
         </a>
@@ -168,6 +183,17 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Pagination for Job Postings Table -->
+          <app-pagination
+            [currentPage]="jobsPage()"
+            [pageSize]="jobsPageSize()"
+            [totalCount]="jobsTotal()"
+            [pageSizeOptions]="[5, 10, 20, 50, 100]"
+            itemLabel="job postings"
+            (pageChange)="onJobsPageChange($event)"
+            (pageSizeChange)="onJobsPageSizeChange($event)"
+          />
         }
       </section>
     }
@@ -411,6 +437,17 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Pagination for Applications Table -->
+          <app-pagination
+            [currentPage]="appsPage()"
+            [pageSize]="appsPageSize()"
+            [totalCount]="appsTotal()"
+            [pageSizeOptions]="[5, 10, 20, 50, 100]"
+            itemLabel="applications"
+            (pageChange)="onAppsPageChange($event)"
+            (pageSizeChange)="onAppsPageSizeChange($event)"
+          />
         }
       </section>
     }

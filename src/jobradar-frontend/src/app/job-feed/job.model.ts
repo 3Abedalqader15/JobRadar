@@ -42,6 +42,9 @@ export interface JobSearchResultDto {
   searchDurationMs?: number;
   isNew?: boolean;
   externalApplyUrl?: string;
+  sourceName?: string;
+  isVerified?: boolean;
+  applicantsClickCount?: number;
 }
 
 export interface JobSearchCriteriaDto {

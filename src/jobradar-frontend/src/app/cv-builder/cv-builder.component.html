@@ -1,0 +1,329 @@
+<div class="cv-page">
+  <!-- Top Navigation Bar -->
+  <header class="cv-nav">
+    <div class="cv-nav-container">
+      <div class="cv-nav-left">
+        <a routerLink="/" class="brand-link">
+          <span class="brand-icon">⚡</span>
+          <span class="brand-title">JobRadar</span>
+          <span class="brand-sub">ATS Intelligence</span>
+        </a>
+      </div>
+
+      <div class="cv-nav-right">
+        <a routerLink="/" class="btn-nav-feed">
+          <span>← Back to Radar Feed</span>
+        </a>
+        <button
+          type="button"
+          class="btn-theme-switch"
+          (click)="themeService.toggleTheme()"
+          [title]="themeService.currentTheme() === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+          aria-label="Toggle Color Theme"
+        >
+          @if (themeService.currentTheme() === 'dark') {
+            <span>☀️ Light</span>
+          } @else {
+            <span>🌙 Dark</span>
+          }
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <section class="cv-hero">
+    <div class="cv-hero-inner">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>ATS Parser Simulation & Keyword Alignment</span>
+      </div>
+      <h1 class="cv-heading">CV Builder & ATS Match Roadmap</h1>
+      <p class="cv-subheading">
+        Align your resume keywords with specific job requirements to bypass automated screening filters.
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Work Area -->
+  <main class="cv-container">
+    <div class="cv-grid">
+      <!-- ════════════════════════════════════════════════════════════ -->
+      <!-- LEFT COLUMN: Candidate Profile & Target Job Selection        -->
+      <!-- ════════════════════════════════════════════════════════════ -->
+      <div class="cv-left-col">
+        <!-- Target Job Selection Card -->
+        <section class="panel-card" aria-labelledby="target-job-heading">
+          <div class="panel-header">
+            <span class="panel-icon">🎯</span>
+            <h2 id="target-job-heading" class="panel-title">Target Job Opportunity</h2>
+          </div>
+          <p class="panel-desc">Select an active job opening from the radar to benchmark your resume against.</p>
+
+          <div class="form-group">
+            <label for="target-job-select" class="form-label">Select Position</label>
+            <select
+              id="target-job-select"
+              class="form-select"
+              [value]="selectedJobId()"
+              (change)="onTargetJobSelected($any($event.target).value)"
+            >
+              <option value="sample-job">Senior Full-Stack .NET & Angular Engineer (FinTech Systems)</option>
+              @for (job of targetJobs(); track job.id) {
+                <option [value]="job.id">
+                  {{ job.title }} — {{ job.companyName }} ({{ job.location || (job.isRemote ? 'Remote' : 'MENA') }})
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="target-job-preview">
+            <div class="preview-meta-row">
+              <span class="preview-title">{{ targetTitle() }}</span>
+              <span class="preview-company">🏢 {{ targetCompany() }}</span>
+            </div>
+            <div class="target-keywords-box">
+              <span class="keywords-label">Target Keywords Required by Employer:</span>
+              <div class="keywords-wrap">
+                @for (skill of targetRequiredSkills(); track skill) {
+                  <span
+                    class="target-keyword-pill"
+                    [class.is-matched]="candidateSkills().includes(skill)"
+                    [title]="candidateSkills().includes(skill) ? 'Matched in your CV' : 'Missing from your CV'"
+                  >
+                    {{ skill }}
+                    @if (candidateSkills().includes(skill)) {
+                      <span class="match-indicator">✓</span>
+                    }
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Candidate CV Details Form -->
+        <section class="panel-card" aria-labelledby="candidate-cv-heading">
+          <div class="panel-header">
+            <span class="panel-icon">👤</span>
+            <h2 id="candidate-cv-heading" class="panel-title">Candidate CV Profile</h2>
+          </div>
+
+          <form [formGroup]="cvForm" class="cv-profile-form">
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="cv-name" class="form-label">Full Name</label>
+                <input id="cv-name" type="text" formControlName="fullName" class="form-input" />
+              </div>
+              <div class="form-group flex-1">
+                <label for="cv-email" class="form-label">Email</label>
+                <input id="cv-email" type="email" formControlName="email" class="form-input" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="cv-headline" class="form-label">Professional Headline / Role</label>
+                <input id="cv-headline" type="text" formControlName="headline" class="form-input" />
+              </div>
+              <div class="form-group flex-1">
+                <label for="cv-exp" class="form-label">Years Exp.</label>
+                <input id="cv-exp" type="number" formControlName="yearsOfExperience" min="0" max="40" class="form-input" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="cv-summary" class="form-label">Executive Summary</label>
+              <textarea id="cv-summary" formControlName="summary" rows="3" class="form-textarea"></textarea>
+            </div>
+          </form>
+        </section>
+
+        <!-- Candidate Skills Management -->
+        <section class="panel-card" aria-labelledby="candidate-skills-heading">
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-icon">⚡</span>
+              <h2 id="candidate-skills-heading" class="panel-title">Active CV Skills & Keywords</h2>
+            </div>
+            <span class="count-pill">{{ candidateSkills().length }} skills active</span>
+          </div>
+
+          <!-- Add Skill Bar -->
+          <div class="add-skill-row">
+            <input
+              type="text"
+              id="input-new-skill"
+              placeholder="Add skill or technology (e.g. Docker, TypeScript)..."
+              class="form-input add-skill-input"
+              [value]="newSkillInput()"
+              (input)="newSkillInput.set($any($event.target).value)"
+              (keydown.enter)="addCustomSkill()"
+            />
+            <button type="button" class="btn-add-skill" (click)="addCustomSkill()">
+              Add Skill
+            </button>
+          </div>
+
+          <!-- Active Skills Tags -->
+          <div class="skills-tag-cloud" role="list" aria-label="Current CV Skills">
+            @for (skill of candidateSkills(); track skill) {
+              <div class="skill-tag" role="listitem">
+                <span class="skill-name">{{ skill }}</span>
+                <button
+                  type="button"
+                  class="btn-remove-skill"
+                  (click)="removeSkillFromCv(skill)"
+                  [title]="'Remove ' + skill"
+                  [attr.aria-label]="'Remove ' + skill"
+                >
+                  ✕
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Quick Suggestion Strip -->
+          <div class="suggestions-strip">
+            <span class="suggestions-label">Quick Suggestions:</span>
+            <div class="suggestion-pills">
+              @for (suggested of suggestedSkills; track suggested) {
+                @if (!candidateSkills().includes(suggested)) {
+                  <button
+                    type="button"
+                    class="btn-suggestion-pill"
+                    (click)="addSkillToCv(suggested)"
+                    title="Click to add to CV"
+                  >
+                    + {{ suggested }}
+                  </button>
+                }
+              }
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════════ -->
+      <!-- RIGHT COLUMN: ATS Match Gauge & Skill Gap Roadmap             -->
+      <!-- ════════════════════════════════════════════════════════════ -->
+      <div class="cv-right-col">
+        <!-- ATS Score Gauge Card -->
+        <section class="panel-card ats-score-card" aria-labelledby="ats-score-heading">
+          <div class="panel-header">
+            <span class="panel-icon">📊</span>
+            <h2 id="ats-score-heading" class="panel-title">ATS Match Compatibility</h2>
+          </div>
+
+          <div class="ats-gauge-wrapper">
+            <div class="ats-circle-gauge" [class.is-passing]="atsScore() >= atsThreshold()">
+              <span class="ats-score-number">{{ atsScore() }}%</span>
+              <span class="ats-score-status">
+                @if (atsScore() >= atsThreshold()) {
+                  Optimal Match
+                } @else if (atsScore() >= 50) {
+                  Moderate Fit
+                } @else {
+                  Low Compatibility
+                }
+              </span>
+            </div>
+
+            <div class="ats-meta-box">
+              <div class="threshold-slider-group">
+                <div class="slider-header">
+                  <label for="threshold-slider" class="form-label">Minimum ATS Target Threshold:</label>
+                  <span class="threshold-val">{{ atsThreshold() }}%</span>
+                </div>
+                <input
+                  id="threshold-slider"
+                  type="range"
+                  min="50"
+                  max="95"
+                  step="5"
+                  [value]="atsThreshold()"
+                  (input)="setThreshold(+$any($event.target).value)"
+                  class="threshold-range-input"
+                />
+              </div>
+
+              <div class="ats-summary-text">
+                @if (atsScore() >= atsThreshold()) {
+                  <p class="status-pass">
+                    ✅ <strong>Passes Automated Screening!</strong> Your resume meets the required threshold of {{ atsThreshold() }}%.
+                  </p>
+                } @else {
+                  <p class="status-warn">
+                    ⚠️ <strong>Below Target Threshold!</strong> Your score is {{ atsScore() }}%. Follow the Skill Gap Roadmap below to reach {{ atsThreshold() }}%.
+                  </p>
+                }
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- SKILL GAP ROADMAP (Checklist with Direct Actions)          -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <section class="panel-card roadmap-card" aria-labelledby="roadmap-heading">
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-icon">🗺️</span>
+              <h2 id="roadmap-heading" class="panel-title">Skill Gap Roadmap</h2>
+            </div>
+            <span class="roadmap-badge" [class.is-complete]="skillGaps().length === 0">
+              {{ skillGaps().length === 0 ? 'All Keywords Satisfied' : skillGaps().length + ' Gaps Identified' }}
+            </span>
+          </div>
+
+          <p class="panel-desc">
+            ATS parsers discard applicants missing target keywords. Use this actionable roadmap to inject missing competencies into your CV.
+          </p>
+
+          @if (skillGaps().length > 0) {
+            <div class="roadmap-checklist" role="list" aria-label="Actionable skill gap checklist">
+              @for (gap of skillGaps(); track gap.skill) {
+                <div
+                  class="roadmap-item"
+                  [class.critical-item]="gap.category === 'critical'"
+                  role="listitem"
+                >
+                  <div class="item-left">
+                    <div class="item-badge-row">
+                      <span class="item-category-tag" [class]="gap.category">
+                        {{ gap.category === 'critical' ? '🔴 Critical' : '🟡 Recommended' }}
+                      </span>
+                      <span class="item-importance">Priority Index: {{ gap.importance }}%</span>
+                    </div>
+
+                    <h3 class="item-skill-name">{{ gap.skill }}</h3>
+                    <p class="item-reason">{{ gap.reason }}</p>
+                  </div>
+
+                  <div class="item-right">
+                    <button
+                      type="button"
+                      class="btn-add-gap"
+                      (click)="addSkillToCv(gap.skill)"
+                      title="Add {{ gap.skill }} directly to your CV skills list"
+                    >
+                      <span>＋ Add to CV</span>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="roadmap-empty-state">
+              <span class="empty-check-icon">🎉</span>
+              <h3 class="empty-check-title">Zero Keyword Gaps!</h3>
+              <p class="empty-check-desc">
+                Your profile covers all {{ targetRequiredSkills().length }} employer-specified skills for <strong>{{ targetTitle() }}</strong>. Your application has maximized ranking potential.
+              </p>
+            </div>
+          }
+        </section>
+      </div>
+    </div>
+  </main>
+</div>

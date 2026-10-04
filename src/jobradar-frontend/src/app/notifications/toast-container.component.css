@@ -1,7 +1,7 @@
 .toast-viewport {
   position: fixed;
-  top: var(--space-6);
-  right: var(--space-6);
+  inset-block-start: var(--space-6);
+  inset-inline-end: var(--space-6);
   z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
@@ -39,9 +39,8 @@
 
 .toast-indicator {
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  inset-inline-start: 0;
+  inset-block: 0;
   width: 4px;
   background-color: var(--color-primary);
 }

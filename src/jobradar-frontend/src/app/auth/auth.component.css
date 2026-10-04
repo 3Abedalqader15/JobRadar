@@ -10,10 +10,6 @@
   padding: var(--space-6);
 }
 
-/* Subtle, clean ambient background (replacing garish glowing neon orbs) */
-.auth-bg {
-  display: none;
-}
 
 /* ── Card ────────────────────────────────────────────────────────── */
 .auth-card {
@@ -266,7 +262,7 @@
   font-size: inherit;
   font-family: inherit;
   padding: 0;
-  margin-left: var(--space-1);
+  margin-inline-start: var(--space-1);
   font-weight: 600;
   transition: color var(--duration-fast) var(--ease-standard);
 }

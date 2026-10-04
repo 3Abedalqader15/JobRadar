@@ -1,0 +1,169 @@
+<div class="swipe-overlay" role="dialog" aria-modal="true" aria-label="Mobile Job Swipe Triage">
+  <!-- Top Bar -->
+  <div class="swipe-top-bar">
+    <div class="swipe-meta">
+      <span class="swipe-icon">🎴</span>
+      <span class="swipe-title">Radar Swipe Triage</span>
+      @if (!isDone()) {
+        <span class="swipe-counter">{{ currentIndex() + 1 }} / {{ jobs.length }}</span>
+      }
+    </div>
+    <button
+      type="button"
+      class="btn-close-swipe"
+      (click)="closeSwipe.emit()"
+      aria-label="Exit Swipe Mode"
+      title="Exit Swipe Mode"
+    >
+      ✕
+    </button>
+  </div>
+
+  <!-- Swipe Arena -->
+  <div class="swipe-arena">
+    @if (!isDone() && currentJob(); as job) {
+      <div class="card-stack">
+        <!-- Background Card (Next in Stack) for visual depth -->
+        @if (nextJob(); as next) {
+          <div class="swipe-card card-next" aria-hidden="true">
+            <div class="card-header">
+              <div class="card-avatar">{{ next.companyName ? next.companyName.charAt(0).toUpperCase() : '⚡' }}</div>
+              <div class="card-company-meta">
+                <span class="card-company">{{ next.companyName }}</span>
+                <span class="card-source">📡 {{ next.sourceName || 'Direct' }}</span>
+              </div>
+            </div>
+            <h3 class="card-title">{{ next.title }}</h3>
+          </div>
+        }
+
+        <!-- Active Swipable Card -->
+        <div
+          class="swipe-card card-active"
+          [class.is-dragging]="isDragging()"
+          [style.transform]="cardTransform()"
+          (touchstart)="onTouchStart($event)"
+          (touchmove)="onTouchMove($event)"
+          (touchend)="onTouchEnd()"
+          (mousedown)="onMouseDown($event)"
+          role="region"
+          [attr.aria-label]="job.title + ' at ' + job.companyName"
+        >
+          <!-- Drag Stamps Overlay -->
+          <div
+            class="stamp-overlay stamp-save"
+            [style.opacity]="dragProgress() > 0.15 ? dragProgress() : 0"
+          >
+            SAVE ⭐
+          </div>
+          <div
+            class="stamp-overlay stamp-skip"
+            [style.opacity]="dragProgress() < -0.15 ? -dragProgress() : 0"
+          >
+            SKIP ✕
+          </div>
+
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="card-avatar">{{ job.companyName ? job.companyName.charAt(0).toUpperCase() : '⚡' }}</div>
+            <div class="card-company-meta">
+              <span class="card-company">{{ job.companyName }}</span>
+              <div class="card-tags-row">
+                <span class="card-source">📡 {{ job.sourceName || 'JobRadar' }}</span>
+                @if (job.isVerified) {
+                  <span class="verified-tag">✓ Verified</span>
+                }
+              </div>
+            </div>
+
+            <!-- Compact DNA Match Badge -->
+            <app-radar-chart [metrics]="getMetrics(job)" mode="compact" [size]="40" />
+          </div>
+
+          <!-- Card Title & Specs -->
+          <h2 class="card-title">{{ job.title }}</h2>
+
+          <div class="card-meta-pills">
+            @if (job.isRemote) {
+              <span class="meta-pill pill-remote">🌍 Remote</span>
+            } @else if (job.location) {
+              <span class="meta-pill pill-location">📍 {{ job.location }}</span>
+            }
+            @if (job.salaryMin || job.salaryMax) {
+              <span class="meta-pill pill-salary">💵 Salary Available</span>
+            }
+          </div>
+
+          <!-- Skills tags -->
+          @if (job.skills && job.skills.length > 0) {
+            <div class="card-skills-row">
+              @for (skill of job.skills.slice(0, 4); track skill) {
+                <span class="card-skill-tag">{{ skill }}</span>
+              }
+              @if (job.skills.length > 4) {
+                <span class="card-skill-tag more">+{{ job.skills.length - 4 }}</span>
+              }
+            </div>
+          }
+
+          <!-- Micro hint -->
+          <div class="card-hint">
+            <span>← Swipe Left to Skip</span>
+            <span>Swipe Right to Save →</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button Controls -->
+      <div class="swipe-controls">
+        <button
+          type="button"
+          class="btn-action btn-skip"
+          (click)="swipeLeft()"
+          aria-label="Skip Job"
+          title="Skip (Swipe Left)"
+        >
+          ✕
+        </button>
+
+        <button
+          type="button"
+          class="btn-action btn-details"
+          (click)="onDetailsClick()"
+          aria-label="View Job Details"
+          title="View Full Details"
+        >
+          ℹ️ Info
+        </button>
+
+        <button
+          type="button"
+          class="btn-action btn-save"
+          (click)="swipeRight()"
+          aria-label="Save Job"
+          title="Save (Swipe Right)"
+        >
+          ⭐
+        </button>
+      </div>
+    } @else {
+      <!-- End of Stack State -->
+      <div class="swipe-done-state">
+        <span class="done-icon">🎯</span>
+        <h2 class="done-title">Radar Triage Complete!</h2>
+        <p class="done-desc">
+          You've reviewed all available opportunities currently loaded on your radar stream.
+        </p>
+
+        <div class="done-actions">
+          <button type="button" class="btn-reset-stack" (click)="resetStack()">
+            🔄 Reset Stack
+          </button>
+          <button type="button" class="btn-return-feed" (click)="closeSwipe.emit()">
+            Back to Feed
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -195,7 +195,10 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
                 Skills = skillNames,
                 RelevanceScore = i < scores.Length ? scores[i] : 1.0,
                 ExternalApplyUrl = j.ExternalApplyUrl,
-                SearchDurationMs = elapsedMs
+                SearchDurationMs = elapsedMs,
+                SourceName = j.Source?.Name ?? (j.RawPostId == null ? "Direct" : "Aggregated"),
+                IsVerified = j.RawPostId == null,
+                ApplicantsClickCount = j.ApplicantsClickCount
             });
         }
 

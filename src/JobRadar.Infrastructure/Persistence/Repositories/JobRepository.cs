@@ -62,6 +62,7 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
             .AsNoTracking()
             .Include(j => j.JobSkills)
                 .ThenInclude(js => js.Skill)
+            .Include(j => j.Source)
             .Where(j => j.IsActive);
 
         // 1. Work Mode & Location Filters

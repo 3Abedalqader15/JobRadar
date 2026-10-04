@@ -66,7 +66,7 @@ public class SearchJobsQueryHandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
         result.Items.Should().HaveCount(1);
         result.Items[0].Title.Should().Be("Cached Dev");
 
@@ -97,7 +97,7 @@ public class SearchJobsQueryHandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
         result.Items.Should().HaveCount(1);
         result.TotalCount.Should().Be(1);
 

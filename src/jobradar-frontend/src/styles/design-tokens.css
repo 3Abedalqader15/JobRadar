@@ -1,16 +1,18 @@
 /*
  * ══════════════════════════════════════════════════════════════════
  *  JOBRADAR DESIGN TOKENS  —  Single Source of Truth
- *  All component CSS files reference these custom properties.
- *  Never define raw colors or arbitrary sizes in component files.
+ *  Light Mode as Primary Default (High-density scanning readability)
+ *  Dark Mode as Opt-in Variant ([data-theme="dark"]).
+ *  Solid surfaces, border-only definition, zero neon/glass gradients.
  * ══════════════════════════════════════════════════════════════════
  */
 
-/* ── LIGHT MODE (default / primary) ──────────────────────────── */
+/* ── DEFAULT THEME: LIGHT MODE (Primary) ────────────────────────── */
 :root {
-  /* Canvas & Surfaces */
+  /* Canvas & Surfaces — Solid, clean */
   --color-bg:              hsl(220, 20%, 97%);
   --color-surface:         hsl(0, 0%, 100%);
+  --color-surface-solid:   hsl(0, 0%, 100%);
   --color-surface-hover:   hsl(220, 20%, 95%);
   --color-surface-active:  hsl(220, 20%, 91%);
   --color-surface-raised:  hsl(0, 0%, 100%);
@@ -19,50 +21,56 @@
   --color-border:          hsl(220, 13%, 90%);
   --color-border-strong:   hsl(220, 13%, 78%);
 
-  /* Typography & Content */
+  /* Typography */
   --color-text:            hsl(222, 22%, 15%);
   --color-text-subtle:     hsl(220, 12%, 44%);
-  /* WCAG AA (>= 4.5:1) compliant against white surface */
-  --color-text-faint:      hsl(220, 10%, 48%);
+  --color-text-faint:      hsl(220, 10%, 46%); /* WCAG AA: 4.56:1 on bg, 4.89:1 on surface */
   --color-text-inverse:    hsl(0, 0%, 100%);
 
-  /* Primary Action — saturated teal-blue */
+  /* Primary Action — Teal-Blue (Solid fill, no gradient) */
   --color-primary:         hsl(212, 90%, 44%);
   --color-primary-hover:   hsl(212, 90%, 36%);
   --color-primary-subtle:  hsl(212, 90%, 94%);
   --color-primary-text:    hsl(212, 90%, 38%);
 
-  /* Signal / Live Accent — amber (strictly for real-time states) */
+  /* Signal / Live Accent — Amber pulse ONLY (Reserved for real-time states) */
   --color-signal:          hsl(28, 95%, 52%);
   --color-signal-subtle:   hsl(28, 95%, 94%);
   --color-signal-text:     hsl(28, 90%, 38%);
 
   /* Status & Semantic */
-  --color-success:         hsl(152, 55%, 38%);
-  --color-success-subtle:  hsl(152, 55%, 93%);
+  --color-success:         hsl(152, 69%, 38%);
+  --color-success-subtle:  hsl(152, 69%, 93%);
   --color-danger:          hsl(0, 72%, 51%);
-  --color-danger-subtle:   hsl(0, 72%, 94%);
-  --color-warning:         hsl(40, 90%, 48%);
-  --color-warning-subtle:  hsl(40, 90%, 93%);
+  --color-danger-subtle:   hsl(0, 72%, 95%);
+  --color-warning:         hsl(28, 95%, 52%);
+  --color-warning-subtle:  hsl(28, 95%, 94%);
 
   /* Overlay */
-  --color-overlay:         hsl(222deg 22% 15% / 0.45);
+  --color-overlay:         hsl(222 22% 15% / 0.45);
 
   /* Focus Ring */
-  --focus-ring:            0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);
+  --focus-ring:            0 0 0 2px hsl(0, 0%, 100%), 0 0 0 4px hsl(212, 90%, 44%);
   --focus-ring-offset:     2px;
+
+  /* Elevation / Shadow Scale (Floating surfaces) */
+  --shadow-xs: 0 1px 2px hsl(222 22% 15% / 0.04);
+  --shadow-sm: 0 1px 2px hsl(222 22% 15% / 0.06);
+  --shadow-md: 0 4px 12px hsl(222 22% 15% / 0.10);
+  --shadow-lg: 0 12px 32px hsl(222 22% 15% / 0.14);
+  --shadow-xl: 0 20px 48px hsl(222 22% 15% / 0.18);
 
   /* ── Typography Scales ───────────────────────────────────── */
   --font-display: 'Sora', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  --text-xs:      0.72rem;      /* 11.5px — timestamps, footnotes */
-  --text-sm:      0.8125rem;    /* 13px   — secondary labels, meta */
-  --text-base:    0.9375rem;    /* 15px   — body copy, inputs */
-  --text-md:      1.0625rem;    /* 17px   — job titles in cards */
-  --text-lg:      1.25rem;      /* 20px   — section headers */
-  --text-xl:      1.75rem;      /* 28px   — page titles (Sora) */
-  --text-display: 2.75rem;      /* 44px   — hero display (Sora) */
+  --text-xs:      0.72rem;      /* 11.5px */
+  --text-sm:      0.8125rem;    /* 13px */
+  --text-base:    0.9375rem;    /* 15px */
+  --text-md:      1.0625rem;    /* 17px */
+  --text-lg:      1.25rem;      /* 20px */
+  --text-xl:      1.75rem;      /* 28px */
+  --text-display: 2.75rem;      /* 44px */
 
   /* ── Spacing Scales ──────────────────────────────────────── */
   --space-1:  0.25rem;
@@ -81,13 +89,6 @@
   --radius-lg:   14px;
   --radius-xl:   20px;
   --radius-pill: 9999px;
-
-  /* ── Elevation / Shadow Tokens (Floating Surfaces) ───────── */
-  --shadow-xs: 0 1px 2px hsl(222deg 22% 15% / 0.04);
-  --shadow-sm: 0 1px 2px hsl(222deg 22% 15% / 0.06);
-  --shadow-md: 0 4px 12px hsl(222deg 22% 15% / 0.10);
-  --shadow-lg: 0 12px 32px hsl(222deg 22% 15% / 0.14);
-  --shadow-xl: 0 24px 64px hsl(222deg 22% 15% / 0.18);
 
   /* ── Motion & Timing ─────────────────────────────────────── */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
@@ -109,91 +110,55 @@
   --z-toast:    400;
 }
 
-/* ── DARK MODE via system preference ──────────────────────────── */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg:              hsl(222, 18%, 11%);
-    --color-surface:         hsl(222, 16%, 15%);
-    --color-surface-hover:   hsl(222, 16%, 19%);
-    --color-surface-active:  hsl(222, 16%, 23%);
-    --color-surface-raised:  hsl(222, 16%, 18%);
-
-    --color-border:          hsl(222, 14%, 22%);
-    --color-border-strong:   hsl(222, 14%, 34%);
-
-    --color-text:            hsl(220, 20%, 92%);
-    --color-text-subtle:     hsl(220, 12%, 62%);
-    /* WCAG AA (>= 4.5:1) compliant against dark surface */
-    --color-text-faint:      hsl(220, 10%, 56%);
-    --color-text-inverse:    hsl(222, 18%, 11%);
-
-    --color-primary:         hsl(212, 88%, 58%);
-    --color-primary-hover:   hsl(212, 88%, 68%);
-    --color-primary-subtle:  hsl(212, 50%, 18%);
-    --color-primary-text:    hsl(212, 88%, 65%);
-
-    --color-signal:          hsl(28, 95%, 58%);
-    --color-signal-subtle:   hsl(28, 60%, 16%);
-    --color-signal-text:     hsl(28, 95%, 65%);
-
-    --color-success:         hsl(152, 55%, 48%);
-    --color-success-subtle:  hsl(152, 40%, 14%);
-    --color-danger:          hsl(0, 72%, 60%);
-    --color-danger-subtle:   hsl(0, 50%, 14%);
-    --color-warning:         hsl(40, 90%, 58%);
-    --color-warning-subtle:  hsl(40, 60%, 14%);
-
-    --color-overlay:         hsl(222deg 22% 8% / 0.65);
-
-    --focus-ring:            0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);
-
-    --shadow-xs: 0 1px 2px hsl(222deg 20% 5% / 0.25);
-    --shadow-sm: 0 1px 2px hsl(222deg 20% 5% / 0.35);
-    --shadow-md: 0 4px 12px hsl(222deg 20% 5% / 0.45);
-    --shadow-lg: 0 12px 32px hsl(222deg 20% 5% / 0.55);
-    --shadow-xl: 0 24px 64px hsl(222deg 20% 5% / 0.65);
-  }
-}
-
-/* ── DARK MODE via explicit attribute [data-theme="dark"] ─────── */
+/* ── DARK MODE (Opt-In Variant) ─────────────────────────────────── */
 [data-theme="dark"] {
+  /* Canvas & Surfaces — Solid dark surfaces, no blur */
   --color-bg:              hsl(222, 18%, 11%);
   --color-surface:         hsl(222, 16%, 15%);
+  --color-surface-solid:   hsl(222, 16%, 15%);
   --color-surface-hover:   hsl(222, 16%, 19%);
   --color-surface-active:  hsl(222, 16%, 23%);
   --color-surface-raised:  hsl(222, 16%, 18%);
 
+  /* Borders & Dividers */
   --color-border:          hsl(222, 14%, 22%);
   --color-border-strong:   hsl(222, 14%, 34%);
 
+  /* Typography */
   --color-text:            hsl(220, 20%, 92%);
   --color-text-subtle:     hsl(220, 12%, 62%);
-  --color-text-faint:      hsl(220, 10%, 56%);
+  --color-text-faint:      hsl(220, 10%, 57%); /* WCAG AA: 5.28:1 on bg, 4.71:1 on surface */
   --color-text-inverse:    hsl(222, 18%, 11%);
 
+  /* Primary Action */
   --color-primary:         hsl(212, 88%, 58%);
   --color-primary-hover:   hsl(212, 88%, 68%);
   --color-primary-subtle:  hsl(212, 50%, 18%);
   --color-primary-text:    hsl(212, 88%, 65%);
 
+  /* Signal / Live Accent — Amber pulse ONLY */
   --color-signal:          hsl(28, 95%, 58%);
   --color-signal-subtle:   hsl(28, 60%, 16%);
   --color-signal-text:     hsl(28, 95%, 65%);
 
-  --color-success:         hsl(152, 55%, 48%);
-  --color-success-subtle:  hsl(152, 40%, 14%);
-  --color-danger:          hsl(0, 72%, 60%);
-  --color-danger-subtle:   hsl(0, 50%, 14%);
-  --color-warning:         hsl(40, 90%, 58%);
-  --color-warning-subtle:  hsl(40, 60%, 14%);
+  /* Status & Semantic */
+  --color-success:         hsl(152, 60%, 48%);
+  --color-success-subtle:  hsl(152, 50%, 16%);
+  --color-danger:          hsl(0, 68%, 60%);
+  --color-danger-subtle:   hsl(0, 50%, 16%);
+  --color-warning:         hsl(28, 95%, 58%);
+  --color-warning-subtle:  hsl(28, 60%, 16%);
 
-  --color-overlay:         hsl(222deg 22% 8% / 0.65);
+  /* Overlay */
+  --color-overlay:         hsl(222 18% 11% / 0.65);
 
-  --focus-ring:            0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);
+  /* Focus Ring */
+  --focus-ring:            0 0 0 2px hsl(222, 18%, 11%), 0 0 0 4px hsl(212, 88%, 58%);
 
-  --shadow-xs: 0 1px 2px hsl(222deg 20% 5% / 0.25);
-  --shadow-sm: 0 1px 2px hsl(222deg 20% 5% / 0.35);
-  --shadow-md: 0 4px 12px hsl(222deg 20% 5% / 0.45);
-  --shadow-lg: 0 12px 32px hsl(222deg 20% 5% / 0.55);
-  --shadow-xl: 0 24px 64px hsl(222deg 20% 5% / 0.65);
+  /* Elevation / Shadow Scale (Dark calibrated, neutral, no neon glow) */
+  --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.25);
+  --shadow-sm: 0 2px 4px hsl(0 0% 0% / 0.35);
+  --shadow-md: 0 6px 16px hsl(0 0% 0% / 0.45);
+  --shadow-lg: 0 14px 36px hsl(0 0% 0% / 0.55);
+  --shadow-xl: 0 24px 56px hsl(0 0% 0% / 0.65);
 }
