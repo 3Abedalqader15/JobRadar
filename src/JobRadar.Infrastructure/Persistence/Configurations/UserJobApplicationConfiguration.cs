@@ -35,6 +35,49 @@ public sealed class UserJobApplicationConfiguration : IEntityTypeConfiguration<U
             .HasColumnName("notes")
             .HasMaxLength(5000);
 
+        builder.Property(a => a.ApplicantFullName)
+            .HasColumnName("applicant_full_name")
+            .HasMaxLength(200)
+            .HasDefaultValue(string.Empty)
+            .IsRequired();
+
+        builder.Property(a => a.ApplicantEmail)
+            .HasColumnName("applicant_email")
+            .HasMaxLength(320)
+            .HasDefaultValue(string.Empty)
+            .IsRequired();
+
+        builder.Property(a => a.ApplicantPhone)
+            .HasColumnName("applicant_phone")
+            .HasMaxLength(50)
+            .HasDefaultValue(string.Empty)
+            .IsRequired();
+
+        builder.Property(a => a.CvFilePath)
+            .HasColumnName("cv_file_path")
+            .HasMaxLength(1024);
+
+        builder.Property(a => a.CvOriginalFileName)
+            .HasColumnName("cv_original_file_name")
+            .HasMaxLength(500);
+
+        builder.Property(a => a.AiMatchScore)
+            .HasColumnName("ai_match_score");
+
+        builder.Property(a => a.AiMissingKeywords)
+            .HasColumnName("ai_missing_keywords");
+
+        builder.Property(a => a.AiAnalysisSummary)
+            .HasColumnName("ai_analysis_summary")
+            .HasColumnType("text");
+
+        builder.Property(a => a.AiAnalysisStatus)
+            .HasColumnName("ai_analysis_status")
+            .HasConversion<string>()
+            .HasMaxLength(50)
+            .HasDefaultValue(JobRadar.Domain.Enums.AiAnalysisStatus.Pending)
+            .IsRequired();
+
         builder.Property(a => a.UpdatedAt)
             .HasColumnName("updated_at")
             .IsRequired();
@@ -51,6 +94,12 @@ public sealed class UserJobApplicationConfiguration : IEntityTypeConfiguration<U
             .HasForeignKey(a => a.JobId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Answers
+        builder.HasMany(a => a.Answers)
+            .WithOne(ans => ans.UserJobApplication)
+            .HasForeignKey(ans => ans.UserJobApplicationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Prevent duplicate applications for the same user+job
         builder.HasIndex(a => new { a.UserId, a.JobId })
             .IsUnique()
@@ -58,5 +107,11 @@ public sealed class UserJobApplicationConfiguration : IEntityTypeConfiguration<U
 
         builder.HasIndex(a => a.AppliedAt)
             .HasDatabaseName("ix_user_job_applications_applied_at");
+
+        builder.HasIndex(a => a.AiMatchScore)
+            .HasDatabaseName("ix_user_job_applications_ai_match_score");
+
+        builder.HasIndex(a => a.AiAnalysisStatus)
+            .HasDatabaseName("ix_user_job_applications_ai_analysis_status");
     }
 }

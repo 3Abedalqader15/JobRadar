@@ -45,7 +45,10 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    // Navigations
+    /// <summary>Associated company ID — only set for officially posted jobs, null for raw crawled jobs.</summary>
+    public Guid? CompanyId { get; private set; }
+    public Company? Company { get; private set; }
+
     public Source? Source { get; private set; }
     public RawPost? RawPost { get; private set; }
 
@@ -57,6 +60,9 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
 
     public IReadOnlyCollection<UserJobApplication> Applications => _applications.AsReadOnly();
     private readonly List<UserJobApplication> _applications = new();
+
+    public IReadOnlyCollection<JobApplicationQuestion> Questions => _questions.AsReadOnly();
+    private readonly List<JobApplicationQuestion> _questions = new();
 
     public IReadOnlyCollection<CvJobMatchAnalysis> MatchAnalyses => _matchAnalyses.AsReadOnly();
     private readonly List<CvJobMatchAnalysis> _matchAnalyses = new();
@@ -76,7 +82,8 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
         ExperienceLevel experienceLevel,
         string? externalApplyUrl,
         DateTime postedAt,
-        Guid? rawPostId) : base(id)
+        Guid? rawPostId,
+        Guid? companyId = null) : base(id)
     {
         SourceId = sourceId;
         Title = title;
@@ -89,6 +96,7 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
         ExternalApplyUrl = externalApplyUrl;
         PostedAt = postedAt;
         RawPostId = rawPostId;
+        CompanyId = companyId;
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
@@ -105,7 +113,8 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
         ExperienceLevel experienceLevel = ExperienceLevel.MidLevel,
         string? externalApplyUrl = null,
         DateTime? postedAt = null,
-        Guid? rawPostId = null)
+        Guid? rawPostId = null,
+        Guid? companyId = null)
         => new(
             Guid.NewGuid(),
             sourceId,
@@ -118,7 +127,35 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
             experienceLevel,
             externalApplyUrl,
             postedAt ?? DateTime.UtcNow,
-            rawPostId);
+            rawPostId,
+            companyId);
+
+    public void AssignCompany(Guid? companyId)
+    {
+        CompanyId = companyId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateDetails(
+        string title,
+        string description,
+        string? location,
+        bool isRemote,
+        EmploymentType employmentType,
+        ExperienceLevel experienceLevel,
+        string? externalApplyUrl,
+        bool isActive)
+    {
+        Title = title;
+        Description = description;
+        Location = location;
+        IsRemote = isRemote;
+        EmploymentType = employmentType;
+        ExperienceLevel = experienceLevel;
+        ExternalApplyUrl = externalApplyUrl;
+        IsActive = isActive;
+        UpdatedAt = DateTime.UtcNow;
+    }
 
     public void SetEmbedding(float[] vector)
     {

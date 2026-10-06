@@ -10,6 +10,7 @@ namespace JobRadar.Infrastructure.Persistence;
 public sealed class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
 {
     // ── Core Entities ─────────────────────────────────────────────────────────
+    public DbSet<Company> Companies => Set<Company>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Source> Sources => Set<Source>();
     public DbSet<RawPost> RawPosts => Set<RawPost>();
@@ -22,6 +23,8 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
     // ── User Activity ─────────────────────────────────────────────────────────
     public DbSet<UserSavedJob> UserSavedJobs => Set<UserSavedJob>();
     public DbSet<UserJobApplication> UserJobApplications => Set<UserJobApplication>();
+    public DbSet<JobApplicationQuestion> JobApplicationQuestions => Set<JobApplicationQuestion>();
+    public DbSet<JobApplicationAnswer> JobApplicationAnswers => Set<JobApplicationAnswer>();
     public DbSet<Notification> Notifications => Set<Notification>();
 
     // ── CV & ATS ──────────────────────────────────────────────────────────────
@@ -35,11 +38,21 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
     {
         base.OnModelCreating(builder);
 
-        // Enable the pgvector extension in PostgreSQL
-        builder.HasPostgresExtension("vector");
+        builder.Entity<ApplicationRole>();
+
+        // Enable the pgvector extension in PostgreSQL (when not running InMemory)
+        if (Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            builder.HasPostgresExtension("vector");
+        }
 
         // Apply all IEntityTypeConfiguration<T> from this assembly
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+        if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            builder.Entity<Job>().Ignore(j => j.Embedding);
+        }
 
         builder.AddInboxStateEntity();
         builder.AddOutboxMessageEntity();
