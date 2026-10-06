@@ -223,6 +223,12 @@
                     <td>
                       <div class="action-buttons">
                         <button
+                          class="btn-action btn-questions"
+                          [id]="'btn-questions-' + job.id"
+                          (click)="openQuestionsModal(job)"
+                          title="Screening Questions"
+                        >📋 Questions</button>
+                        <button
                           class="btn-action btn-danger"
                           [id]="'btn-delete-' + job.id"
                           (click)="deleteJob(job.id)"
@@ -458,10 +464,27 @@
             <p>Applications will appear here once candidates submit their CVs.</p>
           </div>
         } @else {
-          <div class="stats-row">
-            <div class="stat-card">
-              <span class="stat-num">{{ appsTotal() }}</span>
-              <span class="stat-label">Total Applications</span>
+          <div class="table-toolbar">
+            <div class="stats-row">
+              <div class="stat-card">
+                <span class="stat-num">{{ appsTotal() }}</span>
+                <span class="stat-label">Total Applications</span>
+              </div>
+            </div>
+            <div class="sort-control-wrap">
+              <label for="apps-sort-select">Sort Applications By:</label>
+              <select
+                id="apps-sort-select"
+                class="form-select form-select-sm"
+                [value]="appsSortBy()"
+                (change)="onAppsSortChange($any($event.target).value)"
+              >
+                <option value="date_desc">📅 Applied Date (Newest first)</option>
+                <option value="score_desc">⭐ Match Score (Highest first)</option>
+                <option value="score_asc">📉 Match Score (Lowest first)</option>
+                <option value="date_asc">⌛ Applied Date (Oldest first)</option>
+                <option value="status">🏷️ Application Status</option>
+              </select>
             </div>
           </div>
 
@@ -470,11 +493,11 @@
               <thead>
                 <tr>
                   <th>Applicant</th>
-                  <th>Email</th>
-                  <th>Job Title</th>
-                  <th>Company</th>
+                  <th>Position & Company</th>
+                  <th>AI Match Score</th>
                   <th>Status</th>
                   <th>Applied At</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -482,19 +505,65 @@
                   <tr class="table-row">
                     <td>
                       <div class="applicant-cell">
-                        <div class="applicant-avatar">{{ app.userFullName.charAt(0).toUpperCase() || '?' }}</div>
-                        <span>{{ app.userFullName }}</span>
+                        <div class="applicant-avatar">{{ (app.applicantFullName || app.userFullName || '?').charAt(0).toUpperCase() }}</div>
+                        <div class="applicant-info-block">
+                          <span class="applicant-name">{{ app.applicantFullName || app.userFullName }}</span>
+                          <span class="applicant-subtext">{{ app.applicantEmail || app.userEmail }}</span>
+                          @if (app.applicantPhone) {
+                            <span class="applicant-phone-text">📞 {{ app.applicantPhone }}</span>
+                          }
+                        </div>
                       </div>
                     </td>
-                    <td><span class="email-text">{{ app.userEmail }}</span></td>
-                    <td><span class="job-title">{{ app.jobTitle }}</span></td>
-                    <td><span class="company-name">{{ app.companyName }}</span></td>
+                    <td>
+                      <div class="job-company-cell">
+                        <span class="job-title">{{ app.jobTitle }}</span>
+                        <span class="company-name">{{ app.companyName }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="score-badge-wrap">
+                        <span class="score-badge" [ngClass]="getScoreBadgeClass(app)">
+                          @if ((app.aiAnalysisStatus || '').toLowerCase() === 'processing' || (app.aiAnalysisStatus || '').toLowerCase() === 'pending') {
+                            <span class="pulse-dot"></span>
+                          }
+                          {{ getScoreText(app) }}
+                        </span>
+                      </div>
+                    </td>
                     <td>
                       <span class="app-status app-status-{{ app.status.toLowerCase() }}">
                         {{ app.status }}
                       </span>
                     </td>
                     <td><span class="date-text">{{ app.appliedAt | date:'MMM d, y' }}</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        @if (app.cvOriginalFileName || app.cvFilePath) {
+                          <button
+                            class="btn-action btn-download-cv"
+                            [id]="'btn-cv-' + app.id"
+                            (click)="downloadCv(app)"
+                            [disabled]="downloadingCvId() === app.id"
+                            [title]="app.cvOriginalFileName ? 'Download ' + app.cvOriginalFileName : 'Download CV'"
+                          >
+                            @if (downloadingCvId() === app.id) {
+                              ⏳
+                            } @else {
+                              📥 CV
+                            }
+                          </button>
+                        }
+                        <button
+                          class="btn-action btn-view-analysis"
+                          [id]="'btn-analysis-' + app.id"
+                          (click)="openAppDetails(app)"
+                          title="View Analysis & Candidate Details"
+                        >
+                          🔍 Details
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -717,6 +786,260 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal: Screening Questions Builder -->
+@if (showQuestionsModal()) {
+  <div class="modal-backdrop" (click)="closeQuestionsModal()">
+    <div class="modal-card modal-card-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3>📋 Screening Questions Builder</h3>
+          <p class="modal-subtitle">{{ selectedJobForQuestions()?.title }} &bull; {{ selectedJobForQuestions()?.companyName }}</p>
+        </div>
+        <button class="modal-close" (click)="closeQuestionsModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        @if (questionsSuccess()) {
+          <div class="alert-success">✅ Screening questions saved successfully!</div>
+        }
+        @if (questionsError()) {
+          <div class="alert-error">❌ {{ questionsError() }}</div>
+        }
+
+        @if (questionsLoading()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading questions...</p>
+          </div>
+        } @else {
+          <div class="questions-list">
+            @if (questionsList().length === 0) {
+              <div class="empty-questions">
+                <span class="empty-icon">📝</span>
+                <p>No screening questions configured for this job yet.</p>
+                <p class="sub-text">Add custom questions to screen candidates before reviewing their CVs.</p>
+              </div>
+            }
+
+            @for (q of questionsList(); track q; let idx = $index) {
+              <div class="question-builder-item">
+                <div class="question-header">
+                  <span class="question-number">Question #{{ idx + 1 }}</span>
+                  <div class="question-actions">
+                    <button
+                      type="button"
+                      class="btn-icon"
+                      (click)="moveQuestionUp(idx)"
+                      [disabled]="idx === 0"
+                      title="Move Up"
+                    >▲</button>
+                    <button
+                      type="button"
+                      class="btn-icon"
+                      (click)="moveQuestionDown(idx)"
+                      [disabled]="idx === questionsList().length - 1"
+                      title="Move Down"
+                    >▼</button>
+                    <button
+                      type="button"
+                      class="btn-icon btn-icon-danger"
+                      (click)="removeQuestion(idx)"
+                      title="Remove Question"
+                    >🗑️</button>
+                  </div>
+                </div>
+
+                <div class="question-fields-grid">
+                  <div class="form-group full-width">
+                    <label>Question Prompt *</label>
+                    <input
+                      type="text"
+                      class="form-input"
+                      [(ngModel)]="q.questionText"
+                      placeholder="e.g. How many years of experience do you have with Angular?"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Question Type</label>
+                    <select class="form-select" [(ngModel)]="q.questionType">
+                      <option [ngValue]="QuestionType.Text">Text Response</option>
+                      <option [ngValue]="QuestionType.YesNo">Yes / No</option>
+                      <option [ngValue]="QuestionType.MultipleChoice">Multiple Choice</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group flex-align-center">
+                    <label class="toggle-label mt-label">
+                      <input
+                        type="checkbox"
+                        class="toggle-input"
+                        [(ngModel)]="q.isRequired"
+                      />
+                      <span class="toggle-switch"></span>
+                      <span class="toggle-text">Required Question</span>
+                    </label>
+                  </div>
+                </div>
+
+                @if (q.questionType === QuestionType.MultipleChoice) {
+                  <div class="multiple-choice-config">
+                    <label class="options-title">Available Options (Candidates select one)</label>
+                    <div class="options-tag-list">
+                      @for (opt of q.options; track opt; let optIdx = $index) {
+                        <span class="option-pill">
+                          {{ opt }}
+                          <button type="button" class="btn-remove-pill" (click)="removeOption(q, optIdx)">✕</button>
+                        </span>
+                      }
+                    </div>
+                    <div class="add-option-row">
+                      <input
+                        #optInput
+                        type="text"
+                        class="form-input form-input-sm"
+                        placeholder="Add an option and press Add..."
+                        (keydown.enter)="$event.preventDefault(); addOption(q, optInput)"
+                      />
+                      <button
+                        type="button"
+                        class="btn-secondary btn-sm"
+                        (click)="addOption(q, optInput)"
+                      >+ Add Option</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="add-question-bar">
+              <button type="button" class="btn-secondary" (click)="addQuestion()">
+                ➕ Add New Question
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="closeQuestionsModal()">Cancel</button>
+            <button
+              type="button"
+              class="btn-primary"
+              (click)="saveQuestions()"
+              [disabled]="questionsSaving()"
+            >
+              @if (questionsSaving()) {
+                <span class="btn-spinner"></span> Saving...
+              } @else {
+                💾 Save Questions
+              }
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal: Application Details & AI Analysis -->
+@if (showAppDetailsModal() && selectedAppForDetails(); as app) {
+  <div class="modal-backdrop" (click)="closeAppDetails()">
+    <div class="modal-card modal-card-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3>Candidate Review: {{ app.applicantFullName || app.userFullName }}</h3>
+          <p class="modal-subtitle">{{ app.jobTitle }} &bull; {{ app.companyName }}</p>
+        </div>
+        <button class="modal-close" (click)="closeAppDetails()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="candidate-overview-card">
+          <div class="overview-item">
+            <span class="overview-label">Full Name</span>
+            <span class="overview-val">{{ app.applicantFullName || app.userFullName }}</span>
+          </div>
+          <div class="overview-item">
+            <span class="overview-label">Email Address</span>
+            <span class="overview-val">{{ app.applicantEmail || app.userEmail }}</span>
+          </div>
+          <div class="overview-item">
+            <span class="overview-label">Phone</span>
+            <span class="overview-val">{{ app.applicantPhone || '—' }}</span>
+          </div>
+          <div class="overview-item">
+            <span class="overview-label">Submission Date</span>
+            <span class="overview-val">{{ app.appliedAt | date:'medium' }}</span>
+          </div>
+        </div>
+
+        <!-- AI Match Analysis Card -->
+        <div class="ai-analysis-card">
+          <div class="ai-header-row">
+            <h4>🤖 AI Resume Match Analysis</h4>
+            <span class="score-badge" [ngClass]="getScoreBadgeClass(app)">
+              @if ((app.aiAnalysisStatus || '').toLowerCase() === 'processing' || (app.aiAnalysisStatus || '').toLowerCase() === 'pending') {
+                <span class="pulse-dot"></span>
+              }
+              {{ getScoreText(app) }}
+            </span>
+          </div>
+
+          @if (app.aiAnalysisSummary) {
+            <div class="analysis-summary-block">
+              <h5>Executive Summary:</h5>
+              <p class="summary-text">{{ app.aiAnalysisSummary }}</p>
+            </div>
+          } @else if ((app.aiAnalysisStatus || '').toLowerCase() === 'processing' || (app.aiAnalysisStatus || '').toLowerCase() === 'pending') {
+            <p class="status-notice">AI CV matching analysis is in progress. The score and summary will update shortly.</p>
+          } @else {
+            <p class="status-notice">No AI analysis summary generated for this application.</p>
+          }
+
+          @if (app.aiMissingKeywords && app.aiMissingKeywords.length > 0) {
+            <div class="missing-keywords-block">
+              <h5>Missing Keywords / Identified Skill Gaps:</h5>
+              <div class="keyword-tags">
+                @for (kw of app.aiMissingKeywords; track kw) {
+                  <span class="keyword-tag">{{ kw }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- CV Attachment Download -->
+        @if (app.cvOriginalFileName || app.cvFilePath) {
+          <div class="cv-attachment-card">
+            <div class="cv-info">
+              <span class="cv-icon">📄</span>
+              <div class="cv-meta">
+                <span class="cv-name">{{ app.cvOriginalFileName || 'Applicant_CV.pdf' }}</span>
+                <span class="cv-sub">Attached candidate curriculum vitae</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn-primary btn-sm"
+              (click)="downloadCv(app)"
+              [disabled]="downloadingCvId() === app.id"
+            >
+              @if (downloadingCvId() === app.id) {
+                ⏳ Downloading...
+              } @else {
+                📥 Download CV
+              }
+            </button>
+          </div>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeAppDetails()">Close</button>
+        </div>
       </div>
     </div>
   </div>

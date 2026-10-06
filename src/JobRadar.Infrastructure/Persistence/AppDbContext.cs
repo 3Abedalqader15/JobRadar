@@ -52,6 +52,11 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
         {
             builder.Entity<Job>().Ignore(j => j.Embedding);
+            builder.Entity<UserJobApplication>()
+                .Property(a => a.AiMissingKeywords)
+                .HasConversion(
+                    v => v == null ? null : string.Join(';', v),
+                    v => v == null ? null : v.Split(';', StringSplitOptions.RemoveEmptyEntries));
         }
 
         builder.AddInboxStateEntity();

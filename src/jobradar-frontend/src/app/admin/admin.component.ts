@@ -1,13 +1,15 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
   AdminService,
   JobPostingItem,
   ApplicationItem,
   CreateJobPostingDto,
-  CompanyDto
+  CompanyDto,
+  JobQuestionDto,
+  QuestionType
 } from './admin.service';
 import { AuthService } from '../auth/auth.service';
 import { ThemeService } from '../theme.service';
@@ -19,13 +21,16 @@ type Tab = 'jobs' | 'applications' | 'create' | 'companies';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, PaginationComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule, PaginationComponent],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
 export class AdminComponent implements OnInit {
   public themeService = inject(ThemeService);
   activeTab = signal<Tab>('jobs');
+
+  // QuestionType enum exposed to template
+  QuestionType = QuestionType;
 
   // Jobs state & pagination
   jobs = signal<JobPostingItem[]>([]);
@@ -34,12 +39,25 @@ export class AdminComponent implements OnInit {
   jobsPage = signal(1);
   jobsPageSize = signal(10);
 
-  // Applications state & pagination
+  // Applications state & pagination & sorting
   applications = signal<ApplicationItem[]>([]);
   appsTotal = signal(0);
   appsLoading = signal(false);
   appsPage = signal(1);
   appsPageSize = signal(10);
+  appsSortBy = signal<string>('date_desc');
+  selectedAppForDetails = signal<ApplicationItem | null>(null);
+  showAppDetailsModal = signal(false);
+  downloadingCvId = signal<string | null>(null);
+
+  // Screening Questions Builder state
+  showQuestionsModal = signal(false);
+  selectedJobForQuestions = signal<JobPostingItem | null>(null);
+  questionsList = signal<JobQuestionDto[]>([]);
+  questionsLoading = signal(false);
+  questionsSaving = signal(false);
+  questionsSuccess = signal(false);
+  questionsError = signal<string | null>(null);
 
   // Companies state & pagination (Admin only)
   companies = signal<CompanyDto[]>([]);
@@ -183,7 +201,7 @@ export class AdminComponent implements OnInit {
 
   loadApplications() {
     this.appsLoading.set(true);
-    this.adminService.getApplications(this.appsPage(), this.appsPageSize()).subscribe({
+    this.adminService.getApplications(this.appsPage(), this.appsPageSize(), undefined, this.appsSortBy()).subscribe({
       next: res => {
         this.applications.set(res.items);
         this.appsTotal.set(res.totalCount);
@@ -202,6 +220,194 @@ export class AdminComponent implements OnInit {
     this.appsPageSize.set(size);
     this.appsPage.set(1);
     this.loadApplications();
+  }
+
+  onAppsSortChange(sortBy: string) {
+    this.appsSortBy.set(sortBy);
+    this.appsPage.set(1);
+    this.loadApplications();
+  }
+
+  downloadCv(app: ApplicationItem) {
+    if (!app.cvFilePath && !app.cvOriginalFileName) return;
+    this.downloadingCvId.set(app.id);
+    this.adminService.downloadApplicationCv(app.id).subscribe({
+      next: (blob) => {
+        this.downloadingCvId.set(null);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = app.cvOriginalFileName || `${app.applicantFullName || app.userFullName || 'applicant'}_cv.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        this.downloadingCvId.set(null);
+        alert('Failed to download CV: ' + (err.error?.message ?? err.statusText ?? 'Unauthorized or file missing'));
+      }
+    });
+  }
+
+  openAppDetails(app: ApplicationItem) {
+    this.selectedAppForDetails.set(app);
+    this.showAppDetailsModal.set(true);
+  }
+
+  closeAppDetails() {
+    this.showAppDetailsModal.set(false);
+    this.selectedAppForDetails.set(null);
+  }
+
+  getScoreBadgeClass(app: ApplicationItem): string {
+    const status = (app.aiAnalysisStatus || '').toLowerCase();
+    if (status === 'processing' || status === 'pending') {
+      return 'badge-ai-pulsing';
+    }
+    if (status === 'failed') {
+      return 'badge-ai-failed';
+    }
+    if (app.aiMatchScore == null) {
+      return 'badge-ai-none';
+    }
+    if (app.aiMatchScore >= 80) {
+      return 'badge-score-high';
+    }
+    if (app.aiMatchScore >= 50) {
+      return 'badge-score-mid';
+    }
+    return 'badge-score-low';
+  }
+
+  getScoreText(app: ApplicationItem): string {
+    const status = (app.aiAnalysisStatus || '').toLowerCase();
+    if (status === 'processing') return 'Analyzing...';
+    if (status === 'pending') return 'Queued';
+    if (status === 'failed') return 'Failed';
+    if (app.aiMatchScore != null) return `${app.aiMatchScore}% Match`;
+    return 'No Score';
+  }
+
+  // ── Screening Questions Builder Methods ─────────────────────────
+  openQuestionsModal(job: JobPostingItem) {
+    this.selectedJobForQuestions.set(job);
+    this.questionsList.set([]);
+    this.questionsLoading.set(true);
+    this.questionsError.set(null);
+    this.questionsSuccess.set(false);
+    this.showQuestionsModal.set(true);
+
+    this.adminService.getJobQuestions(job.id).subscribe({
+      next: (questions) => {
+        this.questionsList.set(questions || []);
+        this.questionsLoading.set(false);
+      },
+      error: () => {
+        this.questionsLoading.set(false);
+        this.questionsError.set('Failed to load existing screening questions.');
+      }
+    });
+  }
+
+  closeQuestionsModal() {
+    this.showQuestionsModal.set(false);
+    this.selectedJobForQuestions.set(null);
+    this.questionsList.set([]);
+    this.questionsError.set(null);
+    this.questionsSuccess.set(false);
+  }
+
+  addQuestion() {
+    const current = this.questionsList();
+    const newQ: JobQuestionDto = {
+      questionText: '',
+      questionType: QuestionType.Text,
+      options: [],
+      isRequired: true,
+      displayOrder: current.length + 1
+    };
+    this.questionsList.set([...current, newQ]);
+  }
+
+  removeQuestion(index: number) {
+    const updated = this.questionsList().filter((_, i) => i !== index);
+    this.questionsList.set(updated.map((q, i) => ({ ...q, displayOrder: i + 1 })));
+  }
+
+  moveQuestionUp(index: number) {
+    if (index <= 0) return;
+    const list = [...this.questionsList()];
+    const temp = list[index];
+    list[index] = list[index - 1];
+    list[index - 1] = temp;
+    this.questionsList.set(list.map((q, i) => ({ ...q, displayOrder: i + 1 })));
+  }
+
+  moveQuestionDown(index: number) {
+    const list = [...this.questionsList()];
+    if (index >= list.length - 1) return;
+    const temp = list[index];
+    list[index] = list[index + 1];
+    list[index + 1] = temp;
+    this.questionsList.set(list.map((q, i) => ({ ...q, displayOrder: i + 1 })));
+  }
+
+  addOption(q: JobQuestionDto, optInput: HTMLInputElement) {
+    const val = optInput.value.trim();
+    if (!val) return;
+    if (!q.options) q.options = [];
+    q.options.push(val);
+    optInput.value = '';
+  }
+
+  removeOption(q: JobQuestionDto, optIdx: number) {
+    if (!q.options) return;
+    q.options.splice(optIdx, 1);
+  }
+
+  saveQuestions() {
+    const job = this.selectedJobForQuestions();
+    if (!job) return;
+
+    const list = this.questionsList();
+    for (let i = 0; i < list.length; i++) {
+      const q = list[i];
+      if (!q.questionText || !q.questionText.trim()) {
+        this.questionsError.set(`Question #${i + 1} cannot have empty text.`);
+        return;
+      }
+      if (q.questionType === QuestionType.MultipleChoice && (!q.options || q.options.length < 2)) {
+        this.questionsError.set(`Question #${i + 1} is Multiple Choice and must have at least 2 options.`);
+        return;
+      }
+    }
+
+    this.questionsSaving.set(true);
+    this.questionsError.set(null);
+    this.questionsSuccess.set(false);
+
+    const payload = list.map((q, idx) => ({
+      ...q,
+      questionText: q.questionText.trim(),
+      displayOrder: idx + 1
+    }));
+
+    this.adminService.saveJobQuestions(job.id, payload).subscribe({
+      next: () => {
+        this.questionsSaving.set(false);
+        this.questionsSuccess.set(true);
+        setTimeout(() => {
+          this.questionsSuccess.set(false);
+          this.closeQuestionsModal();
+        }, 1200);
+      },
+      error: (err) => {
+        this.questionsSaving.set(false);
+        const msg = err.error?.message || err.error?.detail || err.error?.errors?.[0] || 'Failed to save screening questions.';
+        this.questionsError.set(msg);
+      }
+    });
   }
 
   loadCompanies() {

@@ -22,4 +22,5 @@ public class JobSearchResultDto
     public string? SourceName { get; set; }
     public bool IsVerified { get; set; }
     public int ApplicantsClickCount { get; set; }
+    public Guid? CompanyId { get; set; }
 }

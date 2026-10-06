@@ -54,6 +54,22 @@ export interface JobPostingsResponse {
   pageSize: number;
 }
 
+export enum QuestionType {
+  Text = 0,
+  YesNo = 1,
+  MultipleChoice = 2
+}
+
+export interface JobQuestionDto {
+  id?: string;
+  jobId?: string;
+  questionText: string;
+  questionType: QuestionType;
+  options?: string[] | null;
+  isRequired: boolean;
+  displayOrder: number;
+}
+
 export interface ApplicationItem {
   id: string;
   jobId: string;
@@ -64,6 +80,15 @@ export interface ApplicationItem {
   userFullName: string;
   status: string;
   appliedAt: string;
+  applicantFullName?: string;
+  applicantEmail?: string;
+  applicantPhone?: string;
+  cvOriginalFileName?: string | null;
+  cvFilePath?: string | null;
+  aiMatchScore?: number | null;
+  aiAnalysisStatus?: string;
+  aiMissingKeywords?: string[] | null;
+  aiAnalysisSummary?: string | null;
 }
 
 export interface ApplicationsResponse {
@@ -129,10 +154,25 @@ export class AdminService {
     return this.http.delete<void>(`/api/job-postings/${id}`);
   }
 
-  getApplications(page = 1, pageSize = 20, jobId?: string): Observable<ApplicationsResponse> {
+  getApplications(page = 1, pageSize = 20, jobId?: string, sortBy?: string): Observable<ApplicationsResponse> {
     let params: any = { page, pageSize };
     if (jobId) params.jobId = jobId;
+    if (sortBy) params.sortBy = sortBy;
     return this.http.get<ApplicationsResponse>('/api/applications', { params });
+  }
+
+  getJobQuestions(jobId: string): Observable<JobQuestionDto[]> {
+    return this.http.get<JobQuestionDto[]>(`/api/jobs/${jobId}/questions`);
+  }
+
+  saveJobQuestions(jobId: string, questions: JobQuestionDto[]): Observable<void> {
+    return this.http.put<void>(`/api/jobs/${jobId}/questions`, { questions });
+  }
+
+  downloadApplicationCv(applicationId: string): Observable<Blob> {
+    return this.http.get(`/api/applications/${applicationId}/cv`, {
+      responseType: 'blob'
+    });
   }
 
   getCompanies(page = 1, pageSize = 50, search?: string): Observable<ListCompaniesResponse> {

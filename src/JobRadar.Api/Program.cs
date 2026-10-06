@@ -72,7 +72,11 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddMassTransit(x =>
 {
-    x.UsingInMemory();
+    x.AddConsumer<JobRadar.Infrastructure.Consumers.CvAnalysisConsumer>();
+    x.UsingInMemory((context, cfg) =>
+    {
+        cfg.ConfigureEndpoints(context);
+    });
 });
 
 builder.Services.AddControllers();
@@ -130,6 +134,15 @@ builder.Services.AddRateLimiter(options =>
         opt.Window = TimeSpan.FromSeconds(searchJobsPolicy.GetValue<int>("WindowSeconds", 60));
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = searchJobsPolicy.GetValue<int>("QueueLimit", 5);
+    });
+
+    var applicationSubmissionPolicy = builder.Configuration.GetSection("RateLimiting:ApplicationSubmissionPolicy");
+    options.AddFixedWindowLimiter("ApplicationSubmissionPolicy", opt =>
+    {
+        opt.PermitLimit = applicationSubmissionPolicy.GetValue<int>("PermitLimit", 10);
+        opt.Window = TimeSpan.FromSeconds(applicationSubmissionPolicy.GetValue<int>("WindowSeconds", 60));
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = applicationSubmissionPolicy.GetValue<int>("QueueLimit", 0);
     });
 
     var authPermitLimit = authPolicy.GetValue<int>("PermitLimit", 5);

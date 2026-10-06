@@ -203,7 +203,8 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
                 SearchDurationMs = elapsedMs,
                 SourceName = j.Source?.Name ?? (j.RawPostId == null ? "Direct" : "Aggregated"),
                 IsVerified = j.RawPostId == null,
-                ApplicantsClickCount = j.ApplicantsClickCount
+                ApplicantsClickCount = j.ApplicantsClickCount,
+                CompanyId = j.CompanyId
             });
         }
 

@@ -49,9 +49,10 @@ public class JobsController : ControllerBase
 
     [HttpPost("{id:guid}/apply")]
     [Microsoft.AspNetCore.Authorization.Authorize]
+    [EnableRateLimiting("ApplicationSubmissionPolicy")]
     public async Task<IActionResult> Apply(
         Guid id,
-        [FromBody] ApplyRequest request,
+        [FromForm] JobApplicationSubmissionRequest request,
         CancellationToken cancellationToken)
     {
         // Extract the user ID from the JWT claims
@@ -61,16 +62,39 @@ public class JobsController : ControllerBase
             return Unauthorized(new { Error = "Invalid user identity." });
         }
 
-        var command = new JobRadar.Application.Features.JobApplications.Commands.ApplyForJob.ApplyForJobCommand(
+        if (request.CvFile == null || request.CvFile.Length == 0)
+        {
+            return BadRequest(new { Error = "CV file is required." });
+        }
+
+        using var cvStream = request.CvFile.OpenReadStream();
+        
+        var answers = request.Answers != null 
+            ? System.Text.Json.JsonSerializer.Deserialize<List<JobRadar.Application.Features.JobApplications.Commands.SubmitJobApplication.AnswerSubmissionDto>>(request.Answers) 
+              ?? new List<JobRadar.Application.Features.JobApplications.Commands.SubmitJobApplication.AnswerSubmissionDto>()
+            : new List<JobRadar.Application.Features.JobApplications.Commands.SubmitJobApplication.AnswerSubmissionDto>();
+
+        var command = new JobRadar.Application.Features.JobApplications.Commands.SubmitJobApplication.SubmitJobApplicationCommand(
             id,
             userId,
-            request.Notes
+            request.ApplicantFullName ?? string.Empty,
+            request.ApplicantEmail ?? string.Empty,
+            request.ApplicantPhone ?? string.Empty,
+            cvStream,
+            request.CvFile.FileName,
+            request.CvFile.ContentType,
+            request.CvFile.Length,
+            answers
         );
 
         try
         {
             var applicationId = await _mediator.Send(command, cancellationToken);
             return Ok(new { ApplicationId = applicationId });
+        }
+        catch (FluentValidation.ValidationException ex)
+        {
+            return BadRequest(new { Error = "Validation failed.", Details = ex.Errors });
         }
         catch (InvalidOperationException ex)
         {
@@ -166,10 +190,17 @@ public class JobsController : ControllerBase
     }
 }
 
-public class ApplyRequest
+public class JobApplicationSubmissionRequest
 {
-    public Guid? UserId { get; set; }
-    public string? Notes { get; set; }
+    public string? ApplicantFullName { get; set; }
+    public string? ApplicantEmail { get; set; }
+    public string? ApplicantPhone { get; set; }
+    public IFormFile CvFile { get; set; } = null!;
+    
+    /// <summary>
+    /// JSON serialized array of answers, e.g. [{"QuestionId":"...", "AnswerText":"..."}]
+    /// </summary>
+    public string? Answers { get; set; }
 }
 
 public class BatchSaveJobsRequest

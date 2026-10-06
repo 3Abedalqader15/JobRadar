@@ -45,6 +45,7 @@ export interface JobSearchResultDto {
   sourceName?: string;
   isVerified?: boolean;
   applicantsClickCount?: number;
+  companyId?: string | null;
 }
 
 export interface JobSearchCriteriaDto {
@@ -67,4 +68,25 @@ export interface PagedResult<T> {
   totalCount: number;
   page: number;
   pageSize: number;
+}
+
+export enum QuestionType {
+  Text = 0,
+  YesNo = 1,
+  MultipleChoice = 2
+}
+
+export interface JobQuestionDto {
+  id?: string;
+  jobId?: string;
+  questionText: string;
+  questionType: QuestionType;
+  options?: string[] | null;
+  isRequired: boolean;
+  displayOrder: number;
+}
+
+export interface AnswerSubmissionDto {
+  questionId: string;
+  answerText: string;
 }

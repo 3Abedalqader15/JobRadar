@@ -5,7 +5,8 @@ namespace JobRadar.Application.Features.JobApplications.Queries.GetAllApplicatio
 public record GetAllApplicationsQuery(
     int Page = 1,
     int PageSize = 20,
-    Guid? JobId = null
+    Guid? JobId = null,
+    string? SortBy = null
 ) : IRequest<GetAllApplicationsResponse>;
 
 public record GetAllApplicationsResponse(
@@ -24,5 +25,14 @@ public record ApplicationSummaryDto(
     string UserEmail,
     string UserFullName,
     string Status,
-    DateTime AppliedAt
+    DateTime AppliedAt,
+    string ApplicantFullName,
+    string ApplicantEmail,
+    string ApplicantPhone,
+    string? CvOriginalFileName,
+    string? CvFilePath,
+    int? AiMatchScore,
+    string AiAnalysisStatus,
+    string[]? AiMissingKeywords,
+    string? AiAnalysisSummary
 );

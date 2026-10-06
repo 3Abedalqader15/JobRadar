@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as signalR from '@microsoft/signalr';
 import { Observable } from 'rxjs';
-import { JobSearchCriteriaDto, JobSearchResultDto, PagedResult } from './job.model';
+import { JobSearchCriteriaDto, JobSearchResultDto, PagedResult, JobQuestionDto } from './job.model';
 import { NotificationService } from '../notifications/notification.service';
 
 @Injectable({
@@ -177,6 +177,14 @@ export class JobFeedService {
 
   public applyToJob(jobId: string, notes?: string): Observable<any> {
     return this.http.post(`/api/jobs/${jobId}/apply`, { notes });
+  }
+
+  public getJobQuestions(jobId: string): Observable<JobQuestionDto[]> {
+    return this.http.get<JobQuestionDto[]>(`/api/jobs/${jobId}/questions`);
+  }
+
+  public submitJobApplication(jobId: string, formData: FormData): Observable<{ applicationId: string }> {
+    return this.http.post<{ applicationId: string }>(`/api/jobs/${jobId}/apply`, formData);
   }
 
   public getJobDetail(jobId: string): Observable<any> {

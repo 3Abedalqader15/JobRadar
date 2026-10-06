@@ -53,6 +53,7 @@ builder.ConfigureServices((ctx, services) =>
     {
         // Register the consumer so MassTransit discovers it automatically
         x.AddConsumer<RawPostProcessingConsumer>();
+        x.AddConsumer<JobRadar.Infrastructure.Consumers.CvAnalysisConsumer>();
 
         x.AddEntityFrameworkOutbox<AppDbContext>(o =>
         {
@@ -72,6 +73,13 @@ builder.ConfigureServices((ctx, services) =>
                 {
                     e.ConcurrentMessageLimit = 4; // don't hammer the LLM
                     e.ConfigureConsumer<RawPostProcessingConsumer>(context);
+                });
+
+                // Dedicated queue for CV analysis
+                cfg.ReceiveEndpoint("cv-analysis-processing", e =>
+                {
+                    e.ConcurrentMessageLimit = 2; // don't hammer the LLM
+                    e.ConfigureConsumer<JobRadar.Infrastructure.Consumers.CvAnalysisConsumer>(context);
                 });
             });
         }

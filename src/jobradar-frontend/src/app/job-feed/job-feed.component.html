@@ -964,4 +964,13 @@
       (closeSwipe)="swipeModeOpen.set(false)"
     />
   }
+
+  <!-- Enhanced Application Modal -->
+  @if (showApplyModal() && applyingJob(); as targetJob) {
+    <app-job-apply-modal
+      [job]="targetJob"
+      (closed)="closeApplyModal()"
+      (applied)="onApplicationSubmitted($event)"
+    />
+  }
 </div>

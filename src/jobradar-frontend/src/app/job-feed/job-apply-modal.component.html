@@ -1,0 +1,258 @@
+<div class="apply-modal-backdrop" (click)="closeModal()">
+  <div class="apply-modal-card" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <header class="apply-modal-header">
+      <div class="header-titles">
+        <div class="badge-row">
+          <span class="company-badge">{{ job.companyName }}</span>
+          <span class="official-pill">✓ Official Posting</span>
+        </div>
+        <h2 class="job-title-heading">Apply for {{ job.title }}</h2>
+        <p class="job-meta-sub">
+          📍 {{ job.location || (job.isRemote ? 'Remote' : 'Location Not Specified') }}
+          @if (job.isRemote) { &bull; 🌐 Remote }
+        </p>
+      </div>
+      <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close modal">✕</button>
+    </header>
+
+    <!-- Modal Body -->
+    <div class="apply-modal-body">
+      @if (submitSuccess()) {
+        <div class="success-screen">
+          <div class="success-icon">🎉</div>
+          <h3>Application Submitted Successfully!</h3>
+          <p>
+            Your CV and screening responses have been sent directly to the hiring team at
+            <strong>{{ job.companyName }}</strong>.
+          </p>
+          <div class="ai-notice-box">
+            <span>🤖</span>
+            <span>Our AI system is currently analyzing your resume match against the role requirements.</span>
+          </div>
+        </div>
+      } @else {
+        @if (submitError()) {
+          <div class="alert-error">
+            <span>⚠️</span>
+            <span>{{ submitError() }}</span>
+          </div>
+        }
+
+        <form (ngSubmit)="submitApplication()" novalidate class="apply-form">
+          <!-- Section 1: Candidate Contact Details -->
+          <section class="form-section">
+            <h3 class="section-title">
+              <span class="section-num">1</span>
+              <span>Candidate Contact Information</span>
+            </h3>
+            <p class="section-desc">Ensure your contact details are accurate so the employer can reach you.</p>
+
+            <div class="contact-grid">
+              <div class="form-group">
+                <label for="apply-fullname">Full Name *</label>
+                <input
+                  id="apply-fullname"
+                  type="text"
+                  class="form-input"
+                  [(ngModel)]="fullName"
+                  name="fullName"
+                  placeholder="e.g. Jane Doe"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="apply-email">Email Address *</label>
+                <input
+                  id="apply-email"
+                  type="email"
+                  class="form-input"
+                  [(ngModel)]="email"
+                  name="email"
+                  placeholder="e.g. jane.doe@example.com"
+                  required
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label for="apply-phone">Phone Number *</label>
+                <input
+                  id="apply-phone"
+                  type="tel"
+                  class="form-input"
+                  [(ngModel)]="phone"
+                  name="phone"
+                  placeholder="e.g. +962 7 9123 4567"
+                  required
+                />
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 2: Resume / CV Upload -->
+          <section class="form-section">
+            <h3 class="section-title">
+              <span class="section-num">2</span>
+              <span>Upload Resume / Curriculum Vitae *</span>
+            </h3>
+            <p class="section-desc">
+              Upload your CV in <strong>PDF (.pdf)</strong> or <strong>Word (.docx)</strong> format (maximum 5 MB).
+            </p>
+
+            @if (fileError) {
+              <div class="alert-error file-alert">
+                <span>⛔</span>
+                <span>{{ fileError }}</span>
+              </div>
+            }
+
+            @if (!selectedFile) {
+              <div
+                class="cv-dropzone"
+                [class.drag-over]="isDragging"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)"
+              >
+                <div class="dropzone-content">
+                  <div class="dropzone-icon">📄</div>
+                  <div class="dropzone-text">
+                    <p class="dropzone-prompt">Drag &amp; drop your resume here, or <label for="cv-file-input" class="browse-link">browse file</label></p>
+                    <p class="dropzone-hint">Accepted: PDF or DOCX &bull; Maximum file size: 5 MB</p>
+                  </div>
+                  <input
+                    id="cv-file-input"
+                    type="file"
+                    class="hidden-file-input"
+                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    (change)="onFileSelected($event)"
+                  />
+                </div>
+              </div>
+            } @else {
+              <div class="selected-file-card">
+                <div class="file-icon">📑</div>
+                <div class="file-details">
+                  <span class="file-name">{{ selectedFile.name }}</span>
+                  <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn-remove-file"
+                  (click)="removeFile()"
+                  title="Remove file"
+                >
+                  ✕ Change
+                </button>
+              </div>
+            }
+          </section>
+
+          <!-- Section 3: Screening Questions (if any) -->
+          @if (questionsLoading()) {
+            <div class="questions-loading">
+              <div class="spinner-sm"></div>
+              <span>Checking for screening questions...</span>
+            </div>
+          } @else if (questions().length > 0) {
+            <section class="form-section">
+              <h3 class="section-title">
+                <span class="section-num">3</span>
+                <span>Employer Screening Questions</span>
+              </h3>
+              <p class="section-desc">Please answer the questions configured by the hiring team for this vacancy.</p>
+
+              <div class="screening-questions-list">
+                @for (q of questions(); track q.id; let idx = $index) {
+                  <div class="question-item">
+                    <label class="question-label" [for]="'q-ans-' + q.id">
+                      <span class="q-index">{{ idx + 1 }}.</span>
+                      <span class="q-text">{{ q.questionText }}</span>
+                      @if (q.isRequired) {
+                        <span class="required-indicator" title="Required">*</span>
+                      }
+                    </label>
+
+                    <!-- Text Question -->
+                    @if (q.questionType === QuestionType.Text) {
+                      <textarea
+                        [id]="'q-ans-' + q.id"
+                        class="form-textarea"
+                        rows="3"
+                        [(ngModel)]="answers[q.id!]"
+                        [name]="'ans_' + q.id"
+                        placeholder="Write your answer..."
+                        [required]="q.isRequired"
+                      ></textarea>
+                    }
+
+                    <!-- Yes / No Question -->
+                    @if (q.questionType === QuestionType.YesNo) {
+                      <div class="radio-options-row">
+                        <label class="radio-label">
+                          <input
+                            type="radio"
+                            [name]="'ans_' + q.id"
+                            value="Yes"
+                            [(ngModel)]="answers[q.id!]"
+                          />
+                          <span>Yes</span>
+                        </label>
+                        <label class="radio-label">
+                          <input
+                            type="radio"
+                            [name]="'ans_' + q.id"
+                            value="No"
+                            [(ngModel)]="answers[q.id!]"
+                          />
+                          <span>No</span>
+                        </label>
+                      </div>
+                    }
+
+                    <!-- Multiple Choice Question -->
+                    @if (q.questionType === QuestionType.MultipleChoice) {
+                      <div class="multiple-choice-options">
+                        @for (opt of q.options; track opt; let optIdx = $index) {
+                          <label class="radio-label">
+                            <input
+                              type="radio"
+                              [name]="'ans_' + q.id"
+                              [value]="opt"
+                              [(ngModel)]="answers[q.id!]"
+                            />
+                            <span>{{ opt }}</span>
+                          </label>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- Footer Actions -->
+          <footer class="apply-modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="submitting()">
+              Cancel
+            </button>
+            <button
+              id="btn-submit-job-application"
+              type="submit"
+              class="btn-submit"
+              [disabled]="submitting() || !selectedFile"
+            >
+              @if (submitting()) {
+                <span class="spinner-sm"></span> Submitting Application...
+              } @else {
+                🚀 Submit Application
+              }
+            </button>
+          </footer>
+        </form>
+      }
+    </div>
+  </div>
+</div>

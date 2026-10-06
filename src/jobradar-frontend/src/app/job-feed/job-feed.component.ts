@@ -33,6 +33,7 @@ import { PaginationComponent } from '../shared/pagination.component';
 import { RadarChartComponent, RadarMetrics } from '../shared/radar-chart.component';
 import { SwipeCardComponent } from './swipe-card.component';
 import { SavedJobsService } from '../shared/saved-jobs.service';
+import { JobApplyModalComponent } from './job-apply-modal.component';
 
 export interface CategoryShortcut {
   id: string;
@@ -70,7 +71,8 @@ const CITY_COORDINATES: Record<string, [number, number]> = {
     RouterModule,
     PaginationComponent,
     RadarChartComponent,
-    SwipeCardComponent
+    SwipeCardComponent,
+    JobApplyModalComponent
   ],
   templateUrl: './job-feed.component.html',
   styleUrls: ['./job-feed.component.css']
@@ -139,6 +141,10 @@ export class JobFeedComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Map Selected Job for Quick Preview on Radar Pulse Map
   mapSelectedJob = signal<JobSearchResultDto | null>(null);
+
+  // Dynamic Apply Modal State
+  applyingJob = signal<JobSearchResultDto | null>(null);
+  showApplyModal = signal<boolean>(false);
 
   // Category Quick-Browse Strip
   selectedCategory = signal<string | null>(null);
@@ -621,35 +627,75 @@ export class JobFeedComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Job Application
   applyForJob(job: JobSearchResultDto): void {
+    // 1. External apply link (aggregated jobs from external portals)
     if (job.externalApplyUrl) {
       window.open(job.externalApplyUrl, '_blank');
-    } else {
-      this.jobService.applyToJob(job.id).subscribe({
-        next: () => {
-          this.notificationService.show({
-            type: 'success',
-            title: 'Application Submitted!',
-            message: `Your application for ${job.title} at ${job.companyName} was received.`
-          });
-        },
-        error: (err) => {
-          if (err.status === 401) {
-            this.notificationService.show({
-              type: 'warning',
-              title: 'Login Required',
-              message: 'Please sign in or register to submit job applications.'
-            });
-            this.router.navigate(['/login']);
-          } else {
-            this.notificationService.show({
-              type: 'warning',
-              title: 'Application Error',
-              message: err.error?.error || 'Failed to submit application.'
-            });
-          }
-        }
-      });
+      return;
     }
+
+    // 2. Authentication check
+    if (!this.authService.isLoggedIn()) {
+      this.notificationService.show({
+        type: 'warning',
+        title: 'Login Required',
+        message: 'Please sign in or register to submit job applications.'
+      });
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    // 3. Officially posted jobs (or direct jobs) -> open enhanced modal
+    if (job.companyId || job.isVerified) {
+      this.applyingJob.set(job);
+      this.showApplyModal.set(true);
+      return;
+    }
+
+    // 4. Fallback for internal quick apply
+    this.jobService.applyToJob(job.id).subscribe({
+      next: () => {
+        if (job.applicantsClickCount !== undefined) {
+          job.applicantsClickCount = (job.applicantsClickCount || 0) + 1;
+        }
+        this.notificationService.show({
+          type: 'success',
+          title: 'Application Submitted!',
+          message: `Your application for ${job.title} at ${job.companyName} was received.`
+        });
+      },
+      error: (err) => {
+        if (err.status === 401) {
+          this.notificationService.show({
+            type: 'warning',
+            title: 'Login Required',
+            message: 'Please sign in or register to submit job applications.'
+          });
+          this.router.navigate(['/login']);
+        } else {
+          this.notificationService.show({
+            type: 'warning',
+            title: 'Application Error',
+            message: err.error?.error || 'Failed to submit application.'
+          });
+        }
+      }
+    });
+  }
+
+  closeApplyModal(): void {
+    this.showApplyModal.set(false);
+    this.applyingJob.set(null);
+  }
+
+  onApplicationSubmitted(event: { applicationId: string; job: JobSearchResultDto }): void {
+    if (event.job.applicantsClickCount !== undefined) {
+      event.job.applicantsClickCount = (event.job.applicantsClickCount || 0) + 1;
+    }
+    this.notificationService.show({
+      type: 'success',
+      title: 'Application Submitted!',
+      message: `Your application for ${event.job.title} at ${event.job.companyName} was received.`
+    });
   }
 
   // Label and Formatting Helpers

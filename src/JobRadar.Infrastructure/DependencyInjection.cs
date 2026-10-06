@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<ISourceRepository, SourceRepository>();
         services.AddScoped<IRawPostRepository, RawPostRepository>();
         services.AddScoped<IUserJobApplicationRepository, UserJobApplicationRepository>();
+        services.AddScoped<IJobApplicationQuestionRepository, JobApplicationQuestionRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         // ── Unit of Work ──────────────────────────────────────────────────────
@@ -44,6 +45,11 @@ public static class DependencyInjection
         services.AddScoped<ISourceFetcher, JobRadar.Infrastructure.Fetchers.CompanyCareersPageFetcher>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         
+        // ── Storage Services (Cloudflare R2 via S3 SDK) ───────────────────────
+        services.Configure<JobRadar.Infrastructure.Services.Storage.R2StorageSettings>(
+            configuration.GetSection(JobRadar.Infrastructure.Services.Storage.R2StorageSettings.SectionName));
+        services.AddScoped<IFileStorageService, JobRadar.Infrastructure.Services.Storage.R2FileStorageService>();
+
         // ── Caching ──────────────────────────────────────────────────────────
         services.AddDistributedMemoryCache();
 
@@ -56,6 +62,8 @@ public static class DependencyInjection
 
         services.AddScoped<ILlmExtractionService, GeminiExtractionService>();
         services.AddScoped<IEmbeddingService, GeminiEmbeddingService>();
+        services.AddScoped<IDocumentTextExtractionService, DocumentTextExtractionService>();
+        services.AddScoped<ICvMatchAnalysisService, GeminiCvMatchAnalysisService>();
 
         // ── Web Crawlers & Automated Periodic Ingestion ───────────────────────
         services.AddHttpClient("JobCrawler", client =>

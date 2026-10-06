@@ -25,6 +25,9 @@ public static class DependencyInjection
         // FluentValidation — scans this assembly for all AbstractValidator<T> implementations
         services.AddValidatorsFromAssembly(assembly);
 
+        // CV Upload Validator
+        services.AddScoped<Common.Validators.ICvUploadValidator, Common.Validators.CvUploadValidator>();
+
         return services;
     }
 }

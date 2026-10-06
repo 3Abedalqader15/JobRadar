@@ -41,8 +41,21 @@ public class GetAllApplicationsQueryHandler : IRequestHandler<GetAllApplications
 
         var totalCount = await query.CountAsync(cancellationToken);
 
+        // Sorting by request.SortBy
+        query = request.SortBy?.ToLowerInvariant() switch
+        {
+            "score_desc" => query.OrderByDescending(a => a.AiMatchScore.HasValue)
+                                 .ThenByDescending(a => a.AiMatchScore)
+                                 .ThenByDescending(a => a.AppliedAt),
+            "score_asc" => query.OrderByDescending(a => a.AiMatchScore.HasValue)
+                                .ThenBy(a => a.AiMatchScore)
+                                .ThenByDescending(a => a.AppliedAt),
+            "date_asc" => query.OrderBy(a => a.AppliedAt),
+            "status" => query.OrderBy(a => a.Status).ThenByDescending(a => a.AppliedAt),
+            _ => query.OrderByDescending(a => a.AppliedAt) // default: date_desc
+        };
+
         var items = await query
-            .OrderByDescending(a => a.AppliedAt)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(a => new ApplicationSummaryDto(
@@ -54,7 +67,16 @@ public class GetAllApplicationsQueryHandler : IRequestHandler<GetAllApplications
                 a.User!.Email!,
                 a.User!.FullName,
                 a.Status.ToString(),
-                a.AppliedAt
+                a.AppliedAt,
+                string.IsNullOrEmpty(a.ApplicantFullName) ? a.User!.FullName : a.ApplicantFullName,
+                string.IsNullOrEmpty(a.ApplicantEmail) ? a.User!.Email! : a.ApplicantEmail,
+                a.ApplicantPhone,
+                a.CvOriginalFileName,
+                a.CvFilePath,
+                a.AiMatchScore,
+                a.AiAnalysisStatus.ToString(),
+                a.AiMissingKeywords,
+                a.AiAnalysisSummary
             ))
             .ToListAsync(cancellationToken);
 
