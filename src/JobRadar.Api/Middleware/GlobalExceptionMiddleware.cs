@@ -74,6 +74,21 @@ public sealed class GlobalExceptionMiddleware
 
             await WriteProblemAsync(context, problem, StatusCodes.Status404NotFound);
         }
+        catch (ForbiddenException ex)
+        {
+            _logger.LogWarning(ex, "Forbidden access for request {Method} {Path}",
+                context.Request.Method, context.Request.Path);
+
+            var problem = new ProblemDetails
+            {
+                Status = StatusCodes.Status403Forbidden,
+                Title = "Forbidden.",
+                Detail = ex.Message,
+                Instance = context.Request.Path
+            };
+
+            await WriteProblemAsync(context, problem, StatusCodes.Status403Forbidden);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception for request {Method} {Path}",

@@ -10,6 +10,8 @@ export interface AuthResponse {
   email: string;
   fullName: string;
   roles: string[];
+  companyId?: string | null;
+  companyName?: string | null;
 }
 
 export interface CurrentUser {
@@ -17,6 +19,8 @@ export interface CurrentUser {
   email: string;
   fullName: string;
   roles: string[];
+  companyId?: string | null;
+  companyName?: string | null;
 }
 
 @Injectable({
@@ -35,6 +39,8 @@ export class AuthService {
     this.currentUserSignal()?.roles?.includes('HR') ?? false
   );
   public isAdminOrHR = computed(() => this.isAdmin() || this.isHR());
+  public companyId = computed(() => this.currentUserSignal()?.companyId ?? null);
+  public companyName = computed(() => this.currentUserSignal()?.companyName ?? null);
 
   private restoreSession$?: Observable<AuthResponse | null>;
 
@@ -98,7 +104,9 @@ export class AuthService {
       userId: res.userId,
       email: res.email,
       fullName: res.fullName,
-      roles: res.roles ?? []
+      roles: res.roles ?? [],
+      companyId: res.companyId ?? null,
+      companyName: res.companyName ?? null
     });
   }
 

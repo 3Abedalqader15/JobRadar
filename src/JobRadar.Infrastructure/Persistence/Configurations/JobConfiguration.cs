@@ -100,6 +100,9 @@ public sealed class JobConfiguration : IEntityTypeConfiguration<Job>
             .HasColumnType("vector(1536)");
         // ────────────────────────────────────────────────────────────────────────
 
+        builder.Property(j => j.CompanyId)
+            .HasColumnName("company_id");
+
         builder.Property(j => j.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();
@@ -114,6 +117,12 @@ public sealed class JobConfiguration : IEntityTypeConfiguration<Job>
             .HasForeignKey(j => j.SourceId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // FK: Job → Company
+        builder.HasOne(j => j.Company)
+            .WithMany(c => c.Jobs)
+            .HasForeignKey(j => j.CompanyId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // FK: Job → RawPost (optional 1-to-1 from Job side)
         builder.HasOne(j => j.RawPost)
             .WithOne(r => r.Job)
@@ -124,6 +133,9 @@ public sealed class JobConfiguration : IEntityTypeConfiguration<Job>
         builder.HasIndex(j => j.SourceId)
             .HasDatabaseName("ix_jobs_source_id");
 
+        builder.HasIndex(j => j.CompanyId)
+            .HasDatabaseName("ix_jobs_company_id");
+
         builder.HasIndex(j => j.PostedAt)
             .HasDatabaseName("ix_jobs_posted_at");
 
@@ -133,6 +145,7 @@ public sealed class JobConfiguration : IEntityTypeConfiguration<Job>
         builder.HasIndex(j => j.EmploymentType)
             .HasDatabaseName("ix_jobs_employment_type");
 
+        builder.Navigation(j => j.Company).AutoInclude(false);
         builder.Navigation(j => j.JobSkills).AutoInclude(false);
         builder.Navigation(j => j.SavedByUsers).AutoInclude(false);
         builder.Navigation(j => j.Applications).AutoInclude(false);

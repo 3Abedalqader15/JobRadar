@@ -66,6 +66,9 @@ public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Appl
             .HasColumnName("telegram_chat_id")
             .HasMaxLength(50);
 
+        builder.Property(u => u.CompanyId)
+            .HasColumnName("company_id");
+
         builder.Property(u => u.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();
@@ -83,7 +86,16 @@ public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Appl
             .HasFilter("telegram_chat_id IS NOT NULL")
             .HasDatabaseName("ix_users_telegram_chat_id");
 
+        builder.HasIndex(u => u.CompanyId)
+            .HasDatabaseName("ix_users_company_id");
+
+        builder.HasOne(u => u.Company)
+            .WithMany(c => c.Users)
+            .HasForeignKey(u => u.CompanyId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Navigations
+        builder.Navigation(u => u.Company).AutoInclude(false);
         builder.Navigation(u => u.AddedSources).AutoInclude(false);
         builder.Navigation(u => u.Cvs).AutoInclude(false);
         builder.Navigation(u => u.Notifications).AutoInclude(false);

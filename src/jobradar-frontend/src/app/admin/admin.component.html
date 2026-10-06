@@ -4,7 +4,7 @@
     <div class="sidebar-logo">
       <span class="logo-icon">⚡</span>
       <span class="logo-text">JobRadar</span>
-      <span class="admin-badge">Admin</span>
+      <span class="admin-badge">{{ authService.isHR() ? 'HR' : 'Admin' }}</span>
     </div>
 
     <nav class="sidebar-nav">
@@ -39,14 +39,27 @@
         <span>Applications</span>
         <span class="nav-count">{{ appsTotal() }}</span>
       </button>
+
+      @if (authService.isAdmin()) {
+        <button
+          id="tab-companies"
+          class="nav-item"
+          [class.active]="activeTab() === 'companies'"
+          (click)="setTab('companies')"
+        >
+          <span class="nav-icon">🏢</span>
+          <span>Companies</span>
+          <span class="nav-count">{{ companiesTotal() }}</span>
+        </button>
+      }
     </nav>
 
     <div class="sidebar-footer">
       <div class="user-info">
-        <div class="user-avatar">{{ authService.currentUserSignal()?.fullName?.charAt(0)?.toUpperCase() || 'A' }}</div>
+        <div class="user-avatar">{{ authService.currentUserSignal()?.fullName?.charAt(0)?.toUpperCase() || 'U' }}</div>
         <div class="user-details">
-          <span class="user-name">{{ authService.currentUserSignal()?.fullName || 'Admin' }}</span>
-          <span class="user-role">{{ authService.currentUserSignal()?.roles?.[0] || 'Admin' }}</span>
+          <span class="user-name">{{ authService.currentUserSignal()?.fullName || 'User' }}</span>
+          <span class="user-role">{{ authService.isHR() ? 'HR Staff' : (authService.currentUserSignal()?.roles?.[0] || 'Admin') }}</span>
         </div>
       </div>
       <button id="btn-logout" class="btn-logout" (click)="logout()" title="Logout">
@@ -57,22 +70,52 @@
 
   <!-- Main Content -->
   <main class="admin-main">
+    <!-- Top Alert Banner if HR has no assigned company -->
+    @if (authService.isHR() && !authService.companyId()) {
+      <div class="unassigned-hr-banner">
+        <span class="banner-icon">⚠️</span>
+        <div class="banner-text">
+          <strong>Account Unassigned:</strong> Your HR account is not currently assigned to a company. Please contact an administrator to link your account before publishing jobs.
+        </div>
+      </div>
+    }
+
     <!-- Header -->
     <header class="admin-header">
       <div class="header-left">
+        @if (authService.isHR()) {
+          <div class="company-badge-pill">
+            <span class="pill-dot">●</span>
+            <span class="pill-company">{{ authService.companyName() || 'No Company Assigned' }}</span>
+            <span class="pill-separator">·</span>
+            <span class="pill-role">HR Portal</span>
+          </div>
+        }
+
         @if (activeTab() === 'jobs') {
-          <h1>Job Postings</h1>
-          <p class="header-sub">Manage all job listings on the platform</p>
+          <h1>{{ authService.isHR() ? 'Company Job Postings' : 'All Job Postings' }}</h1>
+          <p class="header-sub">
+            {{ authService.isHR() ? 'Manage listings published strictly for ' + (authService.companyName() || 'your company') : 'Manage all platform job listings' }}
+          </p>
         }
         @if (activeTab() === 'create') {
           <h1>Create Job Posting</h1>
-          <p class="header-sub">Add a new job opportunity to the platform</p>
+          <p class="header-sub">
+            {{ authService.isHR() ? 'Publish an official vacancy for ' + (authService.companyName() || 'your company') : 'Add a new job opportunity to the platform' }}
+          </p>
         }
         @if (activeTab() === 'applications') {
-          <h1>Applications</h1>
-          <p class="header-sub">Review all submitted job applications</p>
+          <h1>{{ authService.isHR() ? 'Candidate Applications' : 'All Applications' }}</h1>
+          <p class="header-sub">
+            {{ authService.isHR() ? 'Review candidate submissions for ' + (authService.companyName() || 'your company') : 'Review all submitted job applications across the platform' }}
+          </p>
+        }
+        @if (activeTab() === 'companies') {
+          <h1>Companies Directory</h1>
+          <p class="header-sub">Manage verified companies and assign Human Resources (HR) representatives</p>
         }
       </div>
+
       <div class="header-right">
         <!-- Theme Toggle -->
         <button
@@ -92,9 +135,16 @@
         <a href="/" class="btn-view-site">
           <span>🌐</span> View Site
         </a>
+
         @if (activeTab() === 'jobs') {
           <button id="btn-new-job" class="btn-primary" (click)="setTab('create')">
             <span>+</span> New Posting
+          </button>
+        }
+
+        @if (activeTab() === 'companies') {
+          <button id="btn-new-company" class="btn-primary" (click)="openCreateCompanyModal()">
+            <span>+</span> New Company
           </button>
         }
       </div>
@@ -112,7 +162,7 @@
           <div class="empty-state">
             <span class="empty-icon">📭</span>
             <h3>No Job Postings Yet</h3>
-            <p>Start by creating your first job posting.</p>
+            <p>{{ authService.isHR() ? 'Your company has not published any jobs yet.' : 'Start by creating your first job posting.' }}</p>
             <button class="btn-primary" (click)="setTab('create')">Create First Posting</button>
           </div>
         } @else {
@@ -152,7 +202,9 @@
                         <span class="job-title">{{ job.title }}</span>
                       </div>
                     </td>
-                    <td><span class="company-name">{{ job.companyName }}</span></td>
+                    <td>
+                      <span class="company-name">{{ job.companyName }}</span>
+                    </td>
                     <td>
                       <span class="location-badge">
                         @if (job.isRemote) { 🌍 Remote }
@@ -201,6 +253,12 @@
     <!-- Create Job Tab -->
     @if (activeTab() === 'create') {
       <section class="tab-content">
+        @if (authService.isHR() && !authService.companyId()) {
+          <div class="alert-error">
+            <span>❌</span> <strong>Write Access Blocked:</strong> You cannot publish job postings because your HR account has no assigned company.
+          </div>
+        }
+
         @if (createSuccess()) {
           <div class="alert-success">
             <span>✅</span> Job posting created successfully!
@@ -232,7 +290,12 @@
 
             <!-- Company -->
             <div class="form-group">
-              <label for="field-company">Company Name *</label>
+              <label for="field-company">
+                Company Name *
+                @if (authService.isHR()) {
+                  <span class="field-hint">(Locked to your company)</span>
+                }
+              </label>
               <input
                 id="field-company"
                 type="text"
@@ -367,7 +430,7 @@
               id="btn-submit-create"
               type="submit"
               class="btn-primary"
-              [disabled]="createLoading()"
+              [disabled]="createLoading() || (authService.isHR() && !authService.companyId())"
             >
               @if (createLoading()) {
                 <span class="btn-spinner"></span> Creating...
@@ -392,7 +455,7 @@
           <div class="empty-state">
             <span class="empty-icon">📭</span>
             <h3>No Applications Yet</h3>
-            <p>Applications will appear here once users start applying.</p>
+            <p>Applications will appear here once candidates submit their CVs.</p>
           </div>
         } @else {
           <div class="stats-row">
@@ -451,5 +514,210 @@
         }
       </section>
     }
+
+    <!-- Companies Tab (Admin Only) -->
+    @if (activeTab() === 'companies' && authService.isAdmin()) {
+      <section class="tab-content">
+        @if (companiesLoading()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading companies directory...</p>
+          </div>
+        } @else if (companies().length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">🏢</span>
+            <h3>No Companies Registered</h3>
+            <p>Add companies to organize job postings and assign HR representatives.</p>
+            <button class="btn-primary" (click)="openCreateCompanyModal()">Create Company</button>
+          </div>
+        } @else {
+          <div class="stats-row">
+            <div class="stat-card">
+              <span class="stat-num">{{ companiesTotal() }}</span>
+              <span class="stat-label">Registered Companies</span>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Slug</th>
+                  <th>Active Jobs</th>
+                  <th>HR Staff</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (company of companies(); track company.id) {
+                  <tr class="table-row">
+                    <td>
+                      <div class="company-cell">
+                        @if (company.logoUrl) {
+                          <img [src]="company.logoUrl" alt="logo" class="company-logo-img" />
+                        } @else {
+                          <div class="company-logo-fallback">{{ company.name.charAt(0).toUpperCase() }}</div>
+                        }
+                        <span class="company-name-bold">{{ company.name }}</span>
+                      </div>
+                    </td>
+                    <td><span class="slug-tag">{{ company.slug }}</span></td>
+                    <td><span class="counter-badge">{{ company.activeJobsCount }} jobs</span></td>
+                    <td><span class="counter-badge counter-hr">{{ company.hrUsersCount }} staff</span></td>
+                    <td><span class="date-text">{{ company.createdAt | date:'MMM d, y' }}</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        <button
+                          class="btn-action btn-assign"
+                          (click)="openAssignHrModal(company)"
+                          title="Assign HR Staff"
+                        >👤 Assign HR</button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination for Companies Table -->
+          <app-pagination
+            [currentPage]="companiesPage()"
+            [pageSize]="companiesPageSize()"
+            [totalCount]="companiesTotal()"
+            [pageSizeOptions]="[5, 10, 20, 50]"
+            itemLabel="companies"
+            (pageChange)="onCompaniesPageChange($event)"
+            (pageSizeChange)="onCompaniesPageSizeChange($event)"
+          />
+        }
+      </section>
+    }
   </main>
 </div>
+
+<!-- Modal: Create Company -->
+@if (showCreateCompanyModal()) {
+  <div class="modal-backdrop" (click)="closeCreateCompanyModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🏢 Create New Company</h3>
+        <button class="modal-close" (click)="closeCreateCompanyModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        @if (createCompanySuccess()) {
+          <div class="alert-success">✅ Company created successfully!</div>
+        }
+        @if (createCompanyError()) {
+          <div class="alert-error">❌ {{ createCompanyError() }}</div>
+        }
+
+        <form [formGroup]="createCompanyForm" (ngSubmit)="submitCreateCompany()">
+          <div class="form-group">
+            <label for="comp-name">Company Name *</label>
+            <input
+              id="comp-name"
+              type="text"
+              class="form-input"
+              formControlName="name"
+              placeholder="e.g. Saudi Aramco"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="comp-slug">Slug (URL friendly) *</label>
+            <input
+              id="comp-slug"
+              type="text"
+              class="form-input"
+              formControlName="slug"
+              placeholder="e.g. saudi-aramco"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="comp-logo">Logo URL (optional)</label>
+            <input
+              id="comp-logo"
+              type="url"
+              class="form-input"
+              formControlName="logoUrl"
+              placeholder="https://example.com/logo.png"
+            />
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="closeCreateCompanyModal()">Cancel</button>
+            <button
+              type="submit"
+              class="btn-primary"
+              [disabled]="createCompanyLoading() || createCompanyForm.invalid"
+            >
+              @if (createCompanyLoading()) {
+                <span class="btn-spinner"></span> Creating...
+              } @else {
+                Save Company
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal: Assign HR User -->
+@if (showAssignHrModal()) {
+  <div class="modal-backdrop" (click)="closeAssignHrModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>👤 Assign HR Representative</h3>
+        <button class="modal-close" (click)="closeAssignHrModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-instruction">
+          Assigning a user to <strong>{{ selectedCompanyForHr()?.name }}</strong> grants them the <code>HR</code> role and scopes all their job postings and applicant views strictly to this company.
+        </p>
+
+        @if (assignHrSuccess()) {
+          <div class="alert-success">✅ HR representative successfully assigned!</div>
+        }
+        @if (assignHrError()) {
+          <div class="alert-error">❌ {{ assignHrError() }}</div>
+        }
+
+        <form [formGroup]="assignHrForm" (ngSubmit)="submitAssignHr()">
+          <div class="form-group">
+            <label for="hr-user-id">User ID (Guid) *</label>
+            <input
+              id="hr-user-id"
+              type="text"
+              class="form-input"
+              formControlName="userId"
+              placeholder="e.g. 11111111-2222-3333-4444-555555555555"
+            />
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" (click)="closeAssignHrModal()">Cancel</button>
+            <button
+              type="submit"
+              class="btn-primary"
+              [disabled]="assignHrLoading() || assignHrForm.invalid"
+            >
+              @if (assignHrLoading()) {
+                <span class="btn-spinner"></span> Assigning...
+              } @else {
+                Confirm Assignment
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

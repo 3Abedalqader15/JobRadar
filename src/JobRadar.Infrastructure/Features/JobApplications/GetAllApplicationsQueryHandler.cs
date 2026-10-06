@@ -8,18 +8,33 @@ namespace JobRadar.Infrastructure.Features.JobApplications;
 public class GetAllApplicationsQueryHandler : IRequestHandler<GetAllApplicationsQuery, GetAllApplicationsResponse>
 {
     private readonly AppDbContext _db;
+    private readonly JobRadar.Application.Abstractions.ICurrentUserService _currentUserService;
 
-    public GetAllApplicationsQueryHandler(AppDbContext db)
+    public GetAllApplicationsQueryHandler(
+        AppDbContext db,
+        JobRadar.Application.Abstractions.ICurrentUserService currentUserService)
     {
         _db = db;
+        _currentUserService = currentUserService;
     }
 
     public async Task<GetAllApplicationsResponse> Handle(GetAllApplicationsQuery request, CancellationToken cancellationToken)
     {
+        if (_currentUserService.IsHr && !_currentUserService.CompanyId.HasValue)
+        {
+            return new GetAllApplicationsResponse(new List<ApplicationSummaryDto>(), 0, request.Page, request.PageSize);
+        }
+
         var query = _db.UserJobApplications
             .Include(a => a.Job)
             .Include(a => a.User)
             .AsQueryable();
+
+        if (_currentUserService.IsHr)
+        {
+            var companyId = _currentUserService.CompanyId!.Value;
+            query = query.Where(a => a.Job != null && a.Job.CompanyId == companyId);
+        }
 
         if (request.JobId.HasValue)
             query = query.Where(a => a.JobId == request.JobId.Value);

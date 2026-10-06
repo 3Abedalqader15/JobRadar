@@ -6,7 +6,8 @@ namespace JobRadar.Application.Features.JobPostings.Queries.GetJobPostings;
 public sealed record GetJobPostingsQuery(
     int Page = 1,
     int PageSize = 20,
-    string? SearchTerm = null) : IRequest<GetJobPostingsResponse>;
+    string? SearchTerm = null,
+    Guid? CompanyId = null) : IRequest<GetJobPostingsResponse>;
 
 public sealed record JobDto(
     Guid Id,
@@ -21,7 +22,8 @@ public sealed record JobDto(
     EmploymentType EmploymentType,
     ExperienceLevel ExperienceLevel,
     DateTime PostedAt,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    Guid? CompanyId);
 
 public sealed record GetJobPostingsResponse(
     IReadOnlyList<JobDto> Items,

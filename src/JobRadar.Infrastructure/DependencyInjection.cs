@@ -27,6 +27,7 @@ public static class DependencyInjection
             ));
 
         // ── Repositories ──────────────────────────────────────────────────────
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<IJobRepository, JobRepository>();
         services.AddScoped<ISourceRepository, SourceRepository>();
         services.AddScoped<IRawPostRepository, RawPostRepository>();

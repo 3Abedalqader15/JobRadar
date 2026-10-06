@@ -1,6 +1,7 @@
 using JobRadar.Api.Hubs;
 using JobRadar.Application.Features.JobPostings.Commands.CreateJobPosting;
 using JobRadar.Application.Features.JobPostings.Commands.DeleteJobPosting;
+using JobRadar.Application.Features.JobPostings.Commands.UpdateJobPosting;
 using JobRadar.Application.Features.JobPostings.Queries.GetJobPostingById;
 using JobRadar.Application.Features.JobPostings.Queries.GetJobPostings;
 using MediatR;
@@ -108,10 +109,45 @@ public sealed class JobPostingsController : ControllerBase
     }
 
     /// <summary>
-    /// Deletes a job posting by its ID. Requires Admin role only.
+    /// Updates an existing job posting. Requires Admin or HR role.
+    /// HR users may only update jobs belonging to their own company.
+    /// </summary>
+    [HttpPut("{id:guid}", Name = "UpdateJobPosting")]
+    [Authorize(Roles = "Admin,HR")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] UpdateJobPostingRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new UpdateJobPostingCommand(
+            id,
+            request.Title,
+            request.Location,
+            request.IsRemote,
+            request.ExternalApplyUrl,
+            request.SalaryMin,
+            request.SalaryMax,
+            request.SalaryCurrency,
+            request.EmploymentType,
+            request.ExperienceLevel,
+            request.Description,
+            request.IsActive,
+            request.CompanyId);
+
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Deletes a job posting by its ID. Requires Admin or HR role.
+    /// HR users may only delete jobs belonging to their own company.
     /// </summary>
     [HttpDelete("{id:guid}", Name = "DeleteJobPosting")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,HR")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -123,4 +159,20 @@ public sealed class JobPostingsController : ControllerBase
         await _mediator.Send(new DeleteJobPostingCommand(id), cancellationToken);
         return NoContent();
     }
+}
+
+public sealed class UpdateJobPostingRequest
+{
+    public string Title { get; set; } = string.Empty;
+    public string? Location { get; set; }
+    public bool IsRemote { get; set; }
+    public string? ExternalApplyUrl { get; set; }
+    public decimal? SalaryMin { get; set; }
+    public decimal? SalaryMax { get; set; }
+    public string? SalaryCurrency { get; set; }
+    public JobRadar.Domain.Enums.EmploymentType EmploymentType { get; set; }
+    public JobRadar.Domain.Enums.ExperienceLevel ExperienceLevel { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public bool IsActive { get; set; } = true;
+    public Guid? CompanyId { get; set; }
 }

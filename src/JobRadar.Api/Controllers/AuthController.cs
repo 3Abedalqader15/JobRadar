@@ -1,3 +1,4 @@
+using JobRadar.Application.Abstractions;
 using JobRadar.Application.Features.Auth.Commands.Login;
 using JobRadar.Application.Features.Auth.Commands.Logout;
 using JobRadar.Application.Features.Auth.Commands.RefreshToken;
@@ -16,11 +17,16 @@ public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ICompanyRepository _companyRepository;
 
-    public AuthController(IMediator mediator, UserManager<ApplicationUser> userManager)
+    public AuthController(
+        IMediator mediator,
+        UserManager<ApplicationUser> userManager,
+        ICompanyRepository companyRepository)
     {
         _mediator = mediator;
         _userManager = userManager;
+        _companyRepository = companyRepository;
     }
 
     [HttpPost("register")]
@@ -50,9 +56,15 @@ public class AuthController : ControllerBase
 
         SetTokenCookie(result.RefreshToken);
 
-        // Fetch user info to return roles and full name
+        // Fetch user info to return roles, full name, and company details
         var user = await _userManager.FindByEmailAsync(request.Email);
         var roles = user != null ? await _userManager.GetRolesAsync(user) : Array.Empty<string>();
+        string? companyName = null;
+        if (user?.CompanyId != null)
+        {
+            var company = await _companyRepository.GetByIdAsync(user.CompanyId.Value);
+            companyName = company?.Name;
+        }
 
         return Ok(new
         {
@@ -61,7 +73,9 @@ public class AuthController : ControllerBase
             UserId = user?.Id.ToString(),
             Email = user?.Email,
             FullName = user?.FullName,
-            Roles = roles
+            Roles = roles,
+            CompanyId = user?.CompanyId,
+            CompanyName = companyName
         });
     }
 
@@ -86,6 +100,19 @@ public class AuthController : ControllerBase
 
         SetTokenCookie(result.RefreshToken);
 
+        Guid? companyId = null;
+        string? companyName = null;
+        if (Guid.TryParse(result.UserId, out var parsedUserId))
+        {
+            var user = await _userManager.FindByIdAsync(parsedUserId.ToString());
+            if (user?.CompanyId != null)
+            {
+                companyId = user.CompanyId;
+                var company = await _companyRepository.GetByIdAsync(user.CompanyId.Value);
+                companyName = company?.Name;
+            }
+        }
+
         return Ok(new
         {
             AccessToken = result.AccessToken,
@@ -93,7 +120,9 @@ public class AuthController : ControllerBase
             UserId = result.UserId,
             Email = result.Email,
             FullName = result.FullName,
-            Roles = result.Roles ?? Array.Empty<string>()
+            Roles = result.Roles ?? Array.Empty<string>(),
+            CompanyId = companyId,
+            CompanyName = companyName
         });
     }
 

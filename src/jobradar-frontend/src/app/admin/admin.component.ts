@@ -2,13 +2,19 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { AdminService, JobPostingItem, ApplicationItem, CreateJobPostingDto } from './admin.service';
+import {
+  AdminService,
+  JobPostingItem,
+  ApplicationItem,
+  CreateJobPostingDto,
+  CompanyDto
+} from './admin.service';
 import { AuthService } from '../auth/auth.service';
 import { ThemeService } from '../theme.service';
 import { PaginationComponent } from '../shared/pagination.component';
 import { Router } from '@angular/router';
 
-type Tab = 'jobs' | 'applications' | 'create';
+type Tab = 'jobs' | 'applications' | 'create' | 'companies';
 
 @Component({
   selector: 'app-admin',
@@ -35,13 +41,35 @@ export class AdminComponent implements OnInit {
   appsPage = signal(1);
   appsPageSize = signal(10);
 
-  // Create form
+  // Companies state & pagination (Admin only)
+  companies = signal<CompanyDto[]>([]);
+  companiesTotal = signal(0);
+  companiesLoading = signal(false);
+  companiesPage = signal(1);
+  companiesPageSize = signal(10);
+
+  // Create Job form
   createForm: FormGroup;
   createLoading = signal(false);
   createSuccess = signal(false);
   createError = signal<string | null>(null);
 
-  // Hard-coded source id — in a real app you'd fetch from /api/sources
+  // Create Company form & modal
+  createCompanyForm: FormGroup;
+  showCreateCompanyModal = signal(false);
+  createCompanyLoading = signal(false);
+  createCompanySuccess = signal(false);
+  createCompanyError = signal<string | null>(null);
+
+  // Assign HR form & modal
+  assignHrForm: FormGroup;
+  showAssignHrModal = signal(false);
+  selectedCompanyForHr = signal<CompanyDto | null>(null);
+  assignHrLoading = signal(false);
+  assignHrSuccess = signal(false);
+  assignHrError = signal<string | null>(null);
+
+  // Hard-coded source id fallback for manually posted jobs
   defaultSourceId = '00000000-0000-0000-0000-000000000001';
 
   employmentTypes = [
@@ -79,15 +107,55 @@ export class AdminComponent implements OnInit {
       employmentType: [0, Validators.required],
       experienceLevel: [1, Validators.required],
     });
+
+    this.createCompanyForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)]],
+      logoUrl: ['']
+    });
+
+    this.assignHrForm = this.fb.group({
+      userId: ['', [Validators.required]]
+    });
+
+    // Auto-slugify company name if slug is untouched
+    this.createCompanyForm.get('name')?.valueChanges.subscribe(name => {
+      const slugControl = this.createCompanyForm.get('slug');
+      if (slugControl && (slugControl.pristine || !slugControl.value)) {
+        const slug = (name || '')
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-');
+        slugControl.setValue(slug, { emitEvent: false });
+      }
+    });
   }
 
   ngOnInit(): void {
+    this.initCompanyScoping();
     this.loadJobs();
     this.loadApplications();
+    if (this.authService.isAdmin()) {
+      this.loadCompanies();
+    }
+  }
+
+  private initCompanyScoping(): void {
+    if (this.authService.isHR()) {
+      const compName = this.authService.companyName();
+      if (compName) {
+        this.createForm.get('companyName')?.setValue(compName);
+        this.createForm.get('companyName')?.disable();
+      }
+    }
   }
 
   setTab(tab: Tab) {
     this.activeTab.set(tab);
+    if (tab === 'companies' && this.companies().length === 0) {
+      this.loadCompanies();
+    }
   }
 
   loadJobs() {
@@ -136,6 +204,116 @@ export class AdminComponent implements OnInit {
     this.loadApplications();
   }
 
+  loadCompanies() {
+    this.companiesLoading.set(true);
+    this.adminService.getCompanies(this.companiesPage(), this.companiesPageSize()).subscribe({
+      next: res => {
+        this.companies.set(res.items);
+        this.companiesTotal.set(res.totalCount);
+        this.companiesLoading.set(false);
+      },
+      error: () => this.companiesLoading.set(false)
+    });
+  }
+
+  onCompaniesPageChange(page: number) {
+    this.companiesPage.set(page);
+    this.loadCompanies();
+  }
+
+  onCompaniesPageSizeChange(size: number) {
+    this.companiesPageSize.set(size);
+    this.companiesPage.set(1);
+    this.loadCompanies();
+  }
+
+  openCreateCompanyModal() {
+    this.createCompanyForm.reset();
+    this.createCompanyError.set(null);
+    this.createCompanySuccess.set(false);
+    this.showCreateCompanyModal.set(true);
+  }
+
+  closeCreateCompanyModal() {
+    this.showCreateCompanyModal.set(false);
+  }
+
+  submitCreateCompany() {
+    if (this.createCompanyForm.invalid) {
+      this.createCompanyForm.markAllAsTouched();
+      return;
+    }
+
+    this.createCompanyLoading.set(true);
+    this.createCompanyError.set(null);
+    this.createCompanySuccess.set(false);
+
+    const val = this.createCompanyForm.value;
+    this.adminService.createCompany({
+      name: val.name,
+      slug: val.slug,
+      logoUrl: val.logoUrl || null
+    }).subscribe({
+      next: () => {
+        this.createCompanyLoading.set(false);
+        this.createCompanySuccess.set(true);
+        this.loadCompanies();
+        setTimeout(() => {
+          this.closeCreateCompanyModal();
+        }, 1200);
+      },
+      error: err => {
+        this.createCompanyLoading.set(false);
+        const msg = err.error?.errors?.[0] ?? err.error?.message ?? err.error?.detail ?? 'Failed to create company.';
+        this.createCompanyError.set(msg);
+      }
+    });
+  }
+
+  openAssignHrModal(company: CompanyDto) {
+    this.selectedCompanyForHr.set(company);
+    this.assignHrForm.reset();
+    this.assignHrError.set(null);
+    this.assignHrSuccess.set(false);
+    this.showAssignHrModal.set(true);
+  }
+
+  closeAssignHrModal() {
+    this.showAssignHrModal.set(false);
+    this.selectedCompanyForHr.set(null);
+  }
+
+  submitAssignHr() {
+    if (this.assignHrForm.invalid || !this.selectedCompanyForHr()) {
+      this.assignHrForm.markAllAsTouched();
+      return;
+    }
+
+    this.assignHrLoading.set(true);
+    this.assignHrError.set(null);
+    this.assignHrSuccess.set(false);
+
+    const company = this.selectedCompanyForHr()!;
+    this.adminService.assignHrToCompany({
+      companyId: company.id,
+      userId: this.assignHrForm.value.userId
+    }).subscribe({
+      next: () => {
+        this.assignHrLoading.set(false);
+        this.assignHrSuccess.set(true);
+        this.loadCompanies();
+        setTimeout(() => {
+          this.closeAssignHrModal();
+        }, 1500);
+      },
+      error: err => {
+        this.assignHrLoading.set(false);
+        const msg = err.error?.errors?.[0] ?? err.error?.message ?? err.error?.detail ?? 'Failed to assign HR user.';
+        this.assignHrError.set(msg);
+      }
+    });
+  }
+
   deleteJob(id: string) {
     if (!confirm('Are you sure you want to delete this job posting?')) return;
     this.adminService.deleteJobPosting(id).subscribe({
@@ -157,11 +335,12 @@ export class AdminComponent implements OnInit {
     this.createSuccess.set(false);
     this.createError.set(null);
 
-    const v = this.createForm.value;
+    const v = this.createForm.getRawValue();
     const payload: CreateJobPostingDto = {
       sourceId: this.defaultSourceId,
       title: v.title,
       companyName: v.companyName,
+      companyId: this.authService.isHR() ? this.authService.companyId() : null,
       description: v.description,
       location: v.location || null,
       isRemote: v.isRemote,
@@ -184,12 +363,16 @@ export class AdminComponent implements OnInit {
           experienceLevel: 1,
           salaryCurrency: 'USD'
         });
+        if (this.authService.isHR() && this.authService.companyName()) {
+          this.createForm.get('companyName')?.setValue(this.authService.companyName());
+          this.createForm.get('companyName')?.disable();
+        }
         this.loadJobs();
         setTimeout(() => this.createSuccess.set(false), 4000);
       },
       error: err => {
         this.createLoading.set(false);
-        const msg = err.error?.errors?.[0] ?? err.error?.message ?? 'Failed to create job posting.';
+        const msg = err.error?.errors?.[0] ?? err.error?.message ?? err.error?.detail ?? 'Failed to create job posting.';
         this.createError.set(msg);
       }
     });

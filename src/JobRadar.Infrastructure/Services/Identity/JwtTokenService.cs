@@ -47,6 +47,11 @@ public class JwtTokenService : IJwtTokenService
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
+        if (user.CompanyId.HasValue)
+        {
+            claims.Add(new Claim("CompanyId", user.CompanyId.Value.ToString()));
+        }
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

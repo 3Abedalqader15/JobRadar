@@ -29,7 +29,10 @@ public sealed class ApplicationUser : IdentityUser<Guid>, IAggregateRoot
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    // Navigations
+    /// <summary>Associated company ID — only set for users with the HR role.</summary>
+    public Guid? CompanyId { get; private set; }
+    public Company? Company { get; private set; }
+
     public IReadOnlyCollection<Source> AddedSources => _addedSources.AsReadOnly();
     private readonly List<Source> _addedSources = new();
 
@@ -112,6 +115,12 @@ public sealed class ApplicationUser : IdentityUser<Guid>, IAggregateRoot
     public void Activate()
     {
         IsDeactivated = false;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void AssignCompany(Guid? companyId)
+    {
+        CompanyId = companyId;
         UpdatedAt = DateTime.UtcNow;
     }
 }

@@ -29,6 +29,8 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<JobRadar.Application.Abstractions.ICurrentUserService, JobRadar.Api.Services.CurrentUserService>();
 builder.Services.AddSignalR();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);

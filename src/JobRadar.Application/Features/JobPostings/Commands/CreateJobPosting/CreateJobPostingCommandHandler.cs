@@ -1,4 +1,5 @@
 using JobRadar.Application.Abstractions;
+using JobRadar.Application.Common.Exceptions;
 using JobRadar.Domain.Entities;
 using MediatR;
 
@@ -8,15 +9,21 @@ public sealed class CreateJobPostingCommandHandler
     : IRequestHandler<CreateJobPostingCommand, Guid>
 {
     private readonly IJobRepository _repository;
+    private readonly ICompanyRepository _companyRepository;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEmbeddingService _embeddingService;
 
     public CreateJobPostingCommandHandler(
         IJobRepository repository,
+        ICompanyRepository companyRepository,
+        ICurrentUserService currentUserService,
         IUnitOfWork unitOfWork,
         IEmbeddingService embeddingService)
     {
         _repository = repository;
+        _companyRepository = companyRepository;
+        _currentUserService = currentUserService;
         _unitOfWork = unitOfWork;
         _embeddingService = embeddingService;
     }
@@ -25,10 +32,44 @@ public sealed class CreateJobPostingCommandHandler
         CreateJobPostingCommand request,
         CancellationToken cancellationToken)
     {
+        Guid? assignedCompanyId = null;
+        string companyName = request.CompanyName;
+
+        if (_currentUserService.IsHr)
+        {
+            if (!_currentUserService.CompanyId.HasValue)
+            {
+                throw new ForbiddenException("HR user has no assigned company. Action forbidden.");
+            }
+
+            assignedCompanyId = _currentUserService.CompanyId.Value;
+            var company = await _companyRepository.GetByIdAsync(assignedCompanyId.Value, cancellationToken);
+            if (company != null)
+            {
+                companyName = company.Name;
+            }
+        }
+        else if (_currentUserService.IsAdmin)
+        {
+            assignedCompanyId = request.CompanyId;
+            if (assignedCompanyId.HasValue)
+            {
+                var company = await _companyRepository.GetByIdAsync(assignedCompanyId.Value, cancellationToken);
+                if (company != null)
+                {
+                    companyName = company.Name;
+                }
+            }
+        }
+        else
+        {
+            throw new ForbiddenException("You do not have permission to create job postings.");
+        }
+
         var job = Job.Create(
             request.SourceId,
             request.Title,
-            request.CompanyName,
+            companyName,
             request.Description,
             request.Location,
             request.IsRemote,
@@ -36,7 +77,8 @@ public sealed class CreateJobPostingCommandHandler
             request.ExperienceLevel,
             request.ExternalApplyUrl,
             request.PostedAt,
-            request.RawPostId);
+            request.RawPostId,
+            assignedCompanyId);
 
         if (request.SalaryMin.HasValue && request.SalaryMax.HasValue)
         {

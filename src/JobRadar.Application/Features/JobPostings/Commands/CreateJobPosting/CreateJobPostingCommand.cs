@@ -17,4 +17,5 @@ public sealed record CreateJobPostingCommand(
     EmploymentType EmploymentType,
     ExperienceLevel ExperienceLevel,
     DateTime? PostedAt,
-    Guid? RawPostId = null) : IRequest<Guid>;
+    Guid? RawPostId = null,
+    Guid? CompanyId = null) : IRequest<Guid>;
