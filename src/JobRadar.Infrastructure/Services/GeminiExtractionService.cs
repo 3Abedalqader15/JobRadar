@@ -23,7 +23,7 @@ public sealed class GeminiExtractionService : ILlmExtractionService
     private readonly ILogger<GeminiExtractionService> _logger;
     private readonly ResiliencePipeline _pipeline;
 
-    private const string Model = "gemini-3.7-flash";
+    private readonly string _model;
     private readonly float _confidenceThreshold;
     private readonly string _systemPrompt;
 
@@ -70,6 +70,7 @@ public sealed class GeminiExtractionService : ILlmExtractionService
         _apiKey = configuration["Gemini:ApiKey"]
             ?? configuration["GEMINI_API_KEY"]
             ?? string.Empty;
+        _model = configuration["Gemini:Model"] ?? "gemini-3.5-flash";
         _confidenceThreshold = configuration.GetValue<float>("Gemini:ConfidenceThreshold", 0.70f);
         _logger = logger;
 
@@ -115,7 +116,7 @@ public sealed class GeminiExtractionService : ILlmExtractionService
             return null;
         }
 
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{Model}:generateContent?key={_apiKey}";
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
 
         var requestBody = new
         {

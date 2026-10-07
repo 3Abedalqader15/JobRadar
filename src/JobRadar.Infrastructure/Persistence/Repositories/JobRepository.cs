@@ -197,14 +197,12 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
 
     public async Task<bool> ExistsByTitleAndCompanyAsync(string title, string companyName, CancellationToken cancellationToken = default)
     {
-        var normTitle = title.Trim().ToLowerInvariant();
-        var normCompany = companyName.Trim().ToLowerInvariant();
+        var trimmedTitle = title.Trim();
+        var trimmedCompany = companyName.Trim();
 
-#pragma warning disable CA1862 // EF Core LINQ-to-Entities translates ToLowerInvariant() directly to SQL LOWER()
         return await DbSet
             .AsNoTracking()
-            .AnyAsync(j => j.Title.ToLowerInvariant() == normTitle && j.CompanyName.ToLowerInvariant() == normCompany, cancellationToken);
-#pragma warning restore CA1862
+            .AnyAsync(j => EF.Functions.ILike(j.Title, trimmedTitle) && EF.Functions.ILike(j.CompanyName, trimmedCompany), cancellationToken);
     }
 
     public async Task AddWithSkillsAsync(Job job, IEnumerable<string> skillNames, CancellationToken cancellationToken = default)

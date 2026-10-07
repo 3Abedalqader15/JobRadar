@@ -30,14 +30,21 @@ public class RssFeedFetcher
         return await _retryPolicy.ExecuteAsync(async () =>
         {
             _logger.LogInformation("Fetching RSS feed from {Url}", feedUrl);
-            var feed = await FeedReader.ReadAsync(feedUrl);
-            
-            return feed.Items.Select(item => new ParsedRssItem(
-                Title: item.Title,
-                Content: item.Description ?? item.Content ?? string.Empty,
-                Link: item.Link,
-                PublishDate: item.PublishingDate
-            )).ToList();
+            try
+            {
+                var feed = await FeedReader.ReadAsync(feedUrl);
+                return feed.Items.Select(item => new ParsedRssItem(
+                    Title: item.Title ?? string.Empty,
+                    Content: item.Description ?? item.Content ?? string.Empty,
+                    Link: item.Link,
+                    PublishDate: item.PublishingDate
+                )).ToList();
+            }
+            catch (System.Xml.XmlException ex)
+            {
+                _logger.LogWarning(ex, "Feed at {Url} returned invalid XML. Skipping.", feedUrl);
+                return new List<ParsedRssItem>();
+            }
         });
     }
 }
