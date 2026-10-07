@@ -26,7 +26,7 @@ public class IngestionDispatcherJob
 
         var now = DateTime.UtcNow;
         var sources = await _dbContext.Sources
-            .Where(s => s.Status == SourceStatus.Active && s.Type != SourceType.ManualShare)
+            .Where(s => s.Status == SourceStatus.Active && s.Type != SourceType.ManualShare && s.Type != SourceType.LinkedIn)
             .ToListAsync();
 
         var sourcesToFetch = sources.Where(s => 

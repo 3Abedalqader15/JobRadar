@@ -41,4 +41,5 @@ public sealed class RawPost : Entity<Guid>, IAggregateRoot
     public void MarkProcessing() => ProcessingStatus = RawPostStatus.Processing;
     public void MarkProcessed() => ProcessingStatus = RawPostStatus.Processed;
     public void MarkRejected() => ProcessingStatus = RawPostStatus.Rejected;
+    public void ResetToNew() => ProcessingStatus = RawPostStatus.New;
 }

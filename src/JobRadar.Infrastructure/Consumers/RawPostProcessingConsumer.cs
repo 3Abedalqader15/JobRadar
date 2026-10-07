@@ -54,6 +54,21 @@ public sealed class RawPostProcessingConsumer : IConsumer<RawPostCreatedEvent>
             return;
         }
 
+        if (rawPost.ProcessingStatus == RawPostStatus.Processed)
+        {
+            _logger.LogInformation("RawPost {RawPostId} is already marked Processed; skipping.", msg.RawPostId);
+            return;
+        }
+
+        var jobAlreadyExists = await _db.Jobs.AnyAsync(j => j.RawPostId == msg.RawPostId, ct);
+        if (jobAlreadyExists)
+        {
+            _logger.LogInformation("Job already exists for RawPost {RawPostId}; marking processed and skipping.", msg.RawPostId);
+            rawPost.MarkProcessed();
+            await _db.SaveChangesAsync(ct);
+            return;
+        }
+
         rawPost.MarkProcessing();
         await _db.SaveChangesAsync(ct);
 
@@ -63,10 +78,19 @@ public sealed class RawPostProcessingConsumer : IConsumer<RawPostCreatedEvent>
         {
             extraction = await _extractor.ExtractJobAsync(rawPost.RawContent, ct);
         }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex,
+                "Transient HTTP error during LLM extraction for RawPost {RawPostId}. Resetting to New.",
+                msg.RawPostId);
+            rawPost.ResetToNew();
+            await _db.SaveChangesAsync(ct);
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "LLM extraction failed for RawPost {RawPostId}. Marking rejected.",
+                "Unrecoverable LLM extraction failed for RawPost {RawPostId}. Marking rejected.",
                 msg.RawPostId);
             rawPost.MarkRejected();
             await _db.SaveChangesAsync(ct);
@@ -123,21 +147,33 @@ public sealed class RawPostProcessingConsumer : IConsumer<RawPostCreatedEvent>
             var normalised = skillName.Trim();
             if (string.IsNullOrWhiteSpace(normalised)) continue;
 
+            var slug = normalised.ToLowerInvariant()
+                .Replace(' ', '-')
+                .Replace('.', '-')
+                .Replace('#', 's'); // e.g. "C#" → "cs"
+
             var skill = await _db.Skills
-                .FirstOrDefaultAsync(s => s.Name == normalised, ct);
+                .FirstOrDefaultAsync(s => s.Name == normalised || s.Slug == slug, ct);
 
             if (skill is null)
             {
-                var slug = normalised.ToLowerInvariant()
-                    .Replace(' ', '-')
-                    .Replace('.', '-')
-                    .Replace('#', 's'); // e.g. "C#" → "cs"
-                skill = Skill.Create(normalised, slug);
-                _db.Skills.Add(skill);
-                await _db.SaveChangesAsync(ct); // flush to get the ID
+                try
+                {
+                    skill = Skill.Create(normalised, slug);
+                    _db.Skills.Add(skill);
+                    await _db.SaveChangesAsync(ct); // flush to get the ID
+                }
+                catch (DbUpdateException)
+                {
+                    _db.Entry(skill!).State = EntityState.Detached;
+                    skill = await _db.Skills.FirstOrDefaultAsync(s => s.Slug == slug, ct);
+                }
             }
 
-            _db.JobSkillMaps.Add(new JobSkillMap(job.Id, skill.Id));
+            if (skill is not null)
+            {
+                _db.JobSkillMaps.Add(new JobSkillMap(job.Id, skill.Id));
+            }
         }
 
         rawPost.MarkProcessed();

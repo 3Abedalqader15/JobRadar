@@ -54,10 +54,11 @@ public static class DependencyInjection
         services.AddDistributedMemoryCache();
 
         // ── Gemini AI Services ────────────────────────────────────────────────
-        // Named HttpClient used by both Gemini services
+        // Named HttpClient used by both Gemini services (configurable via Gemini:TimeoutSeconds)
+        var geminiTimeoutSeconds = configuration.GetValue<int>("Gemini:TimeoutSeconds", 120);
         services.AddHttpClient("Gemini", client =>
         {
-            client.Timeout = TimeSpan.FromSeconds(60);
+            client.Timeout = TimeSpan.FromSeconds(geminiTimeoutSeconds);
         });
 
         services.AddScoped<ILlmExtractionService, GeminiExtractionService>();
@@ -84,6 +85,9 @@ public static class DependencyInjection
 
         services.AddSingleton<IJobEmbeddingChannel, JobRadar.Infrastructure.BackgroundServices.JobEmbeddingChannel>();
         services.AddScoped<IJobRealtimeNotifier, JobRadar.Infrastructure.Services.NullJobRealtimeNotifier>();
+
+        // ── MediatR Handlers in Infrastructure ─────────────────────────────────
+        services.AddTransient<MediatR.IRequestHandler<JobRadar.Application.Features.JobApplications.Queries.GetAllApplications.GetAllApplicationsQuery, JobRadar.Application.Features.JobApplications.Queries.GetAllApplications.GetAllApplicationsResponse>, JobRadar.Infrastructure.Features.JobApplications.GetAllApplicationsQueryHandler>();
 
         return services;
     }
