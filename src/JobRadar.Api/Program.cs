@@ -26,7 +26,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials();
+              .AllowCredentials()
+              .WithExposedHeaders("Content-Disposition");
     });
 });
 builder.Services.AddHttpContextAccessor();
@@ -70,11 +71,25 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+var rabbitMqConn = builder.Configuration.GetConnectionString("RabbitMQ");
+if (string.IsNullOrWhiteSpace(rabbitMqConn) || rabbitMqConn == "in-memory")
+{
+    throw new InvalidOperationException("RabbitMQ connection string not configured — refusing to silently fall back to in-memory transport, which breaks outbox durability guarantees.");
+}
+
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<JobRadar.Infrastructure.Consumers.CvAnalysisConsumer>();
-    x.UsingInMemory((context, cfg) =>
+
+    x.AddEntityFrameworkOutbox<JobRadar.Infrastructure.Persistence.AppDbContext>(o =>
     {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(rabbitMqConn);
         cfg.ConfigureEndpoints(context);
     });
 });

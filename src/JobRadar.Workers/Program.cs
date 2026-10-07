@@ -13,6 +13,17 @@ using Serilog;
 
 var builder = Host.CreateDefaultBuilder(args);
 
+builder.UseWindowsService();
+
+builder.ConfigureAppConfiguration((ctx, config) =>
+{
+    config.SetBasePath(AppContext.BaseDirectory);
+    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+    config.AddJsonFile($"appsettings.{ctx.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+    config.AddUserSecrets(typeof(Program).Assembly, optional: true);
+    config.AddEnvironmentVariables();
+});
+
 builder.UseSerilog((ctx, lc) =>
     lc.ReadFrom.Configuration(ctx.Configuration));
 
@@ -23,6 +34,13 @@ builder.ConfigureServices((ctx, services) =>
     // ── Application + Infrastructure ──────────────────────────────────────
     services.AddApplication();
     services.AddInfrastructure(configuration);
+
+    // ── Identity & Context for MediatR handlers in Worker process ────────
+    services.AddIdentityCore<JobRadar.Domain.Entities.ApplicationUser>()
+        .AddRoles<JobRadar.Domain.Entities.ApplicationRole>()
+        .AddEntityFrameworkStores<JobRadar.Infrastructure.Persistence.AppDbContext>();
+
+    services.AddScoped<JobRadar.Application.Abstractions.ICurrentUserService, JobRadar.Infrastructure.Services.BackgroundWorkerCurrentUserService>();
 
     // ── Hangfire ──────────────────────────────────────────────────────────
     var hangfireConn = configuration.GetConnectionString("Hangfire")
@@ -44,14 +62,20 @@ builder.ConfigureServices((ctx, services) =>
 
     services.AddHangfireServer(options =>
     {
-        options.WorkerCount = Environment.ProcessorCount * 2;
+        options.WorkerCount = 2;
         options.Queues = WorkerQueues.Names;
     });
 
-    // ── MassTransit ──────────────────────────────────────────────────────────
+    // ── MassTransit with Fail-Fast RabbitMQ ─────────────────────────────────
+    var rabbitMqConn = configuration.GetConnectionString("RabbitMQ");
+    if (string.IsNullOrWhiteSpace(rabbitMqConn) || rabbitMqConn == "in-memory")
+    {
+        throw new InvalidOperationException("RabbitMQ connection string not configured — refusing to silently fall back to in-memory transport, which breaks outbox durability guarantees.");
+    }
+
     services.AddMassTransit(x =>
     {
-        // Register the consumer so MassTransit discovers it automatically
+        // Register the consumers so MassTransit discovers them automatically
         x.AddConsumer<RawPostProcessingConsumer>();
         x.AddConsumer<JobRadar.Infrastructure.Consumers.CvAnalysisConsumer>();
 
@@ -61,35 +85,25 @@ builder.ConfigureServices((ctx, services) =>
             o.UseBusOutbox();
         });
 
-        var rabbitMqConn = configuration.GetConnectionString("RabbitMQ");
-        if (!string.IsNullOrEmpty(rabbitMqConn) && rabbitMqConn != "in-memory")
+        x.UsingRabbitMq((context, cfg) =>
         {
-            x.UsingRabbitMq((context, cfg) =>
-            {
-                cfg.Host(rabbitMqConn);
+            cfg.Host(rabbitMqConn);
 
-                // Dedicated queue for raw-post processing
-                cfg.ReceiveEndpoint("raw-post-processing", e =>
-                {
-                    e.ConcurrentMessageLimit = 4; // don't hammer the LLM
-                    e.ConfigureConsumer<RawPostProcessingConsumer>(context);
-                });
-
-                // Dedicated queue for CV analysis
-                cfg.ReceiveEndpoint("cv-analysis-processing", e =>
-                {
-                    e.ConcurrentMessageLimit = 2; // don't hammer the LLM
-                    e.ConfigureConsumer<JobRadar.Infrastructure.Consumers.CvAnalysisConsumer>(context);
-                });
-            });
-        }
-        else
-        {
-            x.UsingInMemory((context, cfg) =>
+            // Dedicated queue for raw-post processing
+            cfg.ReceiveEndpoint("raw-post-processing", e =>
             {
-                cfg.ConfigureEndpoints(context);
+                e.ConcurrentMessageLimit = 1;
+                e.UseRateLimit(4, TimeSpan.FromMinutes(1));
+                e.ConfigureConsumer<RawPostProcessingConsumer>(context);
             });
-        }
+
+            // Dedicated queue for CV analysis
+            cfg.ReceiveEndpoint("cv-analysis-processing", e =>
+            {
+                e.ConcurrentMessageLimit = 1;
+                e.ConfigureConsumer<JobRadar.Infrastructure.Consumers.CvAnalysisConsumer>(context);
+            });
+        });
     });
 
     // ── Embedding batch processor (background service) ────────────────────
@@ -99,6 +113,7 @@ builder.ConfigureServices((ctx, services) =>
     services.AddScoped<JobIngestionJob>();
     services.AddScoped<StaleJobCleanupJob>();
     services.AddScoped<ExternalJobCrawlDispatcherJob>();
+    services.AddScoped<RawPostBacklogSweepJob>();
     
     services.AddScoped<RssFeedFetcher>();
     services.AddScoped<TelegramFetcher>();
@@ -121,6 +136,14 @@ using (var scope = host.Services.CreateScope())
         queue: "ingestion",
         methodCall: job => job.ExecuteAsync(),
         cronExpression: Cron.Minutely(),
+        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+    // Every 5 minutes: sweep and process pending raw posts backlog
+    RecurringJob.AddOrUpdate<RawPostBacklogSweepJob>(
+        recurringJobId: "raw-post-backlog-sweep",
+        queue: "ingestion",
+        methodCall: job => job.ExecuteAsync(CancellationToken.None),
+        cronExpression: "*/5 * * * *",
         new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
     // Recurring external job crawl dispatcher (configured interval)
@@ -148,6 +171,22 @@ using (var scope = host.Services.CreateScope())
         cronExpression: Cron.Daily(),
         new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 }
+
+// Defense-in-depth: run initial sweep once on startup asynchronously
+_ = Task.Run(async () =>
+{
+    try
+    {
+        await Task.Delay(3000); // Wait for host and bus to fully initialize
+        using var sweepScope = host.Services.CreateScope();
+        var sweepJob = sweepScope.ServiceProvider.GetRequiredService<RawPostBacklogSweepJob>();
+        await sweepJob.ExecuteAsync();
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Initial RawPostBacklogSweepJob execution encountered an error.");
+    }
+});
 
 await host.RunAsync();
 
