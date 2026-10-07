@@ -18,7 +18,7 @@ public sealed class GeminiCvMatchAnalysisService : ICvMatchAnalysisService
     private readonly ILogger<GeminiCvMatchAnalysisService> _logger;
     private readonly ResiliencePipeline _pipeline;
 
-    private const string Model = "gemini-3.7-flash";
+    private readonly string _model;
     private readonly string _systemPrompt;
 
     private static readonly JsonSerializerOptions _camelCaseOptions = new()
@@ -52,6 +52,7 @@ public sealed class GeminiCvMatchAnalysisService : ICvMatchAnalysisService
         _apiKey = configuration["Gemini:ApiKey"]
             ?? configuration["GEMINI_API_KEY"]
             ?? string.Empty;
+        _model = configuration["Gemini:Model"] ?? "gemini-3.5-flash";
         _logger = logger;
 
         if (string.IsNullOrWhiteSpace(_apiKey))
@@ -72,17 +73,35 @@ public sealed class GeminiCvMatchAnalysisService : ICvMatchAnalysisService
             {
                 MaxRetryAttempts = 3,
                 BackoffType = DelayBackoffType.Exponential,
-                Delay = TimeSpan.FromSeconds(2),
+                Delay = TimeSpan.FromSeconds(3),
                 ShouldHandle = new PredicateBuilder()
                     .Handle<HttpRequestException>()
+                    .Handle<TimeoutException>()
                     .Handle<TaskCanceledException>()
+                    .Handle<OperationCanceledException>(),
+                OnRetry = args =>
+                {
+                    _logger.LogWarning(
+                        args.Outcome.Exception,
+                        "Gemini CV match analysis attempt {Attempt} failed with {ExceptionType}: {Message}. Retrying after {Delay}ms...",
+                        args.AttemptNumber + 1,
+                        args.Outcome.Exception?.GetType().Name,
+                        args.Outcome.Exception?.Message,
+                        args.RetryDelay.TotalMilliseconds);
+                    return ValueTask.CompletedTask;
+                }
             })
             .AddCircuitBreaker(new CircuitBreakerStrategyOptions
             {
                 FailureRatio = 0.5,
-                SamplingDuration = TimeSpan.FromSeconds(30),
+                SamplingDuration = TimeSpan.FromMinutes(2),
                 MinimumThroughput = 5,
-                BreakDuration = TimeSpan.FromSeconds(30)
+                BreakDuration = TimeSpan.FromSeconds(30),
+                ShouldHandle = new PredicateBuilder()
+                    .Handle<HttpRequestException>()
+                    .Handle<TimeoutException>()
+                    .Handle<TaskCanceledException>()
+                    .Handle<OperationCanceledException>()
             })
             .Build();
     }
@@ -99,7 +118,7 @@ public sealed class GeminiCvMatchAnalysisService : ICvMatchAnalysisService
             return null;
         }
 
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{Model}:generateContent?key={_apiKey}";
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
 
         var promptPayload = $"--- JOB TITLE ---\n{jobTitle}\n\n--- JOB DESCRIPTION ---\n{jobDescription}\n\n--- APPLICANT CV TEXT ---\n{cvText}";
 

@@ -541,16 +541,25 @@
                       <div class="action-buttons">
                         @if (app.cvOriginalFileName || app.cvFilePath) {
                           <button
+                            class="btn-action btn-view-cv"
+                            [id]="'btn-view-cv-' + app.id"
+                            (click)="downloadCv(app, true)"
+                            [disabled]="downloadingCvId() === app.id"
+                            title="View CV in browser"
+                          >
+                            👁 View
+                          </button>
+                          <button
                             class="btn-action btn-download-cv"
                             [id]="'btn-cv-' + app.id"
-                            (click)="downloadCv(app)"
+                            (click)="downloadCv(app, false)"
                             [disabled]="downloadingCvId() === app.id"
                             [title]="app.cvOriginalFileName ? 'Download ' + app.cvOriginalFileName : 'Download CV'"
                           >
                             @if (downloadingCvId() === app.id) {
                               ⏳
                             } @else {
-                              📥 CV
+                              📥 Download
                             }
                           </button>
                         }
@@ -562,6 +571,17 @@
                         >
                           🔍 Details
                         </button>
+                        @if ((app.aiAnalysisStatus || '').toLowerCase() === 'failed') {
+                          <button
+                            class="btn-action btn-retry-analysis"
+                            [id]="'btn-retry-' + app.id"
+                            (click)="retryAnalysis(app)"
+                            [disabled]="retryingAnalysisId() === app.id"
+                            title="Retry AI Analysis"
+                          >
+                            @if (retryingAnalysisId() === app.id) { ⏳ } @else { 🔄 Retry }
+                          </button>
+                        }
                       </div>
                     </td>
                   </tr>
@@ -981,12 +1001,28 @@
         <div class="ai-analysis-card">
           <div class="ai-header-row">
             <h4>🤖 AI Resume Match Analysis</h4>
-            <span class="score-badge" [ngClass]="getScoreBadgeClass(app)">
-              @if ((app.aiAnalysisStatus || '').toLowerCase() === 'processing' || (app.aiAnalysisStatus || '').toLowerCase() === 'pending') {
-                <span class="pulse-dot"></span>
-              }
-              {{ getScoreText(app) }}
-            </span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button
+                type="button"
+                class="btn-secondary btn-sm"
+                [id]="'btn-modal-retry-' + app.id"
+                (click)="retryAnalysis(app)"
+                [disabled]="retryingAnalysisId() === app.id"
+                title="Re-run AI CV Analysis with Gemini"
+              >
+                @if (retryingAnalysisId() === app.id) {
+                  ⏳ Analyzing...
+                } @else {
+                  🔄 Retry Analysis
+                }
+              </button>
+              <span class="score-badge" [ngClass]="getScoreBadgeClass(app)">
+                @if ((app.aiAnalysisStatus || '').toLowerCase() === 'processing' || (app.aiAnalysisStatus || '').toLowerCase() === 'pending') {
+                  <span class="pulse-dot"></span>
+                }
+                {{ getScoreText(app) }}
+              </span>
+            </div>
           </div>
 
           @if (app.aiAnalysisSummary) {
@@ -1022,18 +1058,28 @@
                 <span class="cv-sub">Attached candidate curriculum vitae</span>
               </div>
             </div>
-            <button
-              type="button"
-              class="btn-primary btn-sm"
-              (click)="downloadCv(app)"
-              [disabled]="downloadingCvId() === app.id"
-            >
-              @if (downloadingCvId() === app.id) {
-                ⏳ Downloading...
-              } @else {
-                📥 Download CV
-              }
-            </button>
+            <div class="cv-actions">
+              <button
+                type="button"
+                class="btn-secondary btn-sm"
+                (click)="downloadCv(app, true)"
+                [disabled]="downloadingCvId() === app.id"
+              >
+                👁 View in Browser
+              </button>
+              <button
+                type="button"
+                class="btn-primary btn-sm"
+                (click)="downloadCv(app, false)"
+                [disabled]="downloadingCvId() === app.id"
+              >
+                @if (downloadingCvId() === app.id) {
+                  ⏳ Downloading...
+                } @else {
+                  📥 Download CV
+                }
+              </button>
+            </div>
           </div>
         }
 

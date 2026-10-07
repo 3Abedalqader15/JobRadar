@@ -52,9 +52,34 @@ public sealed class ApplicationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> DownloadCv([FromRoute] Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> DownloadCv(
+        [FromRoute] Guid id,
+        [FromQuery] bool inline = true,
+        [FromQuery] bool raw = false,
+        CancellationToken cancellationToken = default)
     {
         var result = await _mediator.Send(new JobRadar.Application.Features.JobApplications.Queries.DownloadApplicationCv.DownloadApplicationCvQuery(id), cancellationToken);
-        return File(result.FileStream, result.ContentType, result.FileName);
+        
+        var disposition = inline ? "inline" : "attachment";
+        Response.Headers["Content-Disposition"] = $"{disposition}; filename=\"{result.FileName}\"";
+        Response.Headers["Access-Control-Expose-Headers"] = "Content-Disposition";
+
+        var contentType = raw ? "application/octet-stream" : result.ContentType;
+        return File(result.FileStream, contentType);
+    }
+
+    /// <summary>
+    /// Retries or triggers AI CV match analysis for an application.
+    /// Authorized for Admin and HR.
+    /// </summary>
+    [HttpPost("{id:guid}/retry-analysis", Name = "RetryApplicationAnalysis")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<IActionResult> RetryAnalysis([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new JobRadar.Application.Features.JobApplications.Commands.ProcessCvAnalysis.ProcessCvAnalysisCommand(id, Force: true), cancellationToken);
+        return Ok(new { message = "AI CV analysis processed successfully." });
     }
 }

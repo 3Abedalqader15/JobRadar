@@ -42,8 +42,8 @@ public sealed class ProcessCvAnalysisCommandHandler : IRequestHandler<ProcessCvA
             return;
         }
 
-        // 1. Idempotency Check: skip if already completed (call Gemini zero times)
-        if (application.AiAnalysisStatus == AiAnalysisStatus.Completed)
+        // 1. Idempotency Check: skip if already completed unless forced
+        if (!request.Force && application.AiAnalysisStatus == AiAnalysisStatus.Completed)
         {
             _logger.LogInformation("CV analysis for application {ApplicationId} is already completed. Skipping.", request.ApplicationId);
             return;

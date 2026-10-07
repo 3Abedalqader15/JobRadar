@@ -1122,6 +1122,20 @@
   cursor: not-allowed;
 }
 
+.btn-view-cv {
+  background-color: var(--color-surface-hover);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+}
+
+.btn-view-cv:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
 .btn-view-analysis {
   background-color: var(--color-surface-hover);
   color: var(--color-text);
@@ -1133,6 +1147,12 @@
 
 .btn-view-analysis:hover {
   background-color: var(--color-surface-active);
+}
+
+.cv-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 /* ── Modal Large Variant ─────────────────────────────────────────── */

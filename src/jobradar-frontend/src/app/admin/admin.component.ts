@@ -49,6 +49,7 @@ export class AdminComponent implements OnInit {
   selectedAppForDetails = signal<ApplicationItem | null>(null);
   showAppDetailsModal = signal(false);
   downloadingCvId = signal<string | null>(null);
+  retryingAnalysisId = signal<string | null>(null);
 
   // Screening Questions Builder state
   showQuestionsModal = signal(false);
@@ -228,24 +229,63 @@ export class AdminComponent implements OnInit {
     this.loadApplications();
   }
 
-  downloadCv(app: ApplicationItem) {
+  downloadCv(app: ApplicationItem, openInNewTab = false) {
     if (!app.cvFilePath && !app.cvOriginalFileName) return;
     this.downloadingCvId.set(app.id);
     this.adminService.downloadApplicationCv(app.id).subscribe({
       next: (blob) => {
         this.downloadingCvId.set(null);
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = app.cvOriginalFileName || `${app.applicantFullName || app.userFullName || 'applicant'}_cv.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        const fileName = app.cvOriginalFileName || `${app.applicantFullName || app.userFullName || 'applicant'}_cv.pdf`;
+        const isDocx = fileName.toLowerCase().endsWith('.docx');
+        const mimeType = isDocx
+          ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          : 'application/pdf';
+
+        const fileBlob = new Blob([blob], { type: mimeType });
+        const url = window.URL.createObjectURL(fileBlob);
+
+        if (openInNewTab && !isDocx) {
+          window.open(url, '_blank');
+        } else {
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+
+        setTimeout(() => window.URL.revokeObjectURL(url), 60000);
       },
       error: (err) => {
         this.downloadingCvId.set(null);
-        alert('Failed to download CV: ' + (err.error?.message ?? err.statusText ?? 'Unauthorized or file missing'));
+        let msg = err.error?.message ?? err.statusText ?? 'Unauthorized or file missing';
+        if (err.status === 0) {
+          msg = 'تعذر تحميل الملف بسبب اعتراض إضافة التنزيل في المتصفح (IDM). يرجى الضغط باستمرار على زر Alt عند النقر على الزر لتجاوز IDM، أو إيقاف إضافة IDM لـ localhost.';
+        }
+        alert('Failed to download CV: ' + msg);
+      }
+    });
+  }
+
+  retryAnalysis(app: ApplicationItem) {
+    this.retryingAnalysisId.set(app.id);
+    this.adminService.retryCvAnalysis(app.id).subscribe({
+      next: () => {
+        this.retryingAnalysisId.set(null);
+        this.loadApplications();
+        if (this.selectedAppForDetails()?.id === app.id) {
+          this.adminService.getApplications(this.appsPage(), this.appsPageSize(), undefined, this.appsSortBy()).subscribe(res => {
+            const updated = res.items.find(i => i.id === app.id);
+            if (updated) this.selectedAppForDetails.set(updated);
+          });
+        }
+      },
+      error: (err) => {
+        this.retryingAnalysisId.set(null);
+        const msg = err.error?.message ?? err.error?.detail ?? err.message ?? 'Failed to trigger AI CV analysis retry.';
+        alert('Failed to retry AI analysis: ' + msg);
       }
     });
   }

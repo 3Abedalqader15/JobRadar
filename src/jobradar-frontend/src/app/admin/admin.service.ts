@@ -170,9 +170,13 @@ export class AdminService {
   }
 
   downloadApplicationCv(applicationId: string): Observable<Blob> {
-    return this.http.get(`/api/applications/${applicationId}/cv`, {
+    return this.http.get(`/api/applications/${applicationId}/cv?raw=true&inline=true`, {
       responseType: 'blob'
     });
+  }
+
+  retryCvAnalysis(applicationId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`/api/applications/${applicationId}/retry-analysis`, {});
   }
 
   getCompanies(page = 1, pageSize = 50, search?: string): Observable<ListCompaniesResponse> {
