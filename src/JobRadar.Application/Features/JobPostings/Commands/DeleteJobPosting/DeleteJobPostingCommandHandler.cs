@@ -9,15 +9,18 @@ public sealed class DeleteJobPostingCommandHandler : IRequestHandler<DeleteJobPo
     private readonly IJobRepository _repository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IJobRealtimeNotifier _notifier;
 
     public DeleteJobPostingCommandHandler(
         IJobRepository repository,
         ICurrentUserService currentUserService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IJobRealtimeNotifier notifier)
     {
         _repository = repository;
         _currentUserService = currentUserService;
         _unitOfWork = unitOfWork;
+        _notifier = notifier;
     }
 
     public async Task Handle(DeleteJobPostingCommand request, CancellationToken cancellationToken)
@@ -32,12 +35,21 @@ public sealed class DeleteJobPostingCommandHandler : IRequestHandler<DeleteJobPo
                 throw new ForbiddenException("You cannot delete a job posting belonging to another company.");
             }
         }
-        else if (!_currentUserService.IsAdmin)
+        else if (_currentUserService.IsAdmin)
         {
             throw new ForbiddenException("You do not have permission to delete this job posting.");
         }
 
         await _repository.DeleteAsync(job, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await _notifier.NotifyJobDeactivatedAsync(job.Id, cancellationToken);
+        }
+        catch
+        {
+            // Real-time broadcast failure should not block deletion
+        }
     }
 }

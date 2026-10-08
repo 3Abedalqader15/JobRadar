@@ -11,17 +11,20 @@ public sealed class UpdateJobPostingCommandHandler : IRequestHandler<UpdateJobPo
     private readonly ICompanyRepository _companyRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IJobRealtimeNotifier _notifier;
 
     public UpdateJobPostingCommandHandler(
         IJobRepository jobRepository,
         ICompanyRepository companyRepository,
         ICurrentUserService currentUserService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IJobRealtimeNotifier notifier)
     {
         _jobRepository = jobRepository;
         _companyRepository = companyRepository;
         _currentUserService = currentUserService;
         _unitOfWork = unitOfWork;
+        _notifier = notifier;
     }
 
     public async Task Handle(UpdateJobPostingCommand request, CancellationToken cancellationToken)
@@ -54,6 +57,8 @@ public sealed class UpdateJobPostingCommandHandler : IRequestHandler<UpdateJobPo
             throw new ForbiddenException("You do not have permission to modify this job posting.");
         }
 
+        bool wasActive = job.IsActive;
+
         job.UpdateDetails(
             request.Title,
             request.Description,
@@ -74,5 +79,17 @@ public sealed class UpdateJobPostingCommandHandler : IRequestHandler<UpdateJobPo
 
         await _jobRepository.UpdateAsync(job, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (wasActive && !request.IsActive)
+        {
+            try
+            {
+                await _notifier.NotifyJobDeactivatedAsync(job.Id, cancellationToken);
+            }
+            catch
+            {
+                // Real-time broadcast failure should not block update
+            }
+        }
     }
 }

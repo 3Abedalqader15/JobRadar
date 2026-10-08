@@ -13,19 +13,22 @@ public sealed class CreateJobPostingCommandHandler
     private readonly ICurrentUserService _currentUserService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEmbeddingService _embeddingService;
+    private readonly IJobRealtimeNotifier _notifier;
 
     public CreateJobPostingCommandHandler(
         IJobRepository repository,
         ICompanyRepository companyRepository,
         ICurrentUserService currentUserService,
         IUnitOfWork unitOfWork,
-        IEmbeddingService embeddingService)
+        IEmbeddingService embeddingService,
+        IJobRealtimeNotifier notifier)
     {
         _repository = repository;
         _companyRepository = companyRepository;
         _currentUserService = currentUserService;
         _unitOfWork = unitOfWork;
         _embeddingService = embeddingService;
+        _notifier = notifier;
     }
 
     public async Task<Guid> Handle(
@@ -101,6 +104,29 @@ public sealed class CreateJobPostingCommandHandler
 
         await _repository.AddAsync(job, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await _notifier.NotifyJobCreatedAsync(
+                job.Id,
+                job.Title,
+                job.CompanyName,
+                job.Location,
+                job.IsRemote,
+                job.EmploymentType,
+                job.ExperienceLevel,
+                job.SalaryMin,
+                job.SalaryMax,
+                job.SalaryCurrency,
+                Array.Empty<string>(),
+                job.ExternalApplyUrl,
+                job.PostedAt,
+                cancellationToken);
+        }
+        catch
+        {
+            // Real-time broadcast failure should not block job creation
+        }
 
         return job.Id;
     }

@@ -31,6 +31,7 @@ public class CompanyScopedAccessTests
     private readonly Mock<ICompanyRepository> _mockCompanyRepo;
     private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly Mock<IEmbeddingService> _mockEmbeddingService;
+    private readonly Mock<IJobRealtimeNotifier> _mockNotifier;
 
     private readonly Guid _companyAId = Guid.NewGuid();
     private readonly Guid _companyBId = Guid.NewGuid();
@@ -44,6 +45,7 @@ public class CompanyScopedAccessTests
         _mockCompanyRepo = new Mock<ICompanyRepository>();
         _mockUnitOfWork = new Mock<IUnitOfWork>();
         _mockEmbeddingService = new Mock<IEmbeddingService>();
+        _mockNotifier = new Mock<IJobRealtimeNotifier>();
 
         _jobA = Job.Create(Guid.NewGuid(), "Job A", "Company A", "Desc", "Loc", false, EmploymentType.FullTime, ExperienceLevel.MidLevel, "url", DateTime.UtcNow, null, _companyAId);
         _jobB = Job.Create(Guid.NewGuid(), "Job B", "Company B", "Desc", "Loc", false, EmploymentType.FullTime, ExperienceLevel.MidLevel, "url", DateTime.UtcNow, null, _companyBId);
@@ -81,7 +83,7 @@ public class CompanyScopedAccessTests
         _mockUserService.Setup(u => u.CompanyId).Returns(_companyAId);
         _mockUserService.Setup(u => u.IsAdmin).Returns(false);
 
-        var handler = new UpdateJobPostingCommandHandler(_mockJobRepo.Object, _mockCompanyRepo.Object, _mockUserService.Object, _mockUnitOfWork.Object);
+        var handler = new UpdateJobPostingCommandHandler(_mockJobRepo.Object, _mockCompanyRepo.Object, _mockUserService.Object, _mockUnitOfWork.Object, _mockNotifier.Object);
         var command = new UpdateJobPostingCommand(_jobB.Id, "New Title", "Loc", false, "url", null, null, null, EmploymentType.FullTime, ExperienceLevel.MidLevel, "Desc", true, null);
 
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
@@ -95,7 +97,7 @@ public class CompanyScopedAccessTests
         _mockUserService.Setup(u => u.CompanyId).Returns(_companyAId);
         _mockUserService.Setup(u => u.IsAdmin).Returns(false);
 
-        var handler = new DeleteJobPostingCommandHandler(_mockJobRepo.Object, _mockUserService.Object, _mockUnitOfWork.Object);
+        var handler = new DeleteJobPostingCommandHandler(_mockJobRepo.Object, _mockUserService.Object, _mockUnitOfWork.Object, _mockNotifier.Object);
         var command = new DeleteJobPostingCommand(_jobB.Id);
 
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
@@ -114,7 +116,7 @@ public class CompanyScopedAccessTests
             .Callback<Job, CancellationToken>((j, _) => capturedJob = j)
             .Returns(Task.CompletedTask);
 
-        var handler = new CreateJobPostingCommandHandler(_mockJobRepo.Object, _mockCompanyRepo.Object, _mockUserService.Object, _mockUnitOfWork.Object, _mockEmbeddingService.Object);
+        var handler = new CreateJobPostingCommandHandler(_mockJobRepo.Object, _mockCompanyRepo.Object, _mockUserService.Object, _mockUnitOfWork.Object, _mockEmbeddingService.Object, _mockNotifier.Object);
         var command = new CreateJobPostingCommand(Guid.NewGuid(), "New Job", "Some Company", "Desc", "Loc", false, "url", null, null, null, EmploymentType.FullTime, ExperienceLevel.MidLevel, DateTime.UtcNow, null, _companyBId);
 
         await handler.Handle(command, CancellationToken.None);
@@ -135,7 +137,7 @@ public class CompanyScopedAccessTests
         queryResult.Items.Should().BeEmpty();
         queryResult.TotalCount.Should().Be(0);
 
-        var createHandler = new CreateJobPostingCommandHandler(_mockJobRepo.Object, _mockCompanyRepo.Object, _mockUserService.Object, _mockUnitOfWork.Object, _mockEmbeddingService.Object);
+        var createHandler = new CreateJobPostingCommandHandler(_mockJobRepo.Object, _mockCompanyRepo.Object, _mockUserService.Object, _mockUnitOfWork.Object, _mockEmbeddingService.Object, _mockNotifier.Object);
         var command = new CreateJobPostingCommand(Guid.NewGuid(), "New Job", "Some Company", "Desc", "Loc", false, "url", null, null, null, EmploymentType.FullTime, ExperienceLevel.MidLevel, DateTime.UtcNow, null, null);
 
         await FluentActions.Invoking(() => createHandler.Handle(command, CancellationToken.None))
