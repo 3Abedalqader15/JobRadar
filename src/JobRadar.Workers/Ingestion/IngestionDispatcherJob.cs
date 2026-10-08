@@ -37,7 +37,7 @@ public class IngestionDispatcherJob
 
         foreach (var source in sourcesToFetch)
         {
-            _jobClient.Enqueue<FetchSourceJob>(job => job.ExecuteAsync(source.Id));
+            _jobClient.Enqueue<FetchSourceJob>(job => job.ExecuteAsync(source.Id, CancellationToken.None));
         }
     }
 }

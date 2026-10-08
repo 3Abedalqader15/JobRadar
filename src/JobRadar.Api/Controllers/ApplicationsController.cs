@@ -1,3 +1,5 @@
+#nullable enable
+
 using JobRadar.Application.Features.JobApplications.Queries.GetAllApplications;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

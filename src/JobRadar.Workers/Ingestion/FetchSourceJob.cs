@@ -19,7 +19,9 @@ public class FetchSourceJob
         _logger = logger;
     }
 
-    public async Task ExecuteAsync(Guid sourceId, CancellationToken cancellationToken = default)
+    public Task ExecuteAsync(Guid sourceId) => ExecuteAsync(sourceId, CancellationToken.None);
+
+    public async Task ExecuteAsync(Guid sourceId, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Triggering MediatR command to ingest source {SourceId}", sourceId);
         

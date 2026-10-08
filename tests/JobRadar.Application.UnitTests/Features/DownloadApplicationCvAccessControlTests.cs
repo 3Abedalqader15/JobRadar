@@ -78,7 +78,7 @@ public class DownloadApplicationCvAccessControlTests
         var result = await handler.Handle(new DownloadApplicationCvQuery(_application.Id), CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
         result.FileName.Should().Be("jane_cv.pdf");
         result.ContentType.Should().Be("application/pdf");
         result.FileStream.Should().NotBeNull();
@@ -100,7 +100,7 @@ public class DownloadApplicationCvAccessControlTests
         var result = await handler.Handle(new DownloadApplicationCvQuery(_application.Id), CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
         result.FileName.Should().Be("jane_cv.pdf");
         result.ContentType.Should().Be("application/pdf");
     }
@@ -119,7 +119,7 @@ public class DownloadApplicationCvAccessControlTests
         var result = await handler.Handle(new DownloadApplicationCvQuery(_application.Id), CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
         result.FileName.Should().Be("jane_cv.pdf");
     }
 

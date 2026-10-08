@@ -1,3 +1,5 @@
+#nullable enable
+
 using JobRadar.Api.Hubs;
 using JobRadar.Application.Features.JobPostings.Commands.CreateJobPosting;
 using JobRadar.Application.Features.JobPostings.Commands.DeleteJobPosting;

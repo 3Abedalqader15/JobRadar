@@ -1,3 +1,5 @@
+#nullable enable
+
 using JobRadar.Application.Features.Companies.Commands.AssignHrToCompany;
 using JobRadar.Application.Features.Companies.Commands.CreateCompany;
 using JobRadar.Application.Features.Companies.Commands.UpdateCompany;

@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Security.Claims;
 using JobRadar.Application.Abstractions;
 
