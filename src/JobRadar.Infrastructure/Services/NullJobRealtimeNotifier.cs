@@ -23,4 +23,11 @@ public sealed class NullJobRealtimeNotifier : IJobRealtimeNotifier
     {
         return Task.CompletedTask;
     }
+
+    public Task NotifyJobDeactivatedAsync(
+        Guid jobId,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 }

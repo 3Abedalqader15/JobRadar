@@ -19,4 +19,8 @@ public interface IJobRealtimeNotifier
         string? externalApplyUrl,
         DateTime postedAt,
         CancellationToken cancellationToken = default);
+
+    Task NotifyJobDeactivatedAsync(
+        Guid jobId,
+        CancellationToken cancellationToken = default);
 }
