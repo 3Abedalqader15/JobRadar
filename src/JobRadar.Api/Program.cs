@@ -80,6 +80,8 @@ if (string.IsNullOrWhiteSpace(rabbitMqConn) || rabbitMqConn == "in-memory")
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<JobRadar.Infrastructure.Consumers.CvAnalysisConsumer>();
+    x.AddConsumer<JobRadar.Api.Consumers.JobCreatedConsumer>();
+    x.AddConsumer<JobRadar.Api.Consumers.JobDeactivatedConsumer>();
 
     x.AddEntityFrameworkOutbox<JobRadar.Infrastructure.Persistence.AppDbContext>(o =>
     {

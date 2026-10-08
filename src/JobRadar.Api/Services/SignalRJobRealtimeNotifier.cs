@@ -41,8 +41,10 @@ public sealed class SignalRJobRealtimeNotifier : IJobRealtimeNotifier
                 location,
                 employmentType,
                 experienceLevel,
-                skills);
+                skills,
+                title);
 
+            // Crucial: No fabricated relevanceScore. Authentic data only.
             var notificationPayload = new
             {
                 id = jobId,
@@ -69,6 +71,24 @@ public sealed class SignalRJobRealtimeNotifier : IJobRealtimeNotifier
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to broadcast real-time SignalR notification for Job {JobId}", jobId);
+        }
+    }
+
+    public async Task NotifyJobDeactivatedAsync(
+        Guid jobId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Broadcast deactivated job id to all connected clients so active feeds remove it immediately
+            await _hubContext.Clients.All
+                .SendAsync("JobDeactivated", new { id = jobId }, cancellationToken);
+
+            _logger.LogInformation("Real-time JobDeactivated broadcast sent for Job {JobId}.", jobId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to broadcast real-time JobDeactivated for Job {JobId}", jobId);
         }
     }
 }
