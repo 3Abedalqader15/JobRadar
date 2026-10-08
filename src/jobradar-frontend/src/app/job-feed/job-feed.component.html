@@ -441,6 +441,24 @@
         </div>
       }
 
+      <!-- Broadening Alert Banner ("No Results" Recovery) -->
+      @if (broadeningNotice()) {
+        <div class="broadening-alert-banner">
+          <div class="broadening-content">
+            <span class="broadening-icon">💡</span>
+            <div class="broadening-text">
+              <span class="broadening-msg">{{ broadeningNotice() }}</span>
+              @if (suggestedQuery()) {
+                <button type="button" class="btn-apply-suggestion" (click)="applySuggestedQuery(suggestedQuery()!)">
+                  Search "{{ suggestedQuery() }}" →
+                </button>
+              }
+            </div>
+          </div>
+          <button type="button" class="btn-close-broadening" (click)="broadeningNotice.set(null)" aria-label="Dismiss">✕</button>
+        </div>
+      }
+
       <!-- Loading Skeleton (Dense List Layout) -->
       @if (loading() && jobs().length === 0) {
         <div class="skeleton-list-container">
@@ -516,8 +534,18 @@
                   </div>
                 </div>
 
-                <!-- Job Title -->
-                <h3 class="dense-job-title">{{ job.title }}</h3>
+                <!-- Job Title with Match Highlighting -->
+                <h3 class="dense-job-title" [innerHTML]="highlightTerms(job.title, job.matchedTerms)"></h3>
+
+                <!-- Matched Query Terms & Synonyms -->
+                @if (job.matchedTerms && job.matchedTerms.length > 0) {
+                  <div class="matched-terms-strip">
+                    <span class="matched-terms-label">Matched:</span>
+                    @for (term of job.matchedTerms; track term) {
+                      <span class="matched-term-pill">{{ term }}</span>
+                    }
+                  </div>
+                }
 
                 <!-- Meta Badges Strip -->
                 <div class="dense-meta-strip">
@@ -638,7 +666,16 @@
                 </div>
               </div>
 
-              <h3 class="card-title">{{ job.title }}</h3>
+              <h3 class="card-title" [innerHTML]="highlightTerms(job.title, job.matchedTerms)"></h3>
+
+              @if (job.matchedTerms && job.matchedTerms.length > 0) {
+                <div class="matched-terms-strip">
+                  <span class="matched-terms-label">Matched:</span>
+                  @for (term of job.matchedTerms; track term) {
+                    <span class="matched-term-pill">{{ term }}</span>
+                  }
+                </div>
+              }
 
               <div class="card-meta-tags">
                 @if (job.isRemote) {
@@ -777,6 +814,14 @@
             <span class="empty-icon">🛰️</span>
           </div>
           <h3 class="empty-title">No Positions Found on Radar</h3>
+          @if (suggestedQuery()) {
+            <div class="empty-suggestion-box">
+              <span class="suggestion-prompt">Did you mean:</span>
+              <button type="button" class="btn-empty-suggestion" (click)="applySuggestedQuery(suggestedQuery()!)">
+                🔍 "{{ suggestedQuery() }}" →
+              </button>
+            </div>
+          }
           <p class="empty-desc">
             No active positions match your current search parameters. Try adjusting filters, clearing keywords, or switching categories.
           </p>

@@ -6,6 +6,8 @@ public class PagedResult<T>
     public int TotalCount { get; init; }
     public int Page { get; init; }
     public int PageSize { get; init; }
+    public string? BroadeningNotice { get; init; }
+    public string? SuggestedQuery { get; init; }
 
     public int TotalPages => PageSize > 0 ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
 }

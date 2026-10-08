@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using JobRadar.Application.Abstractions;
+using JobRadar.Application.Common.Search;
 using JobRadar.Application.Models;
 using JobRadar.Domain.Enums;
 using MediatR;
@@ -30,6 +31,7 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
 {
     private readonly IJobRepository _jobRepository;
     private readonly IEmbeddingService _embeddingService;
+    private readonly IQueryUnderstandingService _queryUnderstandingService;
     private readonly IDistributedCache _cache;
     private readonly ILogger<SearchJobsQueryHandler> _logger;
     private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -42,11 +44,13 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
     public SearchJobsQueryHandler(
         IJobRepository jobRepository,
         IEmbeddingService embeddingService,
+        IQueryUnderstandingService queryUnderstandingService,
         IDistributedCache cache,
         ILogger<SearchJobsQueryHandler> logger)
     {
         _jobRepository = jobRepository;
         _embeddingService = embeddingService;
+        _queryUnderstandingService = queryUnderstandingService;
         _cache = cache;
         _logger = logger;
     }
@@ -152,12 +156,17 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
             queryEmbedding = null;
         }
 
-        // 4. Execute Advanced Multi-Faceted Query via Repository
+        // 4. Query Understanding Layer (Synonyms, Ambiguous Intent, Remote Inference)
+        var queryUnderstanding = await _queryUnderstandingService.UnderstandQueryAsync(request.Query, cancellationToken);
+        bool? effectiveIsRemote = request.IsRemote ?? queryUnderstanding.InferredIsRemote;
+
+        // 5. Execute Advanced Multi-Faceted Query via Repository
         var criteria = new JobSearchCriteria(
             Keyword: request.Query?.Trim(),
+            ExpandedTerms: queryUnderstanding.ExpandedTerms,
             Vector: queryEmbedding,
             Location: request.Location?.Trim(),
-            IsRemote: request.IsRemote,
+            IsRemote: effectiveIsRemote,
             EmploymentTypes: request.EmploymentTypes,
             ExperienceLevels: request.ExperienceLevels,
             SalaryMin: request.SalaryMin,
@@ -171,10 +180,71 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
 
         var (jobs, scores, totalCount) = await _jobRepository.SearchJobsAdvancedAsync(criteria, cancellationToken);
 
+        // 6. "No Results" Recovery (Filter Relaxation & Typo Suggestions)
+        string? broadeningNotice = null;
+        string? suggestedQuery = null;
+
+        if (totalCount == 0)
+        {
+            bool hasRestrictiveFilters = request.SalaryMin.HasValue ||
+                                         request.SalaryMax.HasValue ||
+                                         request.DatePosted != DatePostedFilter.AllTime ||
+                                         (request.EmploymentTypes is { Count: > 0 }) ||
+                                         (request.ExperienceLevels is { Count: > 0 });
+
+            if (hasRestrictiveFilters)
+            {
+                _logger.LogInformation("Zero results for '{Query}' with restrictive filters; attempting filter relaxation", request.Query);
+
+                var relaxedCriteria = criteria with
+                {
+                    SalaryMin = null,
+                    SalaryMax = null,
+                    DatePosted = DatePostedFilter.AllTime
+                };
+
+                var (relJobs, relScores, relCount) = await _jobRepository.SearchJobsAdvancedAsync(relaxedCriteria, cancellationToken);
+                if (relCount > 0)
+                {
+                    jobs = relJobs;
+                    scores = relScores;
+                    totalCount = relCount;
+                    broadeningNotice = "No exact matches with your salary/date filters. Showing results with relaxed filters.";
+                }
+                else if ((request.EmploymentTypes is { Count: > 0 }) || (request.ExperienceLevels is { Count: > 0 }))
+                {
+                    var ultraRelaxedCriteria = relaxedCriteria with
+                    {
+                        EmploymentTypes = null,
+                        ExperienceLevels = null
+                    };
+
+                    var (uJobs, uScores, uCount) = await _jobRepository.SearchJobsAdvancedAsync(ultraRelaxedCriteria, cancellationToken);
+                    if (uCount > 0)
+                    {
+                        jobs = uJobs;
+                        scores = uScores;
+                        totalCount = uCount;
+                        broadeningNotice = "No exact matches found with all filters. Showing all positions matching your keyword.";
+                    }
+                }
+            }
+
+            if (totalCount == 0 && !string.IsNullOrWhiteSpace(request.Query))
+            {
+                var closestTitle = await _jobRepository.FindClosestActiveTitleAsync(request.Query, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(closestTitle) && !closestTitle.Equals(request.Query.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    suggestedQuery = closestTitle;
+                    broadeningNotice = $"No exact matches found for '{request.Query}'. Did you mean '{closestTitle}'?";
+                }
+            }
+        }
+
         stopwatch.Stop();
         long elapsedMs = stopwatch.ElapsedMilliseconds;
 
-        // 5. Map results to DTOs
+        // 7. Map results to DTOs and populate MatchedTerms
         var dtos = new List<JobSearchResultDto>(jobs.Count);
         for (int i = 0; i < jobs.Count; i++)
         {
@@ -183,6 +253,8 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
                 .Where(js => js.Skill != null)
                 .Select(js => js.Skill!.Name)
                 .ToList() ?? new List<string>();
+
+            var matchedTerms = ExtractMatchedTerms(j, queryUnderstanding, request.Query);
 
             dtos.Add(new JobSearchResultDto
             {
@@ -204,7 +276,8 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
                 SourceName = j.Source?.Name ?? (j.RawPostId == null ? "Direct" : "Aggregated"),
                 IsVerified = j.RawPostId == null,
                 ApplicantsClickCount = j.ApplicantsClickCount,
-                CompanyId = j.CompanyId
+                CompanyId = j.CompanyId,
+                MatchedTerms = matchedTerms
             });
         }
 
@@ -213,10 +286,12 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
             Items = dtos,
             TotalCount = totalCount,
             Page = request.Page,
-            PageSize = request.PageSize
+            PageSize = request.PageSize,
+            BroadeningNotice = broadeningNotice,
+            SuggestedQuery = suggestedQuery
         };
 
-        // 6. Cache result
+        // 8. Cache result
         try
         {
             await _cache.SetStringAsync(
@@ -231,5 +306,40 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
         }
 
         return result;
+    }
+
+    private static IReadOnlyList<string> ExtractMatchedTerms(
+        JobRadar.Domain.Entities.Job j,
+        QueryUnderstandingResult qu,
+        string? rawQuery)
+    {
+        var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (!string.IsNullOrWhiteSpace(rawQuery))
+        {
+            foreach (var word in rawQuery.Split([' ', ',', '/', '-', '+'], StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (word.Length >= 2) candidates.Add(word);
+            }
+        }
+        foreach (var term in qu.ExpandedTerms)
+        {
+            if (term.Length >= 2) candidates.Add(term);
+        }
+
+        var matched = new List<string>();
+        var skillNames = j.JobSkills?
+            .Where(s => s.Skill != null)
+            .Select(s => s.Skill!.Name) ?? Enumerable.Empty<string>();
+        var searchableText = $"{j.Title} {j.CompanyName} {j.Description} {string.Join(" ", skillNames)}";
+
+        foreach (var candidate in candidates)
+        {
+            if (searchableText.Contains(candidate, StringComparison.OrdinalIgnoreCase))
+            {
+                matched.Add(candidate);
+            }
+        }
+
+        return matched.Distinct(StringComparer.OrdinalIgnoreCase).Take(6).ToList();
     }
 }

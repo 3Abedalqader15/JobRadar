@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentAssertions;
 using JobRadar.Application.Abstractions;
+using JobRadar.Application.Common.Search;
 using JobRadar.Application.Features.JobSearch.Queries;
 using JobRadar.Application.Models;
 using JobRadar.Domain.Entities;
@@ -19,6 +20,7 @@ public class SearchJobsQueryHandlerTests
 {
     private readonly Mock<IJobRepository> _mockJobRepo;
     private readonly Mock<IEmbeddingService> _mockEmbeddingService;
+    private readonly Mock<IQueryUnderstandingService> _mockQueryUnderstandingService;
     private readonly Mock<IDistributedCache> _mockCache;
     private readonly Mock<ILogger<SearchJobsQueryHandler>> _mockLogger;
     private readonly SearchJobsQueryHandler _handler;
@@ -27,12 +29,18 @@ public class SearchJobsQueryHandlerTests
     {
         _mockJobRepo = new Mock<IJobRepository>();
         _mockEmbeddingService = new Mock<IEmbeddingService>();
+        _mockQueryUnderstandingService = new Mock<IQueryUnderstandingService>();
         _mockCache = new Mock<IDistributedCache>();
         _mockLogger = new Mock<ILogger<SearchJobsQueryHandler>>();
+
+        _mockQueryUnderstandingService
+            .Setup(q => q.UnderstandQueryAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new QueryUnderstandingResult(string.Empty, string.Empty, new List<string>(), null, new List<string>(), false));
 
         _handler = new SearchJobsQueryHandler(
             _mockJobRepo.Object,
             _mockEmbeddingService.Object,
+            _mockQueryUnderstandingService.Object,
             _mockCache.Object,
             _mockLogger.Object);
     }
@@ -191,4 +199,86 @@ public class SearchJobsQueryHandlerTests
 
         key1.Should().Be(key2);
     }
+
+    [Fact]
+    public async Task Handle_AppliesQueryUnderstanding_AndExtractsMatchedTerms()
+    {
+        // Arrange
+        var query = new SearchJobsQuery(".NET Engineer");
+        _mockCache.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((byte[])null!);
+
+        _mockQueryUnderstandingService
+            .Setup(q => q.UnderstandQueryAsync(".NET Engineer", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new QueryUnderstandingResult(
+                OriginalQuery: ".NET Engineer",
+                NormalizedQuery: "dotnet engineer",
+                ExpandedTerms: new List<string> { "c#", "dotnet", "asp.net" },
+                InferredIsRemote: false,
+                InferredSkills: new List<string> { "c#", ".net" },
+                IsAmbiguousNaturalLanguage: false));
+
+        var fakeJob = Job.Create(Guid.NewGuid(), "Senior C# Backend Developer", "TechCo", "Building APIs with ASP.NET Core.");
+        _mockJobRepo.Setup(r => r.SearchJobsAdvancedAsync(It.IsAny<JobSearchCriteria>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<Job> { fakeJob }, new double[] { 0.88 }, 1));
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Items.Should().HaveCount(1);
+        result.Items[0].MatchedTerms.Should().NotBeNull();
+        result.Items[0].MatchedTerms.Should().Contain("c#");
+        result.Items[0].MatchedTerms.Should().Contain("asp.net");
+    }
+
+    [Fact]
+    public async Task Handle_BroadensFilters_WhenNoResultsFoundWithStrictFilters()
+    {
+        // Arrange
+        var query = new SearchJobsQuery("Go Developer", SalaryMin: 200000m);
+        _mockCache.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((byte[])null!);
+
+        var relaxedJob = Job.Create(Guid.NewGuid(), "Senior Go Developer", "Fintech", "Go microservices.");
+
+        // First call with SalaryMin returns 0 results
+        _mockJobRepo.SetupSequence(r => r.SearchJobsAdvancedAsync(It.IsAny<JobSearchCriteria>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<Job>(), EmptyScores, 0))
+            .ReturnsAsync((new List<Job> { relaxedJob }, new double[] { 0.75 }, 1));
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Items.Should().HaveCount(1);
+        result.BroadeningNotice.Should().NotBeNull();
+        result.BroadeningNotice.Should().Contain("relaxed filters");
+    }
+
+    [Fact]
+    public async Task Handle_SuggestsClosestTitle_WhenNoResultsFound()
+    {
+        // Arrange
+        var query = new SearchJobsQuery("Microsft");
+        _mockCache.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((byte[])null!);
+
+        _mockJobRepo.Setup(r => r.SearchJobsAdvancedAsync(It.IsAny<JobSearchCriteria>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<Job>(), EmptyScores, 0));
+
+        _mockJobRepo.Setup(r => r.FindClosestActiveTitleAsync("Microsft", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("Microsoft Software Engineer");
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Items.Should().BeEmpty();
+        result.SuggestedQuery.Should().Be("Microsoft Software Engineer");
+    }
 }
+

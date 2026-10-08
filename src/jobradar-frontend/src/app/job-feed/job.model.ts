@@ -46,6 +46,7 @@ export interface JobSearchResultDto {
   isVerified?: boolean;
   applicantsClickCount?: number;
   companyId?: string | null;
+  matchedTerms?: string[];
 }
 
 export interface JobSearchCriteriaDto {
@@ -68,6 +69,8 @@ export interface PagedResult<T> {
   totalCount: number;
   page: number;
   pageSize: number;
+  broadeningNotice?: string;
+  suggestedQuery?: string;
 }
 
 export enum QuestionType {

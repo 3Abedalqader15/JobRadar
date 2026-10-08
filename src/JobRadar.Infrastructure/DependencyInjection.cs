@@ -65,6 +65,7 @@ public static class DependencyInjection
         services.AddScoped<IEmbeddingService, GeminiEmbeddingService>();
         services.AddScoped<IDocumentTextExtractionService, DocumentTextExtractionService>();
         services.AddScoped<ICvMatchAnalysisService, GeminiCvMatchAnalysisService>();
+        services.AddScoped<JobRadar.Application.Common.Search.IQueryUnderstandingService, QueryUnderstandingService>();
 
         // ── Web Crawlers & Automated Periodic Ingestion ───────────────────────
         services.AddHttpClient("JobCrawler", client =>

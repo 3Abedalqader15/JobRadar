@@ -99,6 +99,8 @@ export class JobFeedComponent implements OnInit, OnDestroy, AfterViewInit {
   searchLatencyMs = signal<number | null>(null);
   newMatchingJobsCount = signal<number>(0);
   highlightedJobId = signal<string | null>(null);
+  broadeningNotice = signal<string | null>(null);
+  suggestedQuery = signal<string | null>(null);
 
   // Saved Jobs Filter & Swipe Mode Triage
   savedOnlyFilter = signal<boolean>(false);
@@ -655,6 +657,8 @@ export class JobFeedComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (res) => {
         this.jobs.set(res.items);
         this.totalCount.set(res.totalCount);
+        this.broadeningNotice.set(res.broadeningNotice || null);
+        this.suggestedQuery.set(res.suggestedQuery || null);
         this.loading.set(false);
         const duration = Math.round(performance.now() - startTime);
         this.searchLatencyMs.set(
@@ -676,6 +680,30 @@ export class JobFeedComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       }
     });
+  }
+
+  applySuggestedQuery(suggestion: string): void {
+    this.filterForm.patchValue({ query: suggestion });
+  }
+
+  highlightTerms(text: string, matchedTerms?: string[]): string {
+    if (!text) return '';
+    if (!matchedTerms || matchedTerms.length === 0) return text;
+
+    // Filter out terms with length < 2 and escape regex special characters
+    const validTerms = matchedTerms
+      .map(t => t.trim())
+      .filter(t => t.length > 1)
+      .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
+    if (validTerms.length === 0) return text;
+
+    try {
+      const pattern = new RegExp(`(${validTerms.join('|')})`, 'gi');
+      return text.replace(pattern, '<mark class="term-highlight">$1</mark>');
+    } catch {
+      return text;
+    }
   }
 
   // Crawler Ingestion

@@ -5,6 +5,7 @@ namespace JobRadar.Application.Abstractions;
 
 public sealed record JobSearchCriteria(
     string? Keyword,
+    IReadOnlyList<string>? ExpandedTerms,
     float[]? Vector,
     string? Location,
     bool? IsRemote,
@@ -49,4 +50,5 @@ public interface IJobRepository
     Task<IReadOnlyList<string>> GetExistingUrlsAsync(IEnumerable<string> urls, CancellationToken cancellationToken = default);
     Task<bool> ExistsByTitleAndCompanyAsync(string title, string companyName, CancellationToken cancellationToken = default);
     Task AddWithSkillsAsync(Job job, IEnumerable<string> skillNames, CancellationToken cancellationToken = default);
+    Task<string?> FindClosestActiveTitleAsync(string query, CancellationToken cancellationToken = default);
 }

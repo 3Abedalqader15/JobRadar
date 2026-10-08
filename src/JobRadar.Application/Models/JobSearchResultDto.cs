@@ -23,4 +23,5 @@ public class JobSearchResultDto
     public bool IsVerified { get; set; }
     public int ApplicantsClickCount { get; set; }
     public Guid? CompanyId { get; set; }
+    public IReadOnlyList<string> MatchedTerms { get; set; } = Array.Empty<string>();
 }

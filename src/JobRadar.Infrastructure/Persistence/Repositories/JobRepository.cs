@@ -5,10 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using Pgvector;
 using Pgvector.EntityFrameworkCore;
 
+using Microsoft.Extensions.Logging;
+
 namespace JobRadar.Infrastructure.Persistence.Repositories;
 
-public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbContext), IJobRepository
+public class JobRepository(AppDbContext dbContext, ILogger<JobRepository> logger) : Repository<Job, Guid>(dbContext), IJobRepository
 {
+    private readonly ILogger<JobRepository> _logger = logger;
+
     public async Task<IReadOnlyList<Job>> GetPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
     {
         return await DbSet
@@ -37,6 +41,7 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
     {
         var criteria = new JobSearchCriteria(
             Keyword: null,
+            ExpandedTerms: null,
             Vector: vector,
             Location: location,
             IsRemote: null,
@@ -124,15 +129,57 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
             query = query.Where(j => j.PostedAt >= cutoff);
         }
 
-        // 7. Keyword Search (Trigram / Full-text substring matching)
-        if (!string.IsNullOrWhiteSpace(criteria.Keyword))
+        bool isPostgreSql = Context.Database.IsNpgsql();
+
+        // 7. Keyword Search & Typo Tolerance (pg_trgm + Substring + Synonyms)
+        if (!string.IsNullOrWhiteSpace(criteria.Keyword) || criteria.ExpandedTerms is { Count: > 0 })
         {
-            var kw = criteria.Keyword.Trim();
-            query = query.Where(j =>
-                EF.Functions.ILike(j.Title, $"%{kw}%") ||
-                EF.Functions.ILike(j.CompanyName, $"%{kw}%") ||
-                (j.Location != null && EF.Functions.ILike(j.Location, $"%{kw}%")) ||
-                EF.Functions.ILike(j.Description, $"%{kw}%"));
+            var kw = criteria.Keyword?.Trim();
+            var hasKw = !string.IsNullOrWhiteSpace(kw);
+            var expanded = criteria.ExpandedTerms?
+                .Where(t => !string.IsNullOrWhiteSpace(t) && (kw == null || !t.Equals(kw, StringComparison.OrdinalIgnoreCase)))
+                .Distinct()
+                .ToList();
+
+            var syn1 = expanded != null && expanded.Count > 0 ? expanded[0] : null;
+            var syn2 = expanded != null && expanded.Count > 1 ? expanded[1] : null;
+            var syn3 = expanded != null && expanded.Count > 2 ? expanded[2] : null;
+            var syn4 = expanded != null && expanded.Count > 3 ? expanded[3] : null;
+
+            if (isPostgreSql)
+            {
+                query = query.Where(j =>
+                    (hasKw && (
+                        EF.Functions.ILike(j.Title, $"%{kw}%") ||
+                        EF.Functions.ILike(j.CompanyName, $"%{kw}%") ||
+                        (j.Location != null && EF.Functions.ILike(j.Location, $"%{kw}%")) ||
+                        EF.Functions.ILike(j.Description, $"%{kw}%") ||
+                        EF.Functions.TrigramsAreWordSimilar(kw!, j.Title) ||
+                        EF.Functions.TrigramsAreWordSimilar(kw!, j.CompanyName) ||
+                        EF.Functions.TrigramsSimilarity(j.Title, kw!) >= 0.35f ||
+                        EF.Functions.TrigramsSimilarity(j.CompanyName, kw!) >= 0.40f
+                    )) ||
+                    (syn1 != null && (EF.Functions.ILike(j.Title, $"%{syn1}%") || EF.Functions.ILike(j.Description, $"%{syn1}%"))) ||
+                    (syn2 != null && (EF.Functions.ILike(j.Title, $"%{syn2}%") || EF.Functions.ILike(j.Description, $"%{syn2}%"))) ||
+                    (syn3 != null && (EF.Functions.ILike(j.Title, $"%{syn3}%") || EF.Functions.ILike(j.Description, $"%{syn3}%"))) ||
+                    (syn4 != null && (EF.Functions.ILike(j.Title, $"%{syn4}%") || EF.Functions.ILike(j.Description, $"%{syn4}%")))
+                );
+            }
+            else
+            {
+                query = query.Where(j =>
+                    (hasKw && (
+                        EF.Functions.ILike(j.Title, $"%{kw}%") ||
+                        EF.Functions.ILike(j.CompanyName, $"%{kw}%") ||
+                        (j.Location != null && EF.Functions.ILike(j.Location, $"%{kw}%")) ||
+                        EF.Functions.ILike(j.Description, $"%{kw}%")
+                    )) ||
+                    (syn1 != null && (EF.Functions.ILike(j.Title, $"%{syn1}%") || EF.Functions.ILike(j.Description, $"%{syn1}%"))) ||
+                    (syn2 != null && (EF.Functions.ILike(j.Title, $"%{syn2}%") || EF.Functions.ILike(j.Description, $"%{syn2}%"))) ||
+                    (syn3 != null && (EF.Functions.ILike(j.Title, $"%{syn3}%") || EF.Functions.ILike(j.Description, $"%{syn3}%"))) ||
+                    (syn4 != null && (EF.Functions.ILike(j.Title, $"%{syn4}%") || EF.Functions.ILike(j.Description, $"%{syn4}%")))
+                );
+            }
         }
 
         // 8. Total Count for Pagination
@@ -142,28 +189,55 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
             return (Array.Empty<Job>(), Array.Empty<double>(), 0);
         }
 
-        // 9. Sorting & Scoring (Model A)
+        // 9. Sorting & Scoring (Hybrid Fusion: Trigram + FTS + Vector)
         int skip = (criteria.Page - 1) * criteria.PageSize;
         int take = criteria.PageSize;
 
-        if (criteria.Vector != null && criteria.Vector.Length > 0 && criteria.SortBy == JobSortOption.Relevance)
+        if (criteria.SortBy == JobSortOption.Relevance)
         {
-            var pgVector = new Vector(criteria.Vector);
+            var kw = criteria.Keyword?.Trim() ?? "";
+            var pgVector = criteria.Vector != null && criteria.Vector.Length > 0 ? new Vector(criteria.Vector) : null;
+            bool hasVector = pgVector != null;
+            bool hasKw = !string.IsNullOrWhiteSpace(kw);
 
-            var rankedResults = await query
-                .Select(j => new
+            if (isPostgreSql && (hasKw || hasVector))
+            {
+                var rankedQuery = query.Select(j => new
                 {
                     Job = j,
-                    Distance = j.Embedding != null ? j.Embedding.CosineDistance(pgVector) : 1.0
-                })
-                .OrderBy(x => x.Distance)
-                .Skip(skip)
-                .Take(take)
-                .ToListAsync(cancellationToken);
+                    TrigramScore = hasKw ? (double)EF.Functions.TrigramsSimilarity(j.Title, kw) : 0.0,
+                    VectorScore = hasVector && j.Embedding != null ? Math.Max(0.0, 1.0 - (double)j.Embedding.CosineDistance(pgVector!)) : 0.0,
+                    TitleBonus = hasKw && EF.Functions.ILike(j.Title, $"%{kw}%") ? 0.35 : 0.0
+                });
 
-            var jobs = rankedResults.Select(x => x.Job).ToList();
-            var scores = rankedResults.Select(x => Math.Max(0.0, Math.Min(1.0, 1.0 - x.Distance))).ToArray();
-            return (jobs, scores, totalCount);
+                var rankedResults = await rankedQuery
+                    .Select(x => new
+                    {
+                        x.Job,
+                        x.TrigramScore,
+                        x.VectorScore,
+                        CombinedScore = hasVector
+                            ? (0.45 * (x.TrigramScore + x.TitleBonus) + 0.30 * x.VectorScore + 0.25 * (x.Job.PostedAt > DateTime.UtcNow.AddDays(-7) ? 1.0 : 0.4))
+                            : (0.70 * (x.TrigramScore + x.TitleBonus) + 0.30 * (x.Job.PostedAt > DateTime.UtcNow.AddDays(-7) ? 1.0 : 0.4))
+                    })
+                    .OrderByDescending(x => x.CombinedScore)
+                    .ThenByDescending(x => x.Job.PostedAt)
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync(cancellationToken);
+
+                // Structured logging for ranking quality audit
+                foreach (var item in rankedResults.Take(5))
+                {
+                    _logger.LogInformation(
+                        "Search Ranking Audit | Query: '{Query}' | JobId: {JobId} | Title: '{Title}' | TrigramScore: {Trigram:F3} | VectorScore: {Vector:F3} | CombinedScore: {Combined:F3}",
+                        kw, item.Job.Id, item.Job.Title, item.TrigramScore, item.VectorScore, item.CombinedScore);
+                }
+
+                var jobs = rankedResults.Select(x => x.Job).ToList();
+                var scores = rankedResults.Select(x => Math.Round(Math.Min(1.0, Math.Max(0.05, x.CombinedScore)), 4)).ToArray();
+                return (jobs, scores, totalCount);
+            }
         }
 
         // Fast-path ordering (Newest, Salary, or default)
@@ -238,5 +312,29 @@ public class JobRepository(AppDbContext dbContext) : Repository<Job, Guid>(dbCon
                 Context.JobSkillMaps.Add(new JobSkillMap(job.Id, skill.Id));
             }
         }
+    }
+
+    public async Task<string?> FindClosestActiveTitleAsync(string query, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return null;
+        var trimmed = query.Trim();
+
+        if (Context.Database.IsNpgsql())
+        {
+            return await DbSet
+                .AsNoTracking()
+                .Where(j => j.IsActive)
+                .Select(j => new
+                {
+                    j.Title,
+                    Sim = (double)EF.Functions.TrigramsSimilarity(j.Title, trimmed)
+                })
+                .Where(x => x.Sim > 0.3)
+                .OrderByDescending(x => x.Sim)
+                .Select(x => x.Title)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        return null;
     }
 }

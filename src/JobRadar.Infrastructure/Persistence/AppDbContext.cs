@@ -44,6 +44,7 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
         if (Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
         {
             builder.HasPostgresExtension("vector");
+            builder.HasPostgresExtension("pg_trgm");
         }
 
         // Apply all IEntityTypeConfiguration<T> from this assembly
