@@ -12,11 +12,15 @@
 
       <!-- Live Stream Status & Global Sync -->
       <div class="nav-center">
-        <div class="stream-status" [class.is-connected]="jobService.connectionStateSignal() === 'connected'">
+        <div class="stream-status" 
+          [class.is-connected]="jobService.connectionStateSignal() === 'connected'"
+          [class.is-reconnecting]="jobService.connectionStateSignal() === 'reconnecting'">
           <span class="stream-radar-beacon"></span>
           <span class="stream-text">
             @if (jobService.connectionStateSignal() === 'connected') {
               Live Scanning Active
+            } @else if (jobService.connectionStateSignal() === 'reconnecting') {
+              Reconnecting Stream...
             } @else {
               Connecting Stream...
             }
@@ -426,6 +430,17 @@
 
     <!-- Listings & Map Main Area -->
     <main class="feed-content-area">
+      <!-- Live Matching Jobs Refresh Banner -->
+      @if (newMatchingJobsCount() > 0) {
+        <div class="live-refresh-banner" (click)="refreshFeed()" role="button" tabindex="0" (keydown.enter)="refreshFeed()">
+          <span class="live-beacon-pulse">⚡</span>
+          <span class="live-banner-text">
+            <strong>{{ newMatchingJobsCount() }}</strong> new {{ newMatchingJobsCount() === 1 ? 'job matches' : 'jobs match' }} your search criteria.
+            <span class="live-banner-action">Click to refresh</span>
+          </span>
+        </div>
+      }
+
       <!-- Loading Skeleton (Dense List Layout) -->
       @if (loading() && jobs().length === 0) {
         <div class="skeleton-list-container">
@@ -456,6 +471,7 @@
             <article
               class="dense-job-row"
               [class.is-new-item]="job.isNew"
+              [class.is-pulse-highlight]="highlightedJobId() === job.id"
               [class.is-verified-job]="job.isVerified"
               (click)="openJobDrawer(job)"
               tabindex="0"
@@ -598,6 +614,7 @@
             <div
               class="radar-grid-card"
               [class.is-new-item]="job.isNew"
+              [class.is-pulse-highlight]="highlightedJobId() === job.id"
               [class.is-verified-job]="job.isVerified"
               (click)="openJobDrawer(job)"
             >

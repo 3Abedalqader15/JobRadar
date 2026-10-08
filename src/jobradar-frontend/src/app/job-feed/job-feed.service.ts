@@ -4,6 +4,9 @@ import * as signalR from '@microsoft/signalr';
 import { Observable } from 'rxjs';
 import { JobSearchCriteriaDto, JobSearchResultDto, PagedResult, JobQuestionDto } from './job.model';
 import { NotificationService } from '../notifications/notification.service';
+import { computeDesiredGroups } from './job-feed.utils';
+
+export type SignalRConnectionState = 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
 
 @Injectable({
   providedIn: 'root'
@@ -15,9 +18,11 @@ export class JobFeedService {
   private hubConnection: signalR.HubConnection | undefined;
   private currentSubscribedGroups = new Set<string>();
 
-  // Angular 17 Signal for real-time newly broadcasted matching jobs
+  // Reactive state signals for real-time updates and resilience
   public readonly newJobSignal = signal<JobSearchResultDto | null>(null);
-  public readonly connectionStateSignal = signal<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  public readonly deactivatedJobSignal = signal<string | null>(null);
+  public readonly connectionStateSignal = signal<SignalRConnectionState>('disconnected');
+  public readonly reconnectedSignal = signal<number>(0);
 
   public startSignalRConnection(): void {
     if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
@@ -31,10 +36,27 @@ export class JobFeedService {
       .withAutomaticReconnect()
       .build();
 
-    this.hubConnection.onreconnected(() => {
+    this.hubConnection.onreconnecting(() => {
+      console.warn('⚠️ SignalR connection lost, attempting automatic reconnect...');
+      this.connectionStateSignal.set('reconnecting');
+    });
+
+    this.hubConnection.onreconnected(async (newConnectionId) => {
+      console.log('✅ SignalR reconnected with connectionId:', newConnectionId);
       this.connectionStateSignal.set('connected');
-      // Resubscribe to current criteria groups
-      this.resubscribeAllGroups();
+
+      // Re-join active criteria groups since server-side group membership is lost on reconnect
+      if (this.currentSubscribedGroups.size > 0 && this.hubConnection) {
+        try {
+          await this.hubConnection.invoke('UpdateCriteriaSubscription', [], Array.from(this.currentSubscribedGroups));
+          console.log('Re-joined criteria groups after reconnect:', Array.from(this.currentSubscribedGroups));
+        } catch (err) {
+          console.warn('Failed to re-join criteria groups after reconnect', err);
+        }
+      }
+
+      // Signal components to re-run REST search to recover events missed during disconnection
+      this.reconnectedSignal.set(Date.now());
     });
 
     this.hubConnection.onclose(() => {
@@ -43,6 +65,7 @@ export class JobFeedService {
 
     // 1. Relevance-scoped event listener
     this.hubConnection.on('ReceiveRelevantJob', (job: JobSearchResultDto) => {
+      if (!job) return;
       job.isNew = true;
       this.newJobSignal.set(job);
 
@@ -59,19 +82,38 @@ export class JobFeedService {
       });
     });
 
+    // 2. Job Deactivation event listener (broadcast to all)
+    this.hubConnection.on('JobDeactivated', (payload: { id: string } | string) => {
+      const id = typeof payload === 'string' ? payload : payload?.id;
+      if (id) {
+        this.deactivatedJobSignal.set(id);
+      }
+    });
+
     // Backward compatibility if global broadcast was invoked
     this.hubConnection.on('ReceiveNewJob', (job: JobSearchResultDto) => {
+      if (!job) return;
       job.isNew = true;
       this.newJobSignal.set(job);
     });
 
     this.hubConnection
       .start()
-      .then(() => {
+      .then(async () => {
         console.log('✅ SignalR connection established to /hubs/jobs');
         this.connectionStateSignal.set('connected');
-        // Join default broad group
-        this.joinGroup('grp:all');
+
+        // Initial default subscription: grp:all
+        const initialGroups = this.currentSubscribedGroups.size > 0
+          ? Array.from(this.currentSubscribedGroups)
+          : ['grp:all'];
+
+        try {
+          await this.hubConnection?.invoke('UpdateCriteriaSubscription', [], initialGroups);
+          this.currentSubscribedGroups = new Set(initialGroups);
+        } catch (err) {
+          console.warn('Initial group subscription error:', err);
+        }
       })
       .catch(err => {
         console.warn('⚠️ SignalR connection error: ', err);
@@ -81,90 +123,54 @@ export class JobFeedService {
 
   public stopSignalRConnection(): void {
     if (this.hubConnection) {
-      this.hubConnection.stop();
-      this.currentSubscribedGroups.clear();
-      this.connectionStateSignal.set('disconnected');
+      this.clearSubscriptions().finally(() => {
+        this.hubConnection?.stop();
+        this.connectionStateSignal.set('disconnected');
+      });
     }
   }
 
   /**
-   * Updates SignalR criteria group subscriptions based on the user's active search & filter state
+   * Updates SignalR criteria group subscriptions based on the user's active search & filter state.
+   * Atomically leaves stale groups and joins required groups.
    */
-  public updateCriteriaSubscriptions(criteria: Partial<JobSearchCriteriaDto>): void {
+  public async updateCriteriaSubscriptions(criteria: Partial<JobSearchCriteriaDto>): Promise<void> {
+    const desiredGroups = computeDesiredGroups(criteria);
+
     if (!this.hubConnection || this.hubConnection.state !== signalR.HubConnectionState.Connected) {
+      this.currentSubscribedGroups = desiredGroups;
       return;
     }
 
-    const desiredGroups = new Set<string>();
-    desiredGroups.add('grp:all');
+    const toLeave = Array.from(this.currentSubscribedGroups).filter(g => !desiredGroups.has(g));
+    const toJoin = Array.from(desiredGroups).filter(g => !this.currentSubscribedGroups.has(g));
 
-    if (criteria.isRemote) {
-      desiredGroups.add('grp:remote');
+    if (toLeave.length === 0 && toJoin.length === 0) {
+      return;
     }
 
-    if (criteria.location && criteria.location.trim()) {
-      const locSlug = criteria.location.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (locSlug) {
-        desiredGroups.add(`grp:loc:${locSlug}`);
-      }
+    try {
+      await this.hubConnection.invoke('UpdateCriteriaSubscription', toLeave, toJoin);
+      this.currentSubscribedGroups = desiredGroups;
+    } catch (err) {
+      console.warn('Could not update criteria subscriptions:', err);
     }
+  }
 
-    if (criteria.employmentTypes && criteria.employmentTypes.length > 0) {
-      for (const emp of criteria.employmentTypes) {
-        desiredGroups.add(`grp:emp:${emp}`);
-      }
-    }
-
-    if (criteria.experienceLevels && criteria.experienceLevels.length > 0) {
-      for (const exp of criteria.experienceLevels) {
-        desiredGroups.add(`grp:exp:${exp}`);
-      }
-    }
-
-    if (criteria.skills && criteria.skills.length > 0) {
-      for (const skill of criteria.skills) {
-        const skillSlug = skill.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (skillSlug) {
-          desiredGroups.add(`grp:skill:${skillSlug}`);
+  /**
+   * Cleans up all group subscriptions on component teardown to guarantee zero leaks.
+   */
+  public async clearSubscriptions(): Promise<void> {
+    if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
+      if (this.currentSubscribedGroups.size > 0) {
+        try {
+          await this.hubConnection.invoke('UpdateCriteriaSubscription', Array.from(this.currentSubscribedGroups), []);
+        } catch (err) {
+          console.warn('Error clearing criteria subscriptions:', err);
         }
       }
     }
-
-    // Leave groups that are no longer active
-    for (const group of this.currentSubscribedGroups) {
-      if (!desiredGroups.has(group)) {
-        this.leaveGroup(group);
-      }
-    }
-
-    // Join new groups
-    for (const group of desiredGroups) {
-      if (!this.currentSubscribedGroups.has(group)) {
-        this.joinGroup(group);
-      }
-    }
-  }
-
-  private joinGroup(groupName: string): void {
-    if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
-      this.hubConnection.invoke('JoinCriteriaGroup', groupName)
-        .then(() => this.currentSubscribedGroups.add(groupName))
-        .catch(err => console.warn(`Could not join group ${groupName}`, err));
-    }
-  }
-
-  private leaveGroup(groupName: string): void {
-    if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
-      this.hubConnection.invoke('LeaveCriteriaGroup', groupName)
-        .then(() => this.currentSubscribedGroups.delete(groupName))
-        .catch(err => console.warn(`Could not leave group ${groupName}`, err));
-    }
-  }
-
-  private resubscribeAllGroups(): void {
-    for (const group of this.currentSubscribedGroups) {
-      this.joinGroup(group);
-    }
+    this.currentSubscribedGroups.clear();
   }
 
   public searchJobs(criteria: Partial<JobSearchCriteriaDto>): Observable<PagedResult<JobSearchResultDto>> {

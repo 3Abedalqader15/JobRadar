@@ -34,6 +34,7 @@ import { RadarChartComponent, RadarMetrics } from '../shared/radar-chart.compone
 import { SwipeCardComponent } from './swipe-card.component';
 import { SavedJobsService } from '../shared/saved-jobs.service';
 import { JobApplyModalComponent } from './job-apply-modal.component';
+import { matchesActiveFilter, insertJobAtSortedPosition } from './job-feed.utils';
 
 export interface CategoryShortcut {
   id: string;
@@ -96,6 +97,8 @@ export class JobFeedComponent implements OnInit, OnDestroy, AfterViewInit {
   loading = signal<boolean>(false);
   syncing = signal<boolean>(false);
   searchLatencyMs = signal<number | null>(null);
+  newMatchingJobsCount = signal<number>(0);
+  highlightedJobId = signal<string | null>(null);
 
   // Saved Jobs Filter & Swipe Mode Triage
   savedOnlyFilter = signal<boolean>(false);
@@ -224,12 +227,88 @@ export class JobFeedComponent implements OnInit, OnDestroy, AfterViewInit {
     // Reactive effect for new matching jobs received via SignalR
     effect(() => {
       const newJob = this.jobService.newJobSignal();
-      if (newJob) {
-        this.jobs.update(currentJobs => [newJob, ...currentJobs]);
-        this.totalCount.update(count => count + 1);
-        if (this.viewMode() === 'map') {
-          this.pulseJobOnRadar(newJob);
+      if (!newJob) return;
+
+      const formVals = this.filterForm.value;
+      const criteria: Partial<JobSearchCriteriaDto> = {
+        query: formVals.query?.trim() || undefined,
+        location: formVals.location?.trim() || undefined,
+        isRemote: formVals.isRemote || undefined,
+        employmentTypes: formVals.employmentType != null && formVals.employmentType !== 'null'
+          ? [Number(formVals.employmentType)]
+          : undefined,
+        experienceLevels: formVals.experienceLevel != null && formVals.experienceLevel !== 'null'
+          ? [Number(formVals.experienceLevel)]
+          : undefined,
+        salaryMin: formVals.salaryMin ? Number(formVals.salaryMin) : undefined,
+        salaryMax: formVals.salaryMax ? Number(formVals.salaryMax) : undefined,
+        skills: this.selectedSkills(),
+        sortBy: Number(formVals.sortBy) || JobSortOption.Relevance
+      };
+
+      // Defense-in-depth: strict AND filter check guaranteeing zero display leakage
+      if (!matchesActiveFilter(newJob, criteria)) {
+        return;
+      }
+
+      const sortBy = criteria.sortBy ?? JobSortOption.Relevance;
+
+      // 1. Relevance sort: Do not insert live jobs at a computed position.
+      // Instead, show a non-intrusive banner prompting user to refresh for authentic backend scoring.
+      if (sortBy === JobSortOption.Relevance) {
+        this.newMatchingJobsCount.update(c => c + 1);
+        this.totalCount.update(c => c + 1);
+      } else {
+        // 2. Newest or SalaryDescending: in-place live insertion if on page 1
+        if (this.currentPage() === 1) {
+          const result = insertJobAtSortedPosition(this.jobs(), newJob, sortBy, this.pageSize());
+          this.jobs.set(result.jobs);
+
+          if (result.inserted) {
+            this.totalCount.update(c => c + 1);
+            this.highlightedJobId.set(newJob.id);
+            setTimeout(() => {
+              if (this.highlightedJobId() === newJob.id) {
+                this.highlightedJobId.set(null);
+              }
+            }, 3500);
+          } else if (!result.isUpdate) {
+            // Target sorted position falls beyond pageSize
+            this.totalCount.update(c => c + 1);
+            this.newMatchingJobsCount.update(c => c + 1);
+          }
+        } else {
+          // On page > 1: do not insert into view, increment count and show banner
+          this.totalCount.update(c => c + 1);
+          this.newMatchingJobsCount.update(c => c + 1);
         }
+      }
+
+      if (this.viewMode() === 'map') {
+        this.pulseJobOnRadar(newJob);
+      }
+    }, { allowSignalWrites: true });
+
+    // Reactive effect for real-time job deactivations
+    effect(() => {
+      const deactivatedId = this.jobService.deactivatedJobSignal();
+      if (deactivatedId) {
+        const currentList = this.jobs();
+        if (currentList.some(j => j.id === deactivatedId)) {
+          this.jobs.set(currentList.filter(j => j.id !== deactivatedId));
+          this.totalCount.update(c => Math.max(0, c - 1));
+        }
+        if (this.selectedJob()?.id === deactivatedId) {
+          this.closeJobDrawer();
+        }
+      }
+    }, { allowSignalWrites: true });
+
+    // Reactive effect for recovering missed jobs on SignalR reconnection
+    effect(() => {
+      const reconTime = this.jobService.reconnectedSignal();
+      if (reconTime > 0) {
+        this.loadJobs();
       }
     }, { allowSignalWrites: true });
 
@@ -537,8 +616,14 @@ export class JobFeedComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  refreshFeed(): void {
+    this.newMatchingJobsCount.set(0);
+    this.loadJobs();
+  }
+
   // Core Data Loading
   loadJobs(): void {
+    this.newMatchingJobsCount.set(0);
     this.loading.set(true);
     const formVals = this.filterForm.value;
 

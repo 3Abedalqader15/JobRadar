@@ -2299,3 +2299,101 @@
   background-color: hsla(38, 92%, 50%, 0.15);
   color: var(--color-signal);
 }
+
+/* ══════════════════════════════════════════════════════════════════ */
+/* LIVE SIGNALR SEARCH STREAM & REFRESH BANNER                       */
+/* ══════════════════════════════════════════════════════════════════ */
+
+.live-refresh-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.85rem 1.25rem;
+  margin-bottom: var(--space-4);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(99, 102, 241, 0.08));
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.08);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.live-refresh-banner:hover {
+  transform: translateY(-2px);
+  border-color: rgba(14, 165, 233, 0.65);
+  box-shadow: 0 6px 24px rgba(14, 165, 233, 0.2);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(99, 102, 241, 0.12));
+}
+
+.live-beacon-pulse {
+  font-size: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: beaconPulse 1.5s infinite;
+}
+
+@keyframes beaconPulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 2px #0ea5e9); }
+  50% { transform: scale(1.25); filter: drop-shadow(0 0 8px #0ea5e9); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 2px #0ea5e9); }
+}
+
+.live-banner-text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.live-banner-action {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.15);
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  transition: all 0.15s ease;
+}
+
+.live-refresh-banner:hover .live-banner-action {
+  background: #0ea5e9;
+  color: #ffffff;
+}
+
+/* In-Place Live Insertion Pulse Highlight */
+.dense-job-row.is-pulse-highlight,
+.radar-grid-card.is-pulse-highlight {
+  animation: liveItemPulse 3.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes liveItemPulse {
+  0% {
+    box-shadow: 0 0 0 2px #0ea5e9, 0 8px 28px rgba(14, 165, 233, 0.4);
+    background-color: rgba(14, 165, 233, 0.08);
+  }
+  70% {
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.3), 0 4px 16px rgba(14, 165, 233, 0.15);
+  }
+  100% {
+    box-shadow: none;
+    background-color: transparent;
+  }
+}
+
+/* Stream Reconnecting State */
+.stream-status.is-reconnecting .stream-radar-beacon {
+  background-color: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+  animation: beaconPulse 1s infinite;
+}
+
+.stream-status.is-reconnecting .stream-text {
+  color: #f59e0b;
+}
+
