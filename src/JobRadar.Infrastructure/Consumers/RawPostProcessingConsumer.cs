@@ -187,14 +187,27 @@ public sealed class RawPostProcessingConsumer : IConsumer<RawPostCreatedEvent>
         await EmbeddingBatchProcessor.JobIdChannel.Writer.WriteAsync(job.Id, ct);
 
         // ── 8. Publish JobCreatedEvent ───────────────────────────────────────
+        var skillNames = (extraction.SkillsRequired ?? new List<string>())
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
         await _publisher.Publish(new JobCreatedEvent(
-            JobId:      job.Id,
-            SourceId:   job.SourceId,
-            RawPostId:  job.RawPostId,
-            Title:      job.Title,
-            CompanyName: job.CompanyName,
-            Location:   job.Location,
-            IsRemote:   job.IsRemote), ct);
+            JobId:           job.Id,
+            SourceId:        job.SourceId,
+            RawPostId:       job.RawPostId,
+            Title:           job.Title,
+            CompanyName:     job.CompanyName,
+            Location:        job.Location,
+            IsRemote:        job.IsRemote,
+            EmploymentType:  job.EmploymentType,
+            ExperienceLevel: job.ExperienceLevel,
+            SalaryMin:       job.SalaryMin,
+            SalaryMax:       job.SalaryMax,
+            SalaryCurrency:  job.SalaryCurrency,
+            Skills:          skillNames,
+            ExternalApplyUrl: job.ExternalApplyUrl,
+            PostedAt:        job.PostedAt), ct);
 
         _logger.LogInformation("Published JobCreatedEvent for Job {JobId}.", job.Id);
     }
