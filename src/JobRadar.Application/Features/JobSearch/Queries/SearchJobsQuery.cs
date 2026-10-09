@@ -273,11 +273,13 @@ public sealed class SearchJobsQueryHandler : IRequestHandler<SearchJobsQuery, Pa
                 RelevanceScore = i < scores.Length ? scores[i] : 1.0,
                 ExternalApplyUrl = j.ExternalApplyUrl,
                 SearchDurationMs = elapsedMs,
-                SourceName = j.Source?.Name ?? (j.RawPostId == null ? "Direct" : "Aggregated"),
-                IsVerified = j.RawPostId == null,
+                SourceName = j.IsDirectPlatformPost ? "JobRadar Direct" : (j.Source?.Name ?? "Aggregated"),
+                IsVerified = j.IsDirectPlatformPost,
                 ApplicantsClickCount = j.ApplicantsClickCount,
                 CompanyId = j.CompanyId,
-                MatchedTerms = matchedTerms
+                MatchedTerms = matchedTerms,
+                ApplyEmail = j.ApplyEmail,
+                ApplyPhone = j.ApplyPhone
             });
         }
 

@@ -11,5 +11,6 @@ public interface ICvMatchAnalysisService
         string cvText,
         string jobTitle,
         string jobDescription,
+        Guid? applicationId = null,
         CancellationToken cancellationToken = default);
 }

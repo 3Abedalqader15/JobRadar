@@ -44,6 +44,23 @@ public class SourcesController : ControllerBase
         return Ok(sources);
     }
 
+    [HttpPost("trigger-crawl")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> TriggerCrawl(
+        [FromServices] MediatR.IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var count = await mediator.Send(
+            new JobRadar.Application.Features.Crawlers.Commands.IngestCrawledJobs.IngestCrawledJobsCommand(),
+            cancellationToken);
+        return Ok(new
+        {
+            success = true,
+            newJobsCreated = count,
+            message = $"Crawler executed successfully across all active global and MENA channels. {count} new jobs were ingested."
+        });
+    }
+
     [HttpPost("{id:guid}/resume")]
     [Authorize(Roles = "Admin,CompanyAdmin")]
     public async Task<IActionResult> ResumeSource(Guid id, CancellationToken cancellationToken)

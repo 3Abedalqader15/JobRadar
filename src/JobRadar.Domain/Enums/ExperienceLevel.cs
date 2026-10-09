@@ -9,5 +9,6 @@ public enum ExperienceLevel
     Lead = 4,
     Manager = 5,
     Director = 6,
-    Executive = 7
+    Executive = 7,
+    Unknown = 99
 }

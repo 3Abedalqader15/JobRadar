@@ -67,9 +67,27 @@ public sealed class UserJobApplicationConfiguration : IEntityTypeConfiguration<U
         builder.Property(a => a.AiMissingKeywords)
             .HasColumnName("ai_missing_keywords");
 
+        builder.Property(a => a.AiMissingKeywordEvidence)
+            .HasColumnName("ai_missing_keyword_evidence")
+            .HasColumnType("jsonb");
+
+        builder.Property(a => a.AiScoreBreakdown)
+            .HasColumnName("ai_score_breakdown")
+            .HasColumnType("jsonb");
+
+        builder.Property(a => a.SuspiciousInstructionsDetected)
+            .HasColumnName("suspicious_instructions_detected")
+            .HasDefaultValue(false)
+            .IsRequired();
+
+        builder.Property(a => a.AnalysisPromptVersion)
+            .HasColumnName("analysis_prompt_version")
+            .HasMaxLength(50);
+
         builder.Property(a => a.AiAnalysisSummary)
             .HasColumnName("ai_analysis_summary")
             .HasColumnType("text");
+
 
         builder.Property(a => a.AiAnalysisStatus)
             .HasColumnName("ai_analysis_status")

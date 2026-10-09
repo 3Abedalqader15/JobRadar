@@ -1091,6 +1091,62 @@
   color: var(--color-success);
 }
 
+.direct-jobradar-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding-block: 0.15rem;
+  padding-inline: 0.6rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.22));
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #059669;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.15);
+}
+
+.direct-jobradar-badge.modal-badge {
+  font-size: 0.76rem;
+  padding-block: 0.25rem;
+  padding-inline: 0.75rem;
+}
+
+:host-context([data-theme="dark"]) .direct-jobradar-badge,
+[data-theme="dark"] .direct-jobradar-badge {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.3));
+  border-color: rgba(52, 211, 153, 0.5);
+  color: #34d399;
+}
+
+.radar-network-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full, 9999px);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.network-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+  animation: radarNetworkPulse 2s infinite ease-out;
+}
+
+@keyframes radarNetworkPulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
 /* Freshness Decay Indicator (Signature feature 3) */
 .freshness-decay-badge {
   display: inline-flex;

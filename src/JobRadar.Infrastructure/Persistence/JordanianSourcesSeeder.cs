@@ -79,11 +79,30 @@ public static class JordanianSourcesSeeder
                     fetchIntervalMinutes: interval
                 );
 
-                source.Approve(); // Mark as Active so workers immediately start fetching it
+                if (type == SourceType.LinkedIn)
+                {
+                    source.Pause(); // Disabled: automated LinkedIn listing fetcher produces stubs without descriptions
+                }
+                else
+                {
+                    source.Approve(); // Mark as Active so workers immediately start fetching it
+                }
+
                 db.Sources.Add(source);
                 existingUrlSet.Add(url.ToLowerInvariant());
                 addedCount++;
             }
+        }
+
+        // Ensure any pre-existing LinkedIn sources are also transitioned to Paused
+        var unpausedLinkedInSources = await db.Sources
+            .Where(s => s.Type == SourceType.LinkedIn && s.Status != SourceStatus.Paused)
+            .ToListAsync();
+
+        foreach (var ls in unpausedLinkedInSources)
+        {
+            ls.Pause();
+            addedCount++;
         }
 
         if (addedCount > 0)

@@ -45,6 +45,8 @@ export interface JobPostingItem {
   experienceLevel: number;
   isActive: boolean;
   postedAt: string;
+  isDirect?: boolean;
+  sourceName?: string;
 }
 
 export interface JobPostingsResponse {
@@ -89,6 +91,10 @@ export interface ApplicationItem {
   aiAnalysisStatus?: string;
   aiMissingKeywords?: string[] | null;
   aiAnalysisSummary?: string | null;
+  aiMissingKeywordEvidence?: string | null;
+  aiScoreBreakdown?: string | null;
+  suspiciousInstructionsDetected?: boolean;
+  analysisPromptVersion?: string | null;
 }
 
 export interface ApplicationsResponse {
@@ -136,10 +142,15 @@ export interface AssignHrDto {
 export class AdminService {
   constructor(private http: HttpClient) {}
 
-  getJobPostings(page = 1, pageSize = 20, search?: string): Observable<JobPostingsResponse> {
+  getJobPostings(page = 1, pageSize = 20, search?: string, sourceFilter?: string): Observable<JobPostingsResponse> {
     let params: any = { page, pageSize };
     if (search) params.search = search;
+    if (sourceFilter) params.sourceFilter = sourceFilter;
     return this.http.get<JobPostingsResponse>('/api/job-postings', { params });
+  }
+
+  triggerCrawlerIngestion(): Observable<{ success: boolean; newJobsCreated: number; message: string }> {
+    return this.http.post<{ success: boolean; newJobsCreated: number; message: string }>('/api/sources/trigger-crawl', {});
   }
 
   createJobPosting(data: CreateJobPostingDto): Observable<string> {

@@ -7,7 +7,8 @@ public sealed record GetJobPostingsQuery(
     int Page = 1,
     int PageSize = 20,
     string? SearchTerm = null,
-    Guid? CompanyId = null) : IRequest<GetJobPostingsResponse>;
+    Guid? CompanyId = null,
+    string? SourceFilter = null) : IRequest<GetJobPostingsResponse>;
 
 public sealed record JobDto(
     Guid Id,
@@ -23,7 +24,9 @@ public sealed record JobDto(
     ExperienceLevel ExperienceLevel,
     DateTime PostedAt,
     DateTime CreatedAt,
-    Guid? CompanyId);
+    Guid? CompanyId,
+    bool IsDirect = false,
+    string? SourceName = null);
 
 public sealed record GetJobPostingsResponse(
     IReadOnlyList<JobDto> Items,

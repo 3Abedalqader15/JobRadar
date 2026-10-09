@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\src\JobRadar.Application\JobRadar.Application.csproj" />
     <ProjectReference Include="..\..\src\JobRadar.Infrastructure\JobRadar.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\JobRadar.Api\JobRadar.Api.csproj" />
+    <ProjectReference Include="..\..\src\JobRadar.Workers\JobRadar.Workers.csproj" />
   </ItemGroup>
 
 </Project>

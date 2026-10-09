@@ -13,6 +13,15 @@ public class JobRepository(AppDbContext dbContext, ILogger<JobRepository> logger
 {
     private readonly ILogger<JobRepository> _logger = logger;
 
+    public override async Task<IReadOnlyList<Job>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .AsNoTracking()
+            .Include(j => j.Source)
+            .Include(j => j.Company)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Job>> GetPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
     {
         return await DbSet
@@ -291,10 +300,8 @@ public class JobRepository(AppDbContext dbContext, ILogger<JobRepository> logger
             if (string.IsNullOrWhiteSpace(normSkill)) continue;
 
             var lowerSkill = normSkill.ToLowerInvariant();
-#pragma warning disable CA1862 // EF Core LINQ-to-Entities translates ToLowerInvariant() directly to SQL LOWER()
             var skill = Context.Skills.Local.FirstOrDefault(s => s.Name.Equals(normSkill, StringComparison.OrdinalIgnoreCase))
-                ?? await Context.Skills.FirstOrDefaultAsync(s => s.Name.ToLowerInvariant() == lowerSkill, cancellationToken);
-#pragma warning restore CA1862
+                ?? await Context.Skills.FirstOrDefaultAsync(s => s.Name.ToLower() == lowerSkill, cancellationToken);
 
             if (skill == null)
             {

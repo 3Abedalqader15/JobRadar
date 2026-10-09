@@ -35,7 +35,7 @@ public class RssFeedFetcher
                 var feed = await FeedReader.ReadAsync(feedUrl);
                 return feed.Items.Select(item => new ParsedRssItem(
                     Title: item.Title ?? string.Empty,
-                    Content: item.Description ?? item.Content ?? string.Empty,
+                    Content: JobRadar.Application.Common.HtmlContentSanitizer.Sanitize(item.Description ?? item.Content ?? string.Empty),
                     Link: item.Link,
                     PublishDate: item.PublishingDate
                 )).ToList();

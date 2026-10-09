@@ -19,4 +19,6 @@ public sealed record JobDetailDto(
     string ExperienceLevel,
     DateTime PostedAt,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    string? ApplyEmail = null,
+    string? ApplyPhone = null);

@@ -69,9 +69,10 @@
             <div class="card-company-meta">
               <span class="card-company">{{ job.companyName }}</span>
               <div class="card-tags-row">
-                <span class="card-source">📡 {{ job.sourceName || 'JobRadar' }}</span>
-                @if (job.isVerified) {
-                  <span class="verified-tag">✓ Verified</span>
+                @if (job.isVerified || job.sourceName === 'JobRadar Direct' || job.sourceName === 'Manual') {
+                  <span class="direct-jobradar-badge" title="نُشر مباشرة عبر JobRadar">⚡ نُشر مباشرة عبر JobRadar</span>
+                } @else {
+                  <span class="card-source">📡 {{ job.sourceName || 'JobRadar' }}</span>
                 }
               </div>
             </div>

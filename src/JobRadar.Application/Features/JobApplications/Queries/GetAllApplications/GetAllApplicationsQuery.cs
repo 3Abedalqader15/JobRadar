@@ -34,5 +34,9 @@ public record ApplicationSummaryDto(
     int? AiMatchScore,
     string AiAnalysisStatus,
     string[]? AiMissingKeywords,
-    string? AiAnalysisSummary
+    string? AiAnalysisSummary,
+    string? AiMissingKeywordEvidence = null,
+    string? AiScoreBreakdown = null,
+    bool SuspiciousInstructionsDetected = false,
+    string? AnalysisPromptVersion = null
 );

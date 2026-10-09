@@ -63,7 +63,9 @@ internal sealed class RssFetcher : ISourceFetcher
 
             foreach (var item in feed.Items)
             {
-                var rawContent = $"Title: {item.Title}\nLink: {item.Link}\nDescription: {item.Description}\nContent: {item.Content}";
+                var cleanDesc = JobRadar.Application.Common.HtmlContentSanitizer.Sanitize(item.Description);
+                var cleanContent = JobRadar.Application.Common.HtmlContentSanitizer.Sanitize(item.Content);
+                var rawContent = $"Title: {item.Title}\nLink: {item.Link}\nDescription: {cleanDesc}\nContent: {cleanContent}";
                 var syncId = !string.IsNullOrEmpty(item.Id) ? item.Id : item.Link;
                 var fetchDate = item.PublishingDate ?? DateTime.UtcNow;
 

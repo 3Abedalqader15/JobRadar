@@ -38,6 +38,9 @@ export class AdminComponent implements OnInit {
   jobsLoading = signal(false);
   jobsPage = signal(1);
   jobsPageSize = signal(10);
+  jobsSourceFilter = signal<'all' | 'direct' | 'crawled'>('all');
+  crawlerTriggering = signal(false);
+  crawlerMessage = signal<string | null>(null);
 
   // Applications state & pagination & sorting
   applications = signal<ApplicationItem[]>([]);
@@ -177,15 +180,42 @@ export class AdminComponent implements OnInit {
     }
   }
 
+  setJobsSourceFilter(filter: 'all' | 'direct' | 'crawled'): void {
+    this.jobsSourceFilter.set(filter);
+    this.jobsPage.set(1);
+    this.loadJobs();
+  }
+
   loadJobs() {
     this.jobsLoading.set(true);
-    this.adminService.getJobPostings(this.jobsPage(), this.jobsPageSize()).subscribe({
+    const filter = this.jobsSourceFilter() === 'all' ? undefined : this.jobsSourceFilter();
+    this.adminService.getJobPostings(this.jobsPage(), this.jobsPageSize(), undefined, filter).subscribe({
       next: res => {
         this.jobs.set(res.items);
         this.jobsTotal.set(res.totalCount);
         this.jobsLoading.set(false);
       },
       error: () => this.jobsLoading.set(false)
+    });
+  }
+
+  triggerCrawler(): void {
+    if (this.crawlerTriggering()) return;
+    this.crawlerTriggering.set(true);
+    this.crawlerMessage.set('Crawling live global & MENA boards (Jobicy, RemoteOK, WWR, Tanqeeb)...');
+
+    this.adminService.triggerCrawlerIngestion().subscribe({
+      next: res => {
+        this.crawlerTriggering.set(false);
+        this.crawlerMessage.set(res.message || `Crawler completed. ${res.newJobsCreated} new jobs ingested.`);
+        this.loadJobs();
+        setTimeout(() => this.crawlerMessage.set(null), 8000);
+      },
+      error: err => {
+        this.crawlerTriggering.set(false);
+        this.crawlerMessage.set(err.error?.message || 'Crawler execution encountered an error.');
+        setTimeout(() => this.crawlerMessage.set(null), 8000);
+      }
     });
   }
 
@@ -308,6 +338,9 @@ export class AdminComponent implements OnInit {
     if (status === 'failed') {
       return 'badge-ai-failed';
     }
+    if (status === 'insufficientjobdescription') {
+      return 'badge-ai-insufficient';
+    }
     if (app.aiMatchScore == null) {
       return 'badge-ai-none';
     }
@@ -325,8 +358,27 @@ export class AdminComponent implements OnInit {
     if (status === 'processing') return 'Analyzing...';
     if (status === 'pending') return 'Queued';
     if (status === 'failed') return 'Failed';
+    if (status === 'insufficientjobdescription') return 'Insufficient Job Description';
     if (app.aiMatchScore != null) return `${app.aiMatchScore}% Match`;
     return 'No Score';
+  }
+
+  getParsedBreakdown(breakdownJson?: string | null): any {
+    if (!breakdownJson) return null;
+    try {
+      return JSON.parse(breakdownJson);
+    } catch {
+      return null;
+    }
+  }
+
+  getParsedEvidence(evidenceJson?: string | null): Array<{ keyword: string; evidenceQuote: string }> {
+    if (!evidenceJson) return [];
+    try {
+      return JSON.parse(evidenceJson);
+    } catch {
+      return [];
+    }
   }
 
   // ── Screening Questions Builder Methods ─────────────────────────

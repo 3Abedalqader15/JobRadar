@@ -28,8 +28,13 @@ public sealed class UserJobApplication : Entity<Guid>
     // ── AI Match Analysis ────────────────────────────────────────────────────
     public int? AiMatchScore { get; private set; }
     public string[]? AiMissingKeywords { get; private set; }
+    public string? AiMissingKeywordEvidence { get; private set; }
+    public string? AiScoreBreakdown { get; private set; }
+    public bool SuspiciousInstructionsDetected { get; private set; }
+    public string? AnalysisPromptVersion { get; private set; }
     public string? AiAnalysisSummary { get; private set; }
     public AiAnalysisStatus AiAnalysisStatus { get; private set; } = AiAnalysisStatus.Pending;
+
 
     // ── Navigations ──────────────────────────────────────────────────────────
     public ApplicationUser? User { get; private set; }
@@ -91,12 +96,31 @@ public sealed class UserJobApplication : Entity<Guid>
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void CompleteAiAnalysis(int score, string[]? missingKeywords, string? summary)
+    public void CompleteAiAnalysis(
+        int score,
+        string[]? missingKeywords,
+        string? summary,
+        string? missingKeywordEvidenceJson = null,
+        string? scoreBreakdownJson = null,
+        bool suspiciousInstructionsDetected = false,
+        string? analysisPromptVersion = null)
     {
         AiMatchScore = Math.Clamp(score, 0, 100);
         AiMissingKeywords = missingKeywords ?? Array.Empty<string>();
+        AiMissingKeywordEvidence = missingKeywordEvidenceJson;
+        AiScoreBreakdown = scoreBreakdownJson;
+        SuspiciousInstructionsDetected = suspiciousInstructionsDetected;
+        AnalysisPromptVersion = analysisPromptVersion;
         AiAnalysisSummary = summary;
         AiAnalysisStatus = AiAnalysisStatus.Completed;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetInsufficientJobDescription(string reason = "Job description is too short to perform reliable AI CV matching analysis.")
+    {
+        AiAnalysisStatus = AiAnalysisStatus.InsufficientJobDescription;
+        AiAnalysisSummary = reason;
+        AiMatchScore = null;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -106,6 +130,7 @@ public sealed class UserJobApplication : Entity<Guid>
         AiAnalysisSummary = failureReason;
         UpdatedAt = DateTime.UtcNow;
     }
+
 
     public void AddAnswer(JobApplicationAnswer answer)
     {

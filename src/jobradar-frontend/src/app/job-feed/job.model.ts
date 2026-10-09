@@ -47,6 +47,8 @@ export interface JobSearchResultDto {
   applicantsClickCount?: number;
   companyId?: string | null;
   matchedTerms?: string[];
+  applyEmail?: string | null;
+  applyPhone?: string | null;
 }
 
 export interface JobSearchCriteriaDto {

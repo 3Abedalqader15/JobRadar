@@ -7,5 +7,6 @@ public enum EmploymentType
     Freelance = 2,
     Internship = 3,
     Contract = 4,
-    Temporary = 5
+    Temporary = 5,
+    Unknown = 99
 }

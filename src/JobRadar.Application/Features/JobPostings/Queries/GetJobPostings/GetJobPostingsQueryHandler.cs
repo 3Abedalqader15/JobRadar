@@ -48,6 +48,20 @@ public sealed class GetJobPostingsQueryHandler
                 j.Title.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
                 j.CompanyName.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase));
 
+        // Apply source filter if provided ("direct", "crawled", or "all")
+        if (!string.IsNullOrWhiteSpace(request.SourceFilter))
+        {
+            var filter = request.SourceFilter.Trim().ToLowerInvariant();
+            if (filter == "direct")
+            {
+                filtered = filtered.Where(j => j.IsDirectPlatformPost);
+            }
+            else if (filter == "crawled")
+            {
+                filtered = filtered.Where(j => !j.IsDirectPlatformPost);
+            }
+        }
+
         var list = filtered.ToList();
         var totalCount = list.Count;
         var items = list
@@ -57,7 +71,9 @@ public sealed class GetJobPostingsQueryHandler
                 j.Id, j.Title, j.CompanyName, j.Location, j.IsRemote,
                 j.ExternalApplyUrl, j.SalaryMin, j.SalaryMax, j.SalaryCurrency,
                 j.EmploymentType, j.ExperienceLevel, j.PostedAt, j.CreatedAt,
-                j.CompanyId))
+                j.CompanyId,
+                IsDirect: j.IsDirectPlatformPost,
+                SourceName: j.IsDirectPlatformPost ? "JobRadar Direct" : (j.Source?.Name ?? "External Crawl")))
             .ToList();
 
         return new GetJobPostingsResponse(items, totalCount, request.Page, request.PageSize);

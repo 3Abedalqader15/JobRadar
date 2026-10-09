@@ -286,7 +286,7 @@ public sealed class QueryUnderstandingService : IQueryUnderstandingService
         }
     }
 
-    private static Dictionary<string, HashSet<string>> LoadSynonyms(IConfiguration configuration)
+    private static Dictionary<string, HashSet<string>> LoadSynonyms(IConfiguration? configuration)
     {
         var map = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
@@ -318,8 +318,8 @@ public sealed class QueryUnderstandingService : IQueryUnderstandingService
         AddDefault("work from home", "remote", "wfh");
 
         // Overlay with any custom definitions from configuration section "SearchRelevance:Synonyms"
-        var section = configuration.GetSection("SearchRelevance:Synonyms");
-        if (section.Exists())
+        var section = configuration?.GetSection("SearchRelevance:Synonyms");
+        if (section != null && section.Exists())
         {
             foreach (var child in section.GetChildren())
             {

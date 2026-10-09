@@ -26,7 +26,7 @@ internal sealed class CompanyCareersPageFetcher : ISourceFetcher
     }
 
     public bool CanHandle(SourceType type) =>
-        type == SourceType.CompanyCareersPage || type == SourceType.LinkedIn;
+        type == SourceType.CompanyCareersPage;
 
     public async Task<IReadOnlyList<FetchedPostInfo>> FetchPostsAsync(Source source, CancellationToken cancellationToken)
     {
@@ -94,20 +94,10 @@ internal sealed class CompanyCareersPageFetcher : ISourceFetcher
 
     private static string ExtractMeaningfulContent(string html, string sourceName)
     {
-        // 1. Remove script, style, SVG, and noscript tags
-        var cleaned = Regex.Replace(html, @"<script[^>]*>[\s\S]*?</script>", " ", RegexOptions.IgnoreCase);
-        cleaned = Regex.Replace(cleaned, @"<style[^>]*>[\s\S]*?</style>", " ", RegexOptions.IgnoreCase);
-        cleaned = Regex.Replace(cleaned, @"<svg[^>]*>[\s\S]*?</svg>", " ", RegexOptions.IgnoreCase);
-        cleaned = Regex.Replace(cleaned, @"<noscript[^>]*>[\s\S]*?</noscript>", " ", RegexOptions.IgnoreCase);
+        // 1. Thoroughly remove script, style, SVG, noscript, nav, header, footer, aside, and all tags
+        var cleaned = JobRadar.Application.Common.HtmlContentSanitizer.Sanitize(html);
 
-        // 2. Replace breaks and block tags with newlines
-        cleaned = Regex.Replace(cleaned, @"<(?:br|/p|/div|/li|/h[1-6]|/tr)[^>]*>", "\n", RegexOptions.IgnoreCase);
-
-        // 3. Strip all remaining HTML tags
-        cleaned = Regex.Replace(cleaned, @"<.*?>", " ");
-        cleaned = System.Net.WebUtility.HtmlDecode(cleaned);
-
-        // 4. Clean extra whitespaces
+        // 2. Clean extra whitespaces and filter boilerplate
         var lines = cleaned.Split('\n', StringSplitOptions.RemoveEmptyEntries)
             .Select(l => l.Trim())
             .Where(l => l.Length > 2 && !IsBoilerplateLine(l))

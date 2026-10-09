@@ -36,6 +36,8 @@ public sealed class GetJobPostingByIdQueryHandler
             job.ExperienceLevel.ToString(),
             job.PostedAt,
             job.CreatedAt,
-            job.UpdatedAt);
+            job.UpdatedAt,
+            job.ApplyEmail,
+            job.ApplyPhone);
     }
 }

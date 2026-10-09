@@ -35,6 +35,19 @@ public sealed class RawPostConfiguration : IEntityTypeConfiguration<RawPost>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(r => r.ContentHash)
+            .HasColumnName("content_hash")
+            .HasMaxLength(64);
+
+        builder.Property(r => r.RejectionReason)
+            .HasColumnName("rejection_reason")
+            .HasMaxLength(256);
+
+        builder.Property(r => r.ExtractionPromptVersion)
+            .HasColumnName("extraction_prompt_version")
+            .HasMaxLength(50);
+
+
         // FK: RawPost → Source
         builder.HasOne(r => r.Source)
             .WithMany(s => s.RawPosts)
@@ -53,6 +66,9 @@ public sealed class RawPostConfiguration : IEntityTypeConfiguration<RawPost>
 
         builder.HasIndex(r => r.FetchedAt)
             .HasDatabaseName("ix_raw_posts_fetched_at");
+
+        builder.HasIndex(r => r.ContentHash)
+            .HasDatabaseName("ix_raw_posts_content_hash");
 
         builder.Navigation(r => r.Job).AutoInclude(false);
     }

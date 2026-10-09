@@ -132,6 +132,29 @@ public static class IdentityDataSeeder
             {
                 logger.LogWarning(ex, "Could not apply PostgreSQL performance indexes automatically. Skipping.");
             }
+
+            // 6. Unpause and reset any paused crawler sources using typed EF Core
+            try
+            {
+                var pausedCrawlers = await db.Sources
+                    .Where(s => (s.Name.StartsWith("Crawler:") || s.Name.Contains("Bank of Jordan") || s.Name.Contains("Arbeitnow") || s.Name.Contains("Remotive") || s.Name.Contains("WeWorkRemotely") || s.Name.Contains("Himalayas") || s.Name.Contains("RemoteOK") || s.Name.Contains("Jobicy") || s.Name.Contains("Tanqeeb") || s.Name.Contains("Jobspresso")) && s.Status == SourceStatus.Paused)
+                    .ToListAsync();
+
+                foreach (var src in pausedCrawlers)
+                {
+                    src.Resume();
+                }
+
+                if (pausedCrawlers.Count > 0)
+                {
+                    await db.SaveChangesAsync();
+                    logger.LogInformation("Unpaused and restored {Count} active crawler sources on startup.", pausedCrawlers.Count);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Could not reset paused crawler sources on startup.");
+            }
         }
         catch (Exception ex)
         {

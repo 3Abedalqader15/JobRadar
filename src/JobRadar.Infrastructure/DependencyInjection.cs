@@ -23,7 +23,8 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(
                 connectionString,
-                npgsql => npgsql.UseVector()  // enable pgvector support
+                npgsql => npgsql.UseVector()
+                    .MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
             ));
 
         // ── Repositories ──────────────────────────────────────────────────────
@@ -54,6 +55,12 @@ public static class DependencyInjection
         services.AddDistributedMemoryCache();
 
         // ── Gemini AI Services ────────────────────────────────────────────────
+        services.AddSingleton<JobRadar.Infrastructure.Prompts.IGeminiPromptProvider, JobRadar.Infrastructure.Prompts.GeminiPromptProvider>();
+        services.AddOptions<CvMatchWeightsOptions>()
+            .Bind(configuration.GetSection(CvMatchWeightsOptions.SectionName))
+            .Validate(options => options.ValidateWeights(), "Gemini:CvMatch:Weights sum must equal 100")
+            .ValidateOnStart();
+
         // Named HttpClient used by both Gemini services (configurable via Gemini:TimeoutSeconds)
         var geminiTimeoutSeconds = configuration.GetValue<int>("Gemini:TimeoutSeconds", 120);
         services.AddHttpClient("Gemini", client =>
@@ -70,19 +77,25 @@ public static class DependencyInjection
         // ── Web Crawlers & Automated Periodic Ingestion ───────────────────────
         services.AddHttpClient("JobCrawler", client =>
         {
-            client.Timeout = TimeSpan.FromSeconds(30);
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) JobRadarCrawler/1.0 (+https://jobradar.io)");
+            client.Timeout = TimeSpan.FromSeconds(35);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json, text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8");
         });
 
-        // Global Crawlers
+        // Global & Top-Tier Remote Crawlers
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.ArbeitnowCrawlerProvider>();
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.RemotiveCrawlerProvider>();
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.WeWorkRemotelyRssCrawlerProvider>();
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.RemoteOkCrawlerProvider>();
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.HimalayasCrawlerProvider>();
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.JobicyCrawlerProvider>();
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.JobspressoCrawlerProvider>();
 
-        // Jordanian Market Crawlers
+        // MENA Regional, Jordan & Gulf Market Crawlers
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.BankOfJordanCrawlerProvider>();
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.AkhtabootCrawlerProvider>();
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.BaytJordanCrawlerProvider>();
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.TanqeebMenaCrawlerProvider>();
 
         services.AddSingleton<IJobEmbeddingChannel, JobRadar.Infrastructure.BackgroundServices.JobEmbeddingChannel>();
         services.AddScoped<IJobRealtimeNotifier, JobRadar.Infrastructure.Services.NullJobRealtimeNotifier>();

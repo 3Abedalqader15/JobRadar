@@ -27,9 +27,14 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
     public string? SalaryCurrency { get; private set; }
 
     public string? ExternalApplyUrl { get; private set; }
+    public string? ApplyEmail { get; private set; }
+    public string? ApplyPhone { get; private set; }
+    public string? ExtractionPromptVersion { get; private set; }
+    public bool IsCvMatchEligible { get; private set; } = true;
     public DateTime PostedAt { get; private set; }
     public DateTime? ExpiresAt { get; private set; }
     public bool IsActive { get; private set; }
+
 
     public int ViewsCount { get; private set; }
     public int ApplicantsClickCount { get; private set; }
@@ -51,6 +56,13 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
 
     public Source? Source { get; private set; }
     public RawPost? RawPost { get; private set; }
+
+    /// <summary>
+    /// Indicates whether this job was posted directly on JobRadar by an employer/admin rather than ingested from external crawlers.
+    /// </summary>
+    public bool IsDirectPlatformPost =>
+        RawPostId == null && (CompanyId != null || SourceId == Guid.Parse("00000000-0000-0000-0000-000000000001") || (Source != null && (Source.Name == "Manual" || Source.Type == SourceType.ManualShare)));
+
 
     public IReadOnlyCollection<JobSkillMap> JobSkills => _jobSkills.AsReadOnly();
     private readonly List<JobSkillMap> _jobSkills = new();
@@ -185,4 +197,28 @@ public sealed class Job : Entity<Guid>, IAggregateRoot
 
     public void IncrementViews() => ViewsCount++;
     public void IncrementApplicantClicks() => ApplicantsClickCount++;
+
+    public void SetContactApplyInfo(string? email, string? phone)
+    {
+        ApplyEmail = email;
+        ApplyPhone = phone;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetContactDetails(string? email, string? phone) => SetContactApplyInfo(email, phone);
+
+    public void SetExtractionPromptVersion(string version)
+    {
+        ExtractionPromptVersion = version;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetCvMatchEligible(bool eligible)
+    {
+        IsCvMatchEligible = eligible;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetCvMatchEligibility(bool eligible) => SetCvMatchEligible(eligible);
 }
+

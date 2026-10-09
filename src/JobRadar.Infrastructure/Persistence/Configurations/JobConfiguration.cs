@@ -72,6 +72,24 @@ public sealed class JobConfiguration : IEntityTypeConfiguration<Job>
             .HasColumnName("external_apply_url")
             .HasMaxLength(2048);
 
+        builder.Property(j => j.ApplyEmail)
+            .HasColumnName("apply_email")
+            .HasMaxLength(255);
+
+        builder.Property(j => j.ApplyPhone)
+            .HasColumnName("apply_phone")
+            .HasMaxLength(50);
+
+        builder.Property(j => j.ExtractionPromptVersion)
+            .HasColumnName("extraction_prompt_version")
+            .HasMaxLength(50);
+
+        builder.Property(j => j.IsCvMatchEligible)
+            .HasColumnName("is_cv_match_eligible")
+            .HasDefaultValue(true)
+            .IsRequired();
+
+
         builder.Property(j => j.PostedAt)
             .HasColumnName("posted_at")
             .IsRequired();

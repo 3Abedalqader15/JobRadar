@@ -24,4 +24,6 @@ public class JobSearchResultDto
     public int ApplicantsClickCount { get; set; }
     public Guid? CompanyId { get; set; }
     public IReadOnlyList<string> MatchedTerms { get; set; } = Array.Empty<string>();
+    public string? ApplyEmail { get; set; }
+    public string? ApplyPhone { get; set; }
 }

@@ -73,6 +73,12 @@ public sealed class IngestCrawledJobsCommandHandler : IRequestHandler<IngestCraw
                     await _sourceRepository.AddAsync(source, cancellationToken);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
                 }
+                else if (source.Status != SourceStatus.Active)
+                {
+                    source.Resume();
+                    await _sourceRepository.UpdateAsync(source, cancellationToken);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                }
 
                 // 2. Pre-fetch existing URLs to prevent duplicate posts (Phase 1 Deduplication)
                 var incomingUrls = discovered

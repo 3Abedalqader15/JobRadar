@@ -35,10 +35,11 @@ public sealed class JobPostingsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] string? search = null,
+        [FromQuery] string? sourceFilter = null,
         CancellationToken cancellationToken = default)
     {
         var result = await _mediator.Send(
-            new GetJobPostingsQuery(page, pageSize, search),
+            new GetJobPostingsQuery(page, pageSize, search, SourceFilter: sourceFilter),
             cancellationToken);
         return Ok(result);
     }

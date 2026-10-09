@@ -18,8 +18,9 @@ public sealed class StaleJobCleanupJob
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<StaleJobCleanupJob> _logger;
 
-    // Postings older than this many days will be deleted
-    private const int StaleAfterDays = 90;
+    // Crawled/external job postings older than 10 days will be automatically purged.
+    // Direct JobRadar platform postings (posted directly by employers/admin) are strictly preserved indefinitely.
+    private const int CrawledJobRetentionDays = 10;
     private const int ThrottleBatchSize = 25;
     private const int ThrottleDelayMs = 100;
 
@@ -37,20 +38,21 @@ public sealed class StaleJobCleanupJob
 
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var cutoff = DateTime.UtcNow.AddDays(-StaleAfterDays);
+        var cutoff = DateTime.UtcNow.AddDays(-CrawledJobRetentionDays);
 
         _logger.LogInformation(
-            "Running stale job cleanup. Removing postings with PostedAt < {Cutoff}",
+            "Running 10-day crawled job cleanup. Removing external/crawled postings with PostedAt < {Cutoff} while preserving all direct JobRadar postings.",
             cutoff);
 
         try
         {
             var all = await _repository.GetAllAsync(cancellationToken);
-            var stale = all.Where(j => j.PostedAt < cutoff).ToList();
+            var stale = all.Where(j => !j.IsDirectPlatformPost && j.PostedAt < cutoff).ToList();
+            var directCount = all.Count(j => j.IsDirectPlatformPost);
 
             if (stale.Count == 0)
             {
-                _logger.LogInformation("No stale job postings found.");
+                _logger.LogInformation("No expired crawled jobs found. Preserved {DirectCount} direct postings.", directCount);
                 return;
             }
 
@@ -61,7 +63,9 @@ public sealed class StaleJobCleanupJob
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Deleted {Count} stale job postings. Publishing throttled JobDeactivatedEvents...", stale.Count);
+            _logger.LogInformation(
+                "Purged {DeletedCount} crawled jobs older than {Days} days. Strictly preserved {DirectCount} official direct JobRadar posts.",
+                stale.Count, CrawledJobRetentionDays, directCount);
 
             var now = DateTime.UtcNow;
             for (int i = 0; i < stale.Count; i += ThrottleBatchSize)

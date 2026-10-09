@@ -22,11 +22,11 @@ public sealed class JobExtractionResult
     public string? Location { get; set; }
     public bool IsRemote { get; set; }
 
-    /// <summary>Maps to the <see cref="EmploymentType"/> enum string value.</summary>
-    public string EmploymentType { get; set; } = "FullTime";
+    /// <summary>Maps to the <see cref="EmploymentType"/> enum string value, or null/Unknown.</summary>
+    public string? EmploymentType { get; set; }
 
-    /// <summary>Maps to the <see cref="ExperienceLevel"/> enum string value.</summary>
-    public string ExperienceLevel { get; set; } = "MidLevel";
+    /// <summary>Maps to the <see cref="ExperienceLevel"/> enum string value, or null/Unknown.</summary>
+    public string? ExperienceLevel { get; set; }
 
     /// <summary>Skills required for the job (names only, will be upserted).</summary>
     public List<string> SkillsRequired { get; set; } = new();
@@ -38,4 +38,8 @@ public sealed class JobExtractionResult
     public string? SalaryCurrency { get; set; }
 
     public string? ExternalApplyUrl { get; set; }
+
+    public string? ApplyEmail { get; set; }
+
+    public string? ApplyPhone { get; set; }
 }

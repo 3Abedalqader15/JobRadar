@@ -76,7 +76,11 @@ public class GetAllApplicationsQueryHandler : IRequestHandler<GetAllApplications
                 a.AiMatchScore,
                 a.AiAnalysisStatus.ToString(),
                 a.AiMissingKeywords,
-                a.AiAnalysisSummary
+                a.AiAnalysisSummary,
+                a.AiMissingKeywordEvidence,
+                a.AiScoreBreakdown,
+                a.SuspiciousInstructionsDetected,
+                a.AnalysisPromptVersion
             ))
             .ToListAsync(cancellationToken);
 

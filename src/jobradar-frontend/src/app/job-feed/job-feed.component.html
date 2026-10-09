@@ -27,16 +27,10 @@
           </span>
         </div>
 
-        <button 
-          id="btn-sync-crawler-nav" 
-          type="button" 
-          class="btn-nav-crawler" 
-          [disabled]="syncing()" 
-          (click)="syncJobsNow()"
-          title="Run web crawlers across international & MENA job channels">
-          <span class="crawler-icon" [class.spin]="syncing()">🔄</span>
-          <span>{{ syncing() ? 'Scanning...' : 'Scan Boards' }}</span>
-        </button>
+        <div class="radar-network-badge" title="Live Continuous Ingestion: Jordan, Gulf & Global Remote">
+          <span class="network-pulse-dot"></span>
+          <span class="network-badge-text">MENA & Remote Live Radar</span>
+        </div>
       </div>
 
       <div class="nav-right">
@@ -507,15 +501,14 @@
                   <div class="company-and-source">
                     <span class="dense-company-name">{{ job.companyName }}</span>
 
-                    <!-- Source Attribution Pill -->
-                    <span class="source-tag" [title]="'Source Channel: ' + (job.sourceName || 'Direct Ingestion')">
-                      📡 {{ job.sourceName || 'JobRadar Stream' }}
-                    </span>
-
-                    <!-- Official / Verified Badge (Admin-posted vs Aggregated) -->
-                    @if (job.isVerified) {
-                      <span class="verified-badge" title="Official Partner or Admin Verified Direct Post">
-                        ✓ Verified Direct
+                    <!-- Source Attribution & Direct Verification -->
+                    @if (job.isVerified || job.sourceName === 'JobRadar Direct' || job.sourceName === 'Manual') {
+                      <span class="direct-jobradar-badge" title="نُشر مباشرة عبر JobRadar من قِبل الشركة أو المسؤول">
+                        ⚡ نُشر مباشرة عبر JobRadar • Official Direct Post
+                      </span>
+                    } @else {
+                      <span class="source-tag" [title]="'Source Channel: ' + (job.sourceName || 'Direct Ingestion')">
+                        📡 {{ job.sourceName || 'JobRadar Stream' }}
                       </span>
                     }
                   </div>
@@ -651,9 +644,12 @@
                 <div class="card-company-meta">
                   <span class="card-company-name">{{ job.companyName }}</span>
                   <div class="card-source-row">
-                    <span class="source-tag">📡 {{ job.sourceName || 'Direct' }}</span>
-                    @if (job.isVerified) {
-                      <span class="verified-badge">✓ Verified</span>
+                    @if (job.isVerified || job.sourceName === 'JobRadar Direct' || job.sourceName === 'Manual') {
+                      <span class="direct-jobradar-badge" title="نُشر مباشرة عبر JobRadar">
+                        ⚡ نُشر مباشرة عبر JobRadar • Official Direct Post
+                      </span>
+                    } @else {
+                      <span class="source-tag">📡 {{ job.sourceName || 'JobRadar Stream' }}</span>
                     }
                   </div>
                 </div>
@@ -768,8 +764,10 @@
                   <h4 class="preview-title">{{ preview.title }}</h4>
                   <div class="preview-company-line">
                     <span class="preview-company">{{ preview.companyName }}</span>
-                    @if (preview.isVerified) {
-                      <span class="verified-badge">✓ Verified</span>
+                    @if (preview.isVerified || preview.sourceName === 'JobRadar Direct' || preview.sourceName === 'Manual') {
+                      <span class="direct-jobradar-badge">⚡ نُشر مباشرة عبر JobRadar</span>
+                    } @else {
+                      <span class="source-tag">📡 {{ preview.sourceName || 'Radar Stream' }}</span>
                     }
                   </div>
                 </div>
@@ -860,8 +858,10 @@
                 <span class="match-value">{{ (job.relevanceScore * 100) | number:'1.0-0' }}% Match</span>
               </div>
             }
-            @if (job.isVerified) {
-              <span class="verified-badge">✓ Verified Direct</span>
+            @if (job.isVerified || job.sourceName === 'JobRadar Direct' || job.sourceName === 'Manual') {
+              <span class="direct-jobradar-badge modal-badge">⚡ نُشر مباشرة عبر JobRadar • Official Direct Post</span>
+            } @else {
+              <span class="source-tag modal-badge">📡 المصدر: {{ job.sourceName || 'شبكة الرادار العالمية' }}</span>
             }
           </div>
           <div class="drawer-top-actions">
@@ -956,6 +956,25 @@
             </div>
           }
 
+          <!-- Direct Application Options (Email / WhatsApp / Phone) -->
+          @if (job.applyEmail || job.applyPhone) {
+            <div class="drawer-section" style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+              <h4 style="margin: 0 0 10px; font-size: 0.9rem; font-weight: 600; color: #16a34a;">Direct Contact Application Options:</h4>
+              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                @if (job.applyEmail) {
+                  <a [href]="'mailto:' + job.applyEmail" style="display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1px solid #86efac; color: #166534; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    ✉️ Apply by email: <span>{{ job.applyEmail }}</span>
+                  </a>
+                }
+                @if (job.applyPhone) {
+                  <a [href]="'https://wa.me/' + job.applyPhone.replace('+', '').replace(' ', '').replace('-', '')" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1px solid #86efac; color: #15803d; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    💬 Apply via WhatsApp/Phone: <span>{{ job.applyPhone }}</span>
+                  </a>
+                }
+              </div>
+            </div>
+          }
+
           <!-- Job Description -->
           <div class="drawer-section">
             <h4 class="drawer-section-title">Role Overview &amp; Responsibilities</h4>
@@ -1007,6 +1026,26 @@
             (click)="closeJobDrawer()">
             Close
           </button>
+          @if (job.applyEmail) {
+            <a 
+              [href]="'mailto:' + job.applyEmail" 
+              class="btn-drawer-cancel"
+              style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; font-weight: 600;"
+              title="Send application email">
+              ✉️ Email
+            </a>
+          }
+          @if (job.applyPhone) {
+            <a 
+              [href]="'https://wa.me/' + job.applyPhone.replace('+', '').replace(' ', '').replace('-', '')" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="btn-drawer-cancel"
+              style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; font-weight: 600; color: #16a34a;"
+              title="Open WhatsApp chat">
+              💬 WhatsApp
+            </a>
+          }
           <button 
             type="button" 
             class="btn-drawer-apply" 
