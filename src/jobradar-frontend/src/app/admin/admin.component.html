@@ -582,6 +582,14 @@
                           }
                           {{ getScoreText(app) }}
                         </span>
+                        @if (app.aiMatchScore != null) {
+                          <span style="font-size: 0.68rem; color: #64748b; font-weight: 500; display: block; margin-top: 2px;">AI-assisted estimate</span>
+                        }
+                        @if (app.suspiciousInstructionsDetected) {
+                          <span class="badge-injection-warning" style="font-size: 0.68rem; background: #fee2e2; color: #991b1b; border: 1px solid #f87171; border-radius: 4px; padding: 1px 4px; display: inline-block; margin-top: 2px; font-weight: 600;" title="Prompt Injection detected in candidate CV">
+                            ⚠️ Injection Flag
+                          </span>
+                        }
                       </div>
                     </td>
                     <td>
@@ -1055,20 +1063,22 @@
           <div class="ai-header-row">
             <h4>🤖 AI Resume Match Analysis</h4>
             <div style="display: flex; gap: 10px; align-items: center;">
-              <button
-                type="button"
-                class="btn-secondary btn-sm"
-                [id]="'btn-modal-retry-' + app.id"
-                (click)="retryAnalysis(app)"
-                [disabled]="retryingAnalysisId() === app.id"
-                title="Re-run AI CV Analysis with Gemini"
-              >
-                @if (retryingAnalysisId() === app.id) {
-                  ⏳ Analyzing...
-                } @else {
-                  🔄 Retry Analysis
-                }
-              </button>
+              @if ((app.aiAnalysisStatus || '').toLowerCase() === 'failed') {
+                <button
+                  type="button"
+                  class="btn-secondary btn-sm"
+                  [id]="'btn-modal-retry-' + app.id"
+                  (click)="retryAnalysis(app)"
+                  [disabled]="retryingAnalysisId() === app.id"
+                  title="Re-run AI CV Analysis with Gemini"
+                >
+                  @if (retryingAnalysisId() === app.id) {
+                    ⏳ Analyzing...
+                  } @else {
+                    🔄 Retry Analysis
+                  }
+                </button>
+              }
               <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
                 <span class="score-badge" [ngClass]="getScoreBadgeClass(app)">
                   @if ((app.aiAnalysisStatus || '').toLowerCase() === 'processing' || (app.aiAnalysisStatus || '').toLowerCase() === 'pending') {
@@ -1095,7 +1105,7 @@
             </div>
           }
 
-          @if (app.aiAnalysisSummary) {
+          @if (app.aiAnalysisSummary && (app.aiAnalysisStatus || '').toLowerCase() === 'completed') {
             <div class="analysis-summary-block">
               <h5>Executive Summary:</h5>
               <p class="summary-text">{{ app.aiAnalysisSummary }}</p>
@@ -1103,9 +1113,21 @@
           } @else if ((app.aiAnalysisStatus || '').toLowerCase() === 'processing' || (app.aiAnalysisStatus || '').toLowerCase() === 'pending') {
             <p class="status-notice">AI CV matching analysis is in progress. The score and summary will update shortly.</p>
           } @else if ((app.aiAnalysisStatus || '').toLowerCase() === 'insufficientjobdescription') {
-            <p class="status-notice" style="color: #b45309; background: #fef3c7; padding: 10px; border-radius: 6px;">
-              ⚠️ Job description is too short to perform reliable AI CV matching analysis.
-            </p>
+            <div class="status-notice status-notice-insufficient" style="color: #b45309; background: #fef3c7; border: 1px solid #fde68a; padding: 10px 14px; border-radius: 6px; margin: 10px 0;">
+              ⚠️ <strong>Insufficient Job Description:</strong> {{ app.aiAnalysisSummary || 'Job description is too short to perform reliable AI CV matching analysis.' }}
+            </div>
+          } @else if ((app.aiAnalysisStatus || '').toLowerCase() === 'cvtextunreadable') {
+            <div class="status-notice status-notice-unreadable" style="color: #991b1b; background: #fee2e2; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 6px; margin: 10px 0;">
+              ⚠️ <strong>CV Text Unreadable:</strong> {{ app.aiAnalysisSummary || 'Uploaded CV contains insufficient readable text (e.g. scanned PDF/image without OCR).' }}
+            </div>
+          } @else if ((app.aiAnalysisStatus || '').toLowerCase() === 'unscorable') {
+            <div class="status-notice status-notice-unscorable" style="color: #334155; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 10px 14px; border-radius: 6px; margin: 10px 0;">
+              ℹ️ <strong>Unscorable:</strong> {{ app.aiAnalysisSummary || 'Job description does not specify sufficient technical skills or experience requirements to score candidate match.' }}
+            </div>
+          } @else if ((app.aiAnalysisStatus || '').toLowerCase() === 'failed') {
+            <div class="status-notice status-notice-failed" style="color: #991b1b; background: #fee2e2; border: 1px solid #f87171; padding: 10px 14px; border-radius: 6px; margin: 10px 0;">
+              ❌ <strong>Analysis Failed:</strong> {{ app.aiAnalysisSummary || 'AI analysis encountered an error. You can retry analysis using the button above.' }}
+            </div>
           } @else {
             <p class="status-notice">No AI analysis summary generated for this application.</p>
           }
@@ -1140,7 +1162,10 @@
                 <h5>Verified Missing Requirements (Cited from Job Description):</h5>
                 <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
                   @for (item of evidenceItems; track item.keyword) {
-                    <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px; padding: 6px 10px; font-size: 0.85rem;">
+                    <div
+                      style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px; padding: 6px 10px; font-size: 0.85rem; cursor: help;"
+                      [title]="'Cited from Job Description: ' + item.evidenceQuote"
+                    >
                       <span style="font-weight: 600; color: #be123c;">{{ item.keyword }}</span>
                       <span style="color: #475569; margin-left: 6px;">— Job evidence: <em>"{{ item.evidenceQuote }}"</em></span>
                     </div>

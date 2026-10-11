@@ -79,9 +79,16 @@ public static class JordanianSourcesSeeder
                     fetchIntervalMinutes: interval
                 );
 
-                if (type == SourceType.LinkedIn)
+                bool shouldBePaused = type == SourceType.LinkedIn ||
+                    name.Contains("Akhtaboot", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("Bayt.com", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("Tanqeeb", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("Waseet", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("Cancer Center", StringComparison.OrdinalIgnoreCase);
+
+                if (shouldBePaused)
                 {
-                    source.Pause(); // Disabled: automated LinkedIn listing fetcher produces stubs without descriptions
+                    source.Pause(); // Paused: commercial job board scraping prohibited by ToS/robots.txt
                 }
                 else
                 {
@@ -94,25 +101,31 @@ public static class JordanianSourcesSeeder
             }
         }
 
-        // Ensure any pre-existing LinkedIn sources are also transitioned to Paused
-        var unpausedLinkedInSources = await db.Sources
-            .Where(s => s.Type == SourceType.LinkedIn && s.Status != SourceStatus.Paused)
+        // Ensure any pre-existing restricted sources are also transitioned to Paused
+        var restrictedKeywords = new[] { "linkedin", "akhtaboot", "bayt", "tanqeeb", "waseet", "cancer center", "khcc" };
+        var sourcesToPause = await db.Sources
+            .Where(s => s.Status != SourceStatus.Paused)
             .ToListAsync();
 
-        foreach (var ls in unpausedLinkedInSources)
+        foreach (var s in sourcesToPause)
         {
-            ls.Pause();
-            addedCount++;
+            var lowerName = s.Name.ToLowerInvariant();
+            var lowerUrl = s.Url.ToLowerInvariant();
+            if (s.Type == SourceType.LinkedIn || restrictedKeywords.Any(k => lowerName.Contains(k) || lowerUrl.Contains(k)))
+            {
+                s.Pause();
+                addedCount++;
+            }
         }
 
         if (addedCount > 0)
         {
             await db.SaveChangesAsync();
-            logger.LogInformation("Successfully seeded {Count} new Jordanian job sources into database.", addedCount);
+            logger.LogInformation("Successfully updated/seeded {Count} Jordanian job sources in database (restricted sources set to Paused).", addedCount);
         }
         else
         {
-            logger.LogInformation("All Jordanian job sources already exist in database.");
+            logger.LogInformation("All Jordanian job sources already exist and verified in database.");
         }
     }
 }

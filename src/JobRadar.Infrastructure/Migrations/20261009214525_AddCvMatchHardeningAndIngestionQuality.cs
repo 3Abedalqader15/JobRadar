@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -146,11 +146,6 @@ namespace JobRadar.Infrastructure.Migrations
             migrationBuilder.DropColumn(
                 name: "is_cv_match_eligible",
                 table: "jobs");
-
-            migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:PostgresExtension:vector", ",,")
-                .OldAnnotation("Npgsql:PostgresExtension:pg_trgm", ",,")
-                .OldAnnotation("Npgsql:PostgresExtension:vector", ",,");
         }
     }
 }

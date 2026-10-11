@@ -49,7 +49,9 @@ public sealed class ProcessCvAnalysisCommandHandler : IRequestHandler<ProcessCvA
 
         // 1. Idempotency Check: skip if already completed unless forced
         if (!request.Force && (application.AiAnalysisStatus == AiAnalysisStatus.Completed ||
-                               application.AiAnalysisStatus == AiAnalysisStatus.InsufficientJobDescription))
+                               application.AiAnalysisStatus == AiAnalysisStatus.InsufficientJobDescription ||
+                               application.AiAnalysisStatus == AiAnalysisStatus.CvTextUnreadable ||
+                               application.AiAnalysisStatus == AiAnalysisStatus.Unscorable))
         {
             _logger.LogInformation("CV analysis for application {ApplicationId} is already in state {Status}. Skipping.",
                 request.ApplicationId, application.AiAnalysisStatus);
@@ -113,9 +115,23 @@ public sealed class ProcessCvAnalysisCommandHandler : IRequestHandler<ProcessCvA
             var fileName = application.CvOriginalFileName ?? "cv.pdf";
             var cvText = await _textExtractor.ExtractTextAsync(cvStream, fileName, cancellationToken);
 
-            if (string.IsNullOrWhiteSpace(cvText))
+            // Guard C: Minimum readable CV text length check
+            var minCvLength = int.TryParse(_configuration["Gemini:CvMatch:MinCvTextLength"], out var parsedMinCv)
+                ? parsedMinCv
+                : 200;
+
+            if (string.IsNullOrWhiteSpace(cvText) || cvText.Trim().Length < minCvLength)
             {
-                throw new InvalidOperationException("Failed to extract any readable text from the uploaded CV file.");
+                var extractedLen = cvText?.Trim().Length ?? 0;
+                _logger.LogInformation(
+                    "Application {ApplicationId} CV text length ({Length} chars) is below minimum required ({MinLength} chars). Marking as CvTextUnreadable.",
+                    application.Id, extractedLen, minCvLength);
+
+                application.SetCvTextUnreadable(
+                    $"Uploaded CV contains insufficient readable text ({extractedLen} characters) to perform AI matching analysis (e.g. scanned PDF/image without OCR). Minimum required: {minCvLength}.");
+                await _applicationRepository.UpdateAsync(application, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                return;
             }
 
             var matchResult = await _cvMatchService.AnalyzeMatchAsync(
@@ -130,24 +146,40 @@ public sealed class ProcessCvAnalysisCommandHandler : IRequestHandler<ProcessCvA
                 throw new InvalidOperationException("AI match analysis returned null or empty result.");
             }
 
-            application.CompleteAiAnalysis(
-                score: matchResult.MatchScore,
-                missingKeywords: matchResult.MissingKeywords,
-                summary: matchResult.Summary,
-                missingKeywordEvidenceJson: matchResult.MissingKeywordEvidenceJson,
-                scoreBreakdownJson: matchResult.ScoreBreakdownJson,
-                suspiciousInstructionsDetected: matchResult.SuspiciousInstructionsDetected,
-                analysisPromptVersion: matchResult.PromptVersion);
+            if (matchResult.IsUnscorable || !matchResult.MatchScore.HasValue)
+            {
+                _logger.LogInformation(
+                    "Application {ApplicationId} is unscorable because job description lacked required skills or experience criteria.",
+                    application.Id);
+
+                var reason = string.IsNullOrWhiteSpace(matchResult.Summary)
+                    ? "Job description does not specify sufficient technical skills or experience requirements to score candidate match."
+                    : matchResult.Summary;
+
+                application.SetUnscorable(reason);
+            }
+            else
+            {
+                application.CompleteAiAnalysis(
+                    score: matchResult.MatchScore.Value,
+                    missingKeywords: matchResult.MissingKeywords,
+                    summary: matchResult.Summary,
+                    missingKeywordEvidenceJson: matchResult.MissingKeywordEvidenceJson,
+                    scoreBreakdownJson: matchResult.ScoreBreakdownJson,
+                    suspiciousInstructionsDetected: matchResult.SuspiciousInstructionsDetected,
+                    analysisPromptVersion: matchResult.PromptVersion);
+            }
 
             await _applicationRepository.UpdateAsync(application, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Successfully completed AI match analysis for application {ApplicationId} (Score: {Score}, PromptVersion: {Version}, Suspicious: {Suspicious})",
+                "Successfully completed AI match analysis for application {ApplicationId} (Score: {Score}, PromptVersion: {Version}, Suspicious: {Suspicious}, Status: {Status})",
                 application.Id,
                 matchResult.MatchScore,
                 matchResult.PromptVersion,
-                matchResult.SuspiciousInstructionsDetected);
+                matchResult.SuspiciousInstructionsDetected,
+                application.AiAnalysisStatus);
         }
         catch (Exception ex)
         {

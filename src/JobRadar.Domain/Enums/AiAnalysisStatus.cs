@@ -6,6 +6,8 @@ public enum AiAnalysisStatus
     Processing = 1,
     Completed = 2,
     Failed = 3,
-    InsufficientJobDescription = 4
+    InsufficientJobDescription = 4,
+    CvTextUnreadable = 5,
+    Unscorable = 6
 }
 

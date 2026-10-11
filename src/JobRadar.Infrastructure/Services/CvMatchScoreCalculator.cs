@@ -54,8 +54,9 @@ public static class CvMatchScoreCalculator
     /// Computes deterministic weighted score from model sub-scores.
     /// If any sub-score is null (e.g. no nice-to-have requirements in the job),
     /// weights are renormalized over the non-null sub-scores.
+    /// If both required_skills and experience_seniority are null, the analysis is marked Unscorable.
     /// </summary>
-    public static (int Score, string BreakdownJson) CalculateWeightedScore(
+    public static (int? Score, string BreakdownJson, bool IsUnscorable) CalculateWeightedScore(
         int? requiredSkillsScore,
         int? experienceSeniorityScore,
         int? niceToHaveScore,
@@ -63,6 +64,8 @@ public static class CvMatchScoreCalculator
         CvMatchWeightsOptions weights)
     {
         weights.Validate();
+
+        bool isUnscorable = !requiredSkillsScore.HasValue && !experienceSeniorityScore.HasValue;
 
         double weightedSum = 0;
         int nonNullWeightSum = 0;
@@ -95,11 +98,11 @@ public static class CvMatchScoreCalculator
             nonNullWeightSum += weights.Domain;
         }
 
-        int finalScore = 0;
-        if (nonNullWeightSum > 0)
+        int? finalScore = null;
+        if (!isUnscorable && nonNullWeightSum > 0)
         {
-            finalScore = (int)Math.Round(weightedSum / nonNullWeightSum, MidpointRounding.AwayFromZero);
-            finalScore = Math.Clamp(finalScore, 0, 100);
+            var computed = (int)Math.Round(weightedSum / nonNullWeightSum, MidpointRounding.AwayFromZero);
+            finalScore = Math.Clamp(computed, 0, 100);
         }
 
         var breakdown = new ScoreBreakdownDto
@@ -109,6 +112,7 @@ public static class CvMatchScoreCalculator
             NiceToHaveScore = niceToHaveScore.HasValue ? Math.Clamp(niceToHaveScore.Value, 0, 100) : null,
             DomainScore = domainScore.HasValue ? Math.Clamp(domainScore.Value, 0, 100) : null,
             CalculatedMatchScore = finalScore,
+            IsUnscorable = isUnscorable,
             WeightsConfigured = new WeightsDto
             {
                 RequiredSkills = weights.RequiredSkills,
@@ -120,7 +124,7 @@ public static class CvMatchScoreCalculator
         };
 
         var breakdownJson = JsonSerializer.Serialize(breakdown, JsonOptions);
-        return (finalScore, breakdownJson);
+        return (finalScore, breakdownJson, isUnscorable);
     }
 
     private sealed class ScoreBreakdownDto
@@ -138,7 +142,10 @@ public static class CvMatchScoreCalculator
         public int? DomainScore { get; set; }
 
         [JsonPropertyName("calculated_match_score")]
-        public int CalculatedMatchScore { get; set; }
+        public int? CalculatedMatchScore { get; set; }
+
+        [JsonPropertyName("is_unscorable")]
+        public bool IsUnscorable { get; set; }
 
         [JsonPropertyName("weights_configured")]
         public WeightsDto WeightsConfigured { get; set; } = new();

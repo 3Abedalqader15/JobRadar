@@ -31,6 +31,11 @@ builder.ConfigureServices((ctx, services) =>
 {
     var configuration = ctx.Configuration;
 
+    // ── Fail-Fast Crawler:UserAgent Validation ─────────────────────────────
+    var userAgentOptions = configuration.GetSection(JobRadar.Infrastructure.Crawlers.Politeness.CrawlerUserAgentOptions.SectionName).Get<JobRadar.Infrastructure.Crawlers.Politeness.CrawlerUserAgentOptions>()
+        ?? new JobRadar.Infrastructure.Crawlers.Politeness.CrawlerUserAgentOptions();
+    userAgentOptions.Validate();
+
     // ── Application + Infrastructure ──────────────────────────────────────
     services.AddApplication();
     services.AddInfrastructure(configuration);

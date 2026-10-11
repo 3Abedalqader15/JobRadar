@@ -67,8 +67,8 @@ public sealed class RawPostConfiguration : IEntityTypeConfiguration<RawPost>
         builder.HasIndex(r => r.FetchedAt)
             .HasDatabaseName("ix_raw_posts_fetched_at");
 
-        builder.HasIndex(r => r.ContentHash)
-            .HasDatabaseName("ix_raw_posts_content_hash");
+        builder.HasIndex(r => new { r.SourceId, r.ContentHash })
+            .HasDatabaseName("ix_raw_posts_source_id_content_hash");
 
         builder.Navigation(r => r.Job).AutoInclude(false);
     }

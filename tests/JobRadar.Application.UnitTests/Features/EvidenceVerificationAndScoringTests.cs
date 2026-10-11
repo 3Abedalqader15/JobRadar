@@ -110,11 +110,11 @@ public class EvidenceVerificationAndScoringTests
         {
             new("Docker", "solid experience with Docker and Kubernetes"),
             new("AWS Cloud", "Candidate must be AWS certified Solutions Architect with Terraform"), // Fabricated
-            new("Kubernetes", "container orchestration")
+            new("Kubernetes", "Kubernetes container orchestration")
         };
 
         // Act
-        var (verified, droppedCount) = EvidenceVerificationService.VerifyMissingKeywords(missingList, jd, appId);
+        var (verified, droppedCount) = EvidenceVerificationService.VerifyMissingKeywords(missingList, jd, candidateCvText: null, appId);
 
         // Assert
         verified.Should().HaveCount(2);
@@ -122,6 +122,44 @@ public class EvidenceVerificationAndScoringTests
         verified.Select(v => v.Keyword).Should().Contain("Kubernetes");
         verified.Select(v => v.Keyword).Should().NotContain("AWS Cloud");
         droppedCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void VerifyMissingKeywords_DropsKeywords_WhenAlreadyPresentInCandidateCv()
+    {
+        // Arrange
+        var jd = "Requirements: Must have strong proficiency in Docker containerization and Kubernetes orchestration.";
+        var cv = "Experienced Software Engineer with 5 years using Docker for local dev and microservices.";
+        var appId = Guid.NewGuid();
+
+        var missingList = new List<MissingKeywordItem>
+        {
+            new("Docker", "proficiency in Docker containerization"), // in CV -> drop
+            new("Kubernetes", "and Kubernetes orchestration") // not in CV -> keep (3 tokens)
+        };
+
+        // Act
+        var (verified, droppedCount) = EvidenceVerificationService.VerifyMissingKeywords(missingList, jd, cv, appId);
+
+        // Assert
+        verified.Should().HaveCount(1);
+        verified[0].Keyword.Should().Be("Kubernetes");
+        droppedCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void IsQuotePresentInJobDescription_RequiresMinimum3Tokens()
+    {
+        var jd = "Candidate must have deep knowledge of PostgreSQL.";
+        var normalizedJd = EvidenceVerificationService.NormalizeText(jd);
+
+        // 2 tokens: "PostgreSQL knowledge"
+        EvidenceVerificationService.IsQuotePresentInJobDescription("PostgreSQL knowledge", normalizedJd)
+            .Should().BeFalse();
+
+        // 3 tokens: "knowledge of PostgreSQL"
+        EvidenceVerificationService.IsQuotePresentInJobDescription("knowledge of PostgreSQL", normalizedJd)
+            .Should().BeTrue();
     }
 
     [Fact]
@@ -170,7 +208,7 @@ public class EvidenceVerificationAndScoringTests
         };
 
         // Act: (100*40 + 80*25 + 60*20 + 40*15) / 100 = (4000 + 2000 + 1200 + 600) / 100 = 7800 / 100 = 78
-        var (score, breakdownJson) = CvMatchScoreCalculator.CalculateWeightedScore(
+        var (score, breakdownJson, isUnscorable) = CvMatchScoreCalculator.CalculateWeightedScore(
             requiredSkillsScore: 100,
             experienceSeniorityScore: 80,
             niceToHaveScore: 40,
@@ -178,6 +216,7 @@ public class EvidenceVerificationAndScoringTests
             weights: weights);
 
         // Assert
+        isUnscorable.Should().BeFalse();
         score.Should().Be(78);
         breakdownJson.Should().Contain("\"calculated_match_score\":78");
         breakdownJson.Should().Contain("\"required_skills\":100");
@@ -200,7 +239,7 @@ public class EvidenceVerificationAndScoringTests
         // Subscores: Required = 90, Experience = 80, Domain = 70, NiceToHave = null
         // Weighted sum = (90*40) + (80*25) + (70*20) = 3600 + 2000 + 1400 = 7000
         // Renormalized score = 7000 / 85 = 82.35 -> 82
-        var (score, breakdownJson) = CvMatchScoreCalculator.CalculateWeightedScore(
+        var (score, breakdownJson, isUnscorable) = CvMatchScoreCalculator.CalculateWeightedScore(
             requiredSkillsScore: 90,
             experienceSeniorityScore: 80,
             niceToHaveScore: null,
@@ -208,9 +247,26 @@ public class EvidenceVerificationAndScoringTests
             weights: weights);
 
         // Assert
+        isUnscorable.Should().BeFalse();
         score.Should().Be(82);
         breakdownJson.Should().Contain("\"nice_to_have\":null");
         breakdownJson.Should().Contain("\"renormalized_weight_sum\":85");
+    }
+
+    [Fact]
+    public void CalculateWeightedScore_WhenBothRequiredSkillsAndExperienceNull_ReturnsUnscorable()
+    {
+        var weights = new CvMatchWeightsOptions();
+        var (score, breakdownJson, isUnscorable) = CvMatchScoreCalculator.CalculateWeightedScore(
+            requiredSkillsScore: null,
+            experienceSeniorityScore: null,
+            niceToHaveScore: 80,
+            domainScore: 90,
+            weights: weights);
+
+        isUnscorable.Should().BeTrue();
+        score.Should().BeNull();
+        breakdownJson.Should().Contain("\"is_unscorable\":true");
     }
 
     [Fact]

@@ -161,6 +161,84 @@ public class CvAnalysisPipelineTests
     }
 
     [Fact]
+    public async Task ProcessCvAnalysis_WhenCvTextTooShort_SetsCvTextUnreadableAndSkipsGemini()
+    {
+        // Arrange
+        var application = UserJobApplication.CreateDetailed(
+            _userId, _jobId, "John Doe", "john@example.com", "+123456789", "cvs/short.pdf", "short.pdf");
+
+        _mockAppRepo.Setup(r => r.GetByIdAsync(application.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(application);
+
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes("sample cv stream content"));
+        _mockFileStorage.Setup(f => f.DownloadAsync("cvs/short.pdf", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stream);
+
+        // Extracted text only 50 characters (below 200 char threshold)
+        _mockTextExtractor.Setup(t => t.ExtractTextAsync(It.IsAny<Stream>(), "short.pdf", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("John Doe. Software Engineer. Amman, Jordan.");
+
+        var handler = new ProcessCvAnalysisCommandHandler(
+            _mockAppRepo.Object, _mockJobRepo.Object, _mockFileStorage.Object,
+            _mockTextExtractor.Object, _mockCvMatchService.Object, _mockUnitOfWork.Object,
+            _mockConfiguration.Object, _mockLogger.Object);
+
+        // Act
+        await handler.Handle(new ProcessCvAnalysisCommand(application.Id), CancellationToken.None);
+
+        // Assert
+        application.AiAnalysisStatus.Should().Be(AiAnalysisStatus.CvTextUnreadable);
+        application.AiMatchScore.Should().BeNull();
+        application.AiAnalysisSummary.Should().Contain("insufficient readable text");
+
+        _mockCvMatchService.Verify(c => c.AnalyzeMatchAsync(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessCvAnalysis_WhenResultIsUnscorable_SetsUnscorableStatus()
+    {
+        // Arrange
+        var application = UserJobApplication.CreateDetailed(
+            _userId, _jobId, "John Doe", "john@example.com", "+123456789", "cvs/valid.pdf", "valid.pdf");
+
+        _mockAppRepo.Setup(r => r.GetByIdAsync(application.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(application);
+
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes("sample cv stream content"));
+        _mockFileStorage.Setup(f => f.DownloadAsync("cvs/valid.pdf", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stream);
+
+        _mockTextExtractor.Setup(t => t.ExtractTextAsync(It.IsAny<Stream>(), "valid.pdf", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("John Doe, Senior C# backend engineer with over 10 years of experience in .NET Core, distributed systems, PostgreSQL, Redis, Docker, and Kubernetes in Amman, Jordan. Graduated from University of Jordan with BSc in Computer Engineering.");
+
+        _mockCvMatchService.Setup(c => c.AnalyzeMatchAsync(
+                It.IsAny<string>(), _job.Title, _job.Description, application.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CvMatchAnalysisResult(
+                MatchScore: null,
+                MissingKeywords: Array.Empty<string>(),
+                Summary: "Job description lacked both required skills and experience criteria.",
+                ScoreBreakdownJson: "{\"is_unscorable\": true}",
+                MissingKeywordEvidenceJson: null,
+                SuspiciousInstructionsDetected: false,
+                PromptVersion: "v2",
+                IsUnscorable: true));
+
+        var handler = new ProcessCvAnalysisCommandHandler(
+            _mockAppRepo.Object, _mockJobRepo.Object, _mockFileStorage.Object,
+            _mockTextExtractor.Object, _mockCvMatchService.Object, _mockUnitOfWork.Object,
+            _mockConfiguration.Object, _mockLogger.Object);
+
+        // Act
+        await handler.Handle(new ProcessCvAnalysisCommand(application.Id), CancellationToken.None);
+
+        // Assert
+        application.AiAnalysisStatus.Should().Be(AiAnalysisStatus.Unscorable);
+        application.AiMatchScore.Should().BeNull();
+        application.AiAnalysisSummary.Should().Contain("Job description lacked both required skills");
+    }
+
+    [Fact]
     public async Task ProcessCvAnalysis_WhenSuccessful_ExtractsTextCallsGeminiAndCompletesAnalysis()
     {
         // Arrange
@@ -175,7 +253,7 @@ public class CvAnalysisPipelineTests
             .ReturnsAsync(stream);
 
         _mockTextExtractor.Setup(t => t.ExtractTextAsync(It.IsAny<Stream>(), "valid.pdf", It.IsAny<CancellationToken>()))
-            .ReturnsAsync("John Doe, Senior C# backend engineer with 8 years of experience in .NET Core and PostgreSQL.");
+            .ReturnsAsync("John Doe, Senior C# backend engineer with 8 years of professional experience in ASP.NET Core, EF Core, microservices, and PostgreSQL database architecture. Skilled in distributed architectures, Redis, and high-performance querying.");
 
         _mockCvMatchService.Setup(c => c.AnalyzeMatchAsync(
                 It.IsAny<string>(), _job.Title, _job.Description, application.Id, It.IsAny<CancellationToken>()))
