@@ -124,6 +124,22 @@ public sealed class UserJobApplication : Entity<Guid>
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void SetCvTextUnreadable(string reason = "Uploaded CV contains no extractable text or is below minimum length (e.g. scanned PDF/image).")
+    {
+        AiAnalysisStatus = AiAnalysisStatus.CvTextUnreadable;
+        AiAnalysisSummary = reason;
+        AiMatchScore = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetUnscorable(string reason = "Job description does not specify sufficient technical skills or experience requirements to score candidate match.")
+    {
+        AiAnalysisStatus = AiAnalysisStatus.Unscorable;
+        AiAnalysisSummary = reason;
+        AiMatchScore = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void FailAiAnalysis(string failureReason)
     {
         AiAnalysisStatus = AiAnalysisStatus.Failed;

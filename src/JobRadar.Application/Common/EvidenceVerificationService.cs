@@ -68,14 +68,91 @@ public static class EvidenceVerificationService
         return WhitespaceRegex.Replace(cleaned, " ").Trim();
     }
 
+    public const int MinQuoteTokens = 3;
+
+    /// <summary>
+    /// Checks if a keyword or any of its known synonyms appears within the evidence quote.
+    /// </summary>
+    public static bool IsKeywordPresentInQuote(
+        string keyword,
+        string normalizedQuote,
+        IReadOnlyDictionary<string, string[]>? synonyms = null)
+    {
+        if (string.IsNullOrWhiteSpace(keyword) || string.IsNullOrWhiteSpace(normalizedQuote))
+            return false;
+
+        var normalizedKeyword = NormalizeText(keyword);
+        if (string.IsNullOrWhiteSpace(normalizedKeyword))
+            return false;
+
+        if (normalizedQuote.Contains(normalizedKeyword, StringComparison.Ordinal))
+            return true;
+
+        var keywordTokens = GetTokens(normalizedKeyword);
+        var quoteTokens = GetTokens(normalizedQuote);
+        var quoteTokenSet = new HashSet<string>(quoteTokens, StringComparer.Ordinal);
+
+        // All keyword tokens appear in the quote
+        if (keywordTokens.Length > 0 && keywordTokens.All(kt => quoteTokenSet.Contains(kt)))
+            return true;
+
+        // Check synonyms if provided
+        if (synonyms != null)
+        {
+            foreach (var kvp in synonyms)
+            {
+                var canonical = NormalizeText(kvp.Key);
+                if (canonical == normalizedKeyword || kvp.Value.Select(NormalizeText).Contains(normalizedKeyword))
+                {
+                    if (normalizedQuote.Contains(canonical, StringComparison.Ordinal))
+                        return true;
+
+                    foreach (var syn in kvp.Value)
+                    {
+                        var normSyn = NormalizeText(syn);
+                        if (normalizedQuote.Contains(normSyn, StringComparison.Ordinal))
+                            return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if a keyword appears in the candidate's CV text.
+    /// If it already appears in the CV, it is NOT missing.
+    /// </summary>
+    public static bool IsKeywordPresentInCv(string keyword, string normalizedCvText)
+    {
+        if (string.IsNullOrWhiteSpace(keyword) || string.IsNullOrWhiteSpace(normalizedCvText))
+            return false;
+
+        var normalizedKeyword = NormalizeText(keyword);
+        if (string.IsNullOrWhiteSpace(normalizedKeyword))
+            return false;
+
+        if (normalizedCvText.Contains(normalizedKeyword, StringComparison.Ordinal))
+            return true;
+
+        var keywordTokens = GetTokens(normalizedKeyword);
+        if (keywordTokens.Length == 0)
+            return false;
+
+        var cvTokens = new HashSet<string>(GetTokens(normalizedCvText), StringComparer.Ordinal);
+        return keywordTokens.All(kt => cvTokens.Contains(kt));
+    }
+
     /// <summary>
     /// Validates an evidence quote against the normalized job description.
-    /// Accepts if exact substring match OR token overlap >= threshold (default 0.90).
+    /// Requires minimum 3 tokens.
+    /// Accepts if exact substring match OR ordered sliding window token overlap >= threshold.
     /// </summary>
     public static bool IsQuotePresentInJobDescription(
         string? evidenceQuote,
         string normalizedJobDescription,
-        double tokenOverlapThreshold = 0.90)
+        double tokenOverlapThreshold = 0.85)
     {
         if (string.IsNullOrWhiteSpace(evidenceQuote) || string.IsNullOrWhiteSpace(normalizedJobDescription))
             return false;
@@ -84,56 +161,97 @@ public static class EvidenceVerificationService
         if (string.IsNullOrWhiteSpace(normalizedQuote))
             return false;
 
+        var quoteTokens = GetTokens(normalizedQuote);
+        if (quoteTokens.Length < MinQuoteTokens)
+            return false; // Requirement: minimum quote length at least 3 tokens
+
         // Check 1: Exact substring match
         if (normalizedJobDescription.Contains(normalizedQuote, StringComparison.Ordinal))
             return true;
 
-        // Check 2: Token-overlap match above configured threshold
-        var quoteTokens = normalizedQuote
+        // Check 2: Ordered sliding window token overlap
+        var jdTookens = GetTokens(normalizedJobDescription);
+        if (jdTookens.Length < quoteTokens.Length)
+            return false;
+
+        return MatchesOrderedWindow(quoteTokens, jdTookens, maxGap: 2, threshold: tokenOverlapThreshold);
+    }
+
+    /// <summary>
+    /// Checks if quote tokens appear in the JD in the same relative order with an allowed gap between consecutive tokens.
+    /// </summary>
+    private static bool MatchesOrderedWindow(string[] quoteTokens, string[] jdTokens, int maxGap, double threshold)
+    {
+        int requiredMatches = (int)Math.Ceiling(quoteTokens.Length * threshold);
+        int quoteLen = quoteTokens.Length;
+        int jdLen = jdTokens.Length;
+
+        // Search for start token matches
+        for (int i = 0; i < jdLen; i++)
+        {
+            if (jdTokens[i] != quoteTokens[0])
+                continue;
+
+            int matched = 1;
+            int jdPtr = i;
+
+            for (int q = 1; q < quoteLen; q++)
+            {
+                bool found = false;
+                for (int gap = 1; gap <= maxGap + 1 && (jdPtr + gap) < jdLen; gap++)
+                {
+                    if (jdTokens[jdPtr + gap] == quoteTokens[q])
+                    {
+                        matched++;
+                        jdPtr += gap;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    // Allow skipping at most (quoteLen - requiredMatches) tokens
+                    if (matched + (quoteLen - q - 1) < requiredMatches)
+                        break;
+                }
+            }
+
+            if (matched >= requiredMatches)
+                return true;
+        }
+
+        return false;
+    }
+
+    public static string[] GetTokens(string text)
+    {
+        return text
             .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(t => t.Trim(',', '.', ';', ':', '!', '?', '-', '(', ')', '"', '\'', '،', '؛', '؟'))
             .Where(t => t.Length > 0)
             .ToArray();
-
-        if (quoteTokens.Length == 0)
-            return false;
-
-        // Extract tokens from JD into a HashSet for O(1) membership testing
-        var jdTokens = new HashSet<string>(
-            normalizedJobDescription
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(t => t.Trim(',', '.', ';', ':', '!', '?', '-', '(', ')', '"', '\'', '،', '؛', '؟'))
-                .Where(t => t.Length > 0),
-            StringComparer.Ordinal);
-
-        int matchingCount = 0;
-        foreach (var token in quoteTokens)
-        {
-            if (jdTokens.Contains(token))
-            {
-                matchingCount++;
-            }
-        }
-
-        double overlap = (double)matchingCount / quoteTokens.Length;
-        return overlap >= tokenOverlapThreshold;
     }
 
     /// <summary>
-    /// Filters missing keyword objects, retaining only those whose evidence quotes can be verified.
+    /// Filters missing keyword objects, retaining only those whose evidence quotes can be verified,
+    /// contain the keyword, and are not present in the candidate CV.
     /// Drops and logs unverified items with the application ID.
     /// </summary>
     public static (IReadOnlyList<MissingKeywordItem> Verified, int DroppedCount) VerifyMissingKeywords(
         IEnumerable<MissingKeywordItem>? items,
         string jobDescription,
+        string? candidateCvText,
         Guid applicationId,
         ILogger? logger = null,
-        double tokenOverlapThreshold = 0.90)
+        double tokenOverlapThreshold = 0.85,
+        IReadOnlyDictionary<string, string[]>? synonyms = null)
     {
         if (items is null)
             return (Array.Empty<MissingKeywordItem>(), 0);
 
         var normalizedJd = NormalizeText(jobDescription);
+        var normalizedCv = NormalizeText(candidateCvText);
         var verified = new List<MissingKeywordItem>();
         int droppedCount = 0;
 
@@ -142,18 +260,40 @@ public static class EvidenceVerificationService
             if (string.IsNullOrWhiteSpace(item.Keyword))
                 continue;
 
-            bool isVerified = IsQuotePresentInJobDescription(item.EvidenceQuote, normalizedJd, tokenOverlapThreshold);
-            if (isVerified)
+            // 1. If keyword is already in candidate CV, it is NOT missing
+            if (!string.IsNullOrEmpty(normalizedCv) && IsKeywordPresentInCv(item.Keyword, normalizedCv))
             {
-                verified.Add(item);
+                droppedCount++;
+                logger?.LogInformation(
+                    "Dropped missing keyword '{Keyword}' for application {ApplicationId}: candidate CV already contains this keyword.",
+                    item.Keyword, applicationId);
+                continue;
             }
-            else
+
+            // 2. Evidence quote must be verified in the job description
+            bool isQuotePresent = IsQuotePresentInJobDescription(item.EvidenceQuote, normalizedJd, tokenOverlapThreshold);
+            if (!isQuotePresent)
             {
                 droppedCount++;
                 logger?.LogWarning(
-                    "Dropped unverified missing keyword '{Keyword}' for application {ApplicationId}. Evidence quote was not found in job description: '{Quote}'",
+                    "Dropped unverified missing keyword '{Keyword}' for application {ApplicationId}. Evidence quote not found in JD: '{Quote}'",
                     item.Keyword, applicationId, item.EvidenceQuote);
+                continue;
             }
+
+            // 3. Keyword (or synonym) must appear in the quote itself
+            var normalizedQuote = NormalizeText(item.EvidenceQuote);
+            bool isKeywordInQuote = IsKeywordPresentInQuote(item.Keyword, normalizedQuote, synonyms);
+            if (!isKeywordInQuote)
+            {
+                droppedCount++;
+                logger?.LogWarning(
+                    "Dropped missing keyword '{Keyword}' for application {ApplicationId}. Quote does not mention keyword or synonym: '{Quote}'",
+                    item.Keyword, applicationId, item.EvidenceQuote);
+                continue;
+            }
+
+            verified.Add(item);
         }
 
         if (droppedCount > 0)

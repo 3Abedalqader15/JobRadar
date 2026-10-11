@@ -82,6 +82,11 @@ public static class DependencyInjection
             client.DefaultRequestHeaders.Accept.ParseAdd("application/json, text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8");
         });
 
+        // Politeness Engine & Outbound Rate Limiting
+        services.Configure<JobRadar.Infrastructure.Crawlers.Politeness.CrawlerUserAgentOptions>(
+            configuration.GetSection(JobRadar.Infrastructure.Crawlers.Politeness.CrawlerUserAgentOptions.SectionName));
+        services.AddSingleton<JobRadar.Infrastructure.Crawlers.Politeness.IPolitenessEngine, JobRadar.Infrastructure.Crawlers.Politeness.PolitenessEngine>();
+
         // Global & Top-Tier Remote Crawlers
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.ArbeitnowCrawlerProvider>();
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.RemotiveCrawlerProvider>();
@@ -91,11 +96,14 @@ public static class DependencyInjection
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.JobicyCrawlerProvider>();
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.JobspressoCrawlerProvider>();
 
-        // MENA Regional, Jordan & Gulf Market Crawlers
+        // MENA Regional & Jordan Crawlers
         services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.BankOfJordanCrawlerProvider>();
-        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.AkhtabootCrawlerProvider>();
-        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.BaytJordanCrawlerProvider>();
-        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.TanqeebMenaCrawlerProvider>();
+        services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.OrangeCrawlerProvider>();
+
+        // Paused: commercial job board scrapers prohibited by ToS / robots.txt (Akhtaboot §4, Bayt robots.txt, Tanqeeb)
+        // services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.AkhtabootCrawlerProvider>();
+        // services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.BaytJordanCrawlerProvider>();
+        // services.AddScoped<IJobCrawlerProvider, JobRadar.Infrastructure.Crawlers.TanqeebMenaCrawlerProvider>();
 
         services.AddSingleton<IJobEmbeddingChannel, JobRadar.Infrastructure.BackgroundServices.JobEmbeddingChannel>();
         services.AddScoped<IJobRealtimeNotifier, JobRadar.Infrastructure.Services.NullJobRealtimeNotifier>();

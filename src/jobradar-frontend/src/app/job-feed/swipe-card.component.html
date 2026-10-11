@@ -107,6 +107,34 @@
             </div>
           }
 
+          <!-- Direct Apply Channels (Email / WhatsApp) -->
+          @if (job.applyEmail || job.applyPhone) {
+            <div class="card-direct-contact-row" (click)="$event.stopPropagation()">
+              @if (job.applyEmail) {
+                <a
+                  [href]="'mailto:' + job.applyEmail + '?subject=Job Application: ' + job.title"
+                  class="contact-chip contact-email"
+                  target="_blank"
+                  rel="noopener"
+                  title="Apply by email"
+                >
+                  ✉️ Apply by Email
+                </a>
+              }
+              @if (job.applyPhone) {
+                <a
+                  [href]="'https://wa.me/' + job.applyPhone"
+                  class="contact-chip contact-phone"
+                  target="_blank"
+                  rel="noopener"
+                  title="Apply via WhatsApp / Phone"
+                >
+                  💬 WhatsApp / Call
+                </a>
+              }
+            </div>
+          }
+
           <!-- Micro hint -->
           <div class="card-hint">
             <span>← Swipe Left to Skip</span>

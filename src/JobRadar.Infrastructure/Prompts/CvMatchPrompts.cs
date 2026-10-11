@@ -20,13 +20,14 @@ public static class CvMatchPrompts
         "You MUST strictly ignore candidate name, gender, age, nationality, marital status, photo, race, and religion. " +
         "Evaluate ONLY technical capabilities, relevant experience, project complexity, and role qualifications.\n\n" +
         "EVALUATION CRITERIA & SCORING SUB-SCORES (0-100):\n" +
-        "- required_skills_score: Core mandatory technical stack and non-negotiable tools demanded by the job.\n" +
-        "- experience_seniority_score: Total relevant years, seniority depth, and leadership level matching the role.\n" +
-        "- nice_to_have_score: Preferred, bonus, or secondary qualifications. If the job description does NOT specify any preferred qualifications, return null.\n" +
-        "- domain_score: Industry, business, or domain alignment (e.g. Fintech, Healthcare, Telecom). If unspecified or not applicable, return null.\n\n" +
+        "- required_skills_score: Core mandatory technical stack demanded by the role. Return null ONLY if no technical skills are stated in the job description.\n" +
+        "- experience_seniority_score: Total relevant years and seniority depth matching the role. Return null ONLY if no seniority criteria are stated.\n" +
+        "- nice_to_have_score: Preferred or bonus qualifications. Return null ONLY if the job description mentions NO such qualifications at all. If criteria exist and candidate lacks them, assign a low score (0-20), NOT null.\n" +
+        "- domain_score: Industry/domain alignment (e.g. Fintech, Healthcare, Telecom). Return null ONLY if no domain background is specified at all. If criteria exist and candidate lacks them, assign a low score (0-20), NOT null.\n\n" +
         "EVIDENCE-BASED MISSING KEYWORDS:\n" +
-        "For each missing competency, you MUST provide an exact, verbatim quotation from the job description in evidence_quote. " +
-        "Do NOT infer, invent, or flag any skill gap that cannot be directly substantiated by a quotation from the job description.\n\n" +
+        "For each missing competency, you MUST provide an exact, verbatim quotation from the job description in evidence_quote (at least 3 words long).\n" +
+        "Do NOT infer, invent, or flag any skill gap that cannot be directly substantiated by a quotation from the job description.\n" +
+        "If the candidate's CV already mentions the competency, do NOT flag it as missing.\n\n" +
         "Provide an objective 1-2 sentence executive summary justifying the assessment.\n" +
         "Return only the JSON object matching the response schema.";
 }

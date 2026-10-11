@@ -1,7 +1,7 @@
 namespace JobRadar.Application.Models;
 
 public sealed record CvMatchAnalysisResult(
-    int MatchScore,
+    int? MatchScore,
     string[] MissingKeywords,
     string Summary,
     string? MissingKeywordEvidenceJson = null,
@@ -11,5 +11,7 @@ public sealed record CvMatchAnalysisResult(
     int? RequiredSkillsScore = null,
     int? ExperienceSeniorityScore = null,
     int? NiceToHaveScore = null,
-    int? DomainScore = null
+    int? DomainScore = null,
+    bool IsUnscorable = false
 );
+

@@ -341,6 +341,12 @@ export class AdminComponent implements OnInit {
     if (status === 'insufficientjobdescription') {
       return 'badge-ai-insufficient';
     }
+    if (status === 'cvtextunreadable') {
+      return 'badge-ai-warning';
+    }
+    if (status === 'unscorable') {
+      return 'badge-ai-unscorable';
+    }
     if (app.aiMatchScore == null) {
       return 'badge-ai-none';
     }
@@ -358,7 +364,9 @@ export class AdminComponent implements OnInit {
     if (status === 'processing') return 'Analyzing...';
     if (status === 'pending') return 'Queued';
     if (status === 'failed') return 'Failed';
-    if (status === 'insufficientjobdescription') return 'Insufficient Job Description';
+    if (status === 'insufficientjobdescription') return 'Insufficient JD';
+    if (status === 'cvtextunreadable') return 'CV Unreadable';
+    if (status === 'unscorable') return 'Unscorable';
     if (app.aiMatchScore != null) return `${app.aiMatchScore}% Match`;
     return 'No Score';
   }

@@ -162,11 +162,16 @@ public sealed class GeminiCvMatchAnalysisService : ICvMatchAnalysisService
 
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
 
+        // Neutralize delimiters and enforce length limits
+        var sanitizedTitle = NeutralizeDelimiters(jobTitle.Length > 500 ? jobTitle[..500] : jobTitle);
+        var sanitizedJd = NeutralizeDelimiters(jobDescription.Length > 20_000 ? jobDescription[..20_000] + "\n[... Truncated for length ...]" : jobDescription);
+        var sanitizedCv = NeutralizeDelimiters(cvText.Length > 25_000 ? cvText[..25_000] + "\n[... Truncated for length ...]" : cvText);
+
         // Wrap untrusted inputs with explicit XML delimiters
         var promptPayload =
-            "<job_title>\n" + jobTitle + "\n</job_title>\n\n" +
-            "<job_description>\n" + jobDescription + "\n</job_description>\n\n" +
-            "<cv_text>\n" + cvText + "\n</cv_text>";
+            "<job_title>\n" + sanitizedTitle + "\n</job_title>\n\n" +
+            "<job_description>\n" + sanitizedJd + "\n</job_description>\n\n" +
+            "<cv_text>\n" + sanitizedCv + "\n</cv_text>";
 
         var requestBody = new
         {
@@ -234,8 +239,9 @@ public sealed class GeminiCvMatchAnalysisService : ICvMatchAnalysisService
             }
 
             // 1. Calculate deterministic score from sub-scores (or v1 match_score fallback)
-            int finalScore;
+            int? finalScore = null;
             string breakdownJson;
+            bool isUnscorable = false;
 
             if (isV1 && dto.MatchScore.HasValue)
             {
@@ -244,7 +250,7 @@ public sealed class GeminiCvMatchAnalysisService : ICvMatchAnalysisService
             }
             else
             {
-                var (score, bJson) = CvMatchScoreCalculator.CalculateWeightedScore(
+                var (score, bJson, unscorable) = CvMatchScoreCalculator.CalculateWeightedScore(
                     dto.RequiredSkillsScore,
                     dto.ExperienceSeniorityScore,
                     dto.NiceToHaveScore,
@@ -252,16 +258,18 @@ public sealed class GeminiCvMatchAnalysisService : ICvMatchAnalysisService
                     _weights);
                 finalScore = score;
                 breakdownJson = bJson;
+                isUnscorable = unscorable;
             }
 
             // 2. Parse missing keywords and evidence quotes
             var rawKeywords = ParseKeywordsFromDto(dto);
 
-            // 3. Evidence verification: verify quote appears in JD (or high token overlap)
+            // 3. Evidence verification: verify quote appears in JD, contains keyword, and is not already in CV
             var effectiveAppId = applicationId ?? Guid.Empty;
             var (verifiedKeywords, droppedCount) = EvidenceVerificationService.VerifyMissingKeywords(
                 rawKeywords,
                 jobDescription,
+                cvText,
                 effectiveAppId,
                 _logger,
                 _tokenOverlapThreshold);
@@ -287,7 +295,8 @@ public sealed class GeminiCvMatchAnalysisService : ICvMatchAnalysisService
                 RequiredSkillsScore: dto.RequiredSkillsScore,
                 ExperienceSeniorityScore: dto.ExperienceSeniorityScore,
                 NiceToHaveScore: dto.NiceToHaveScore,
-                DomainScore: dto.DomainScore);
+                DomainScore: dto.DomainScore,
+                IsUnscorable: isUnscorable);
         }
         catch (BrokenCircuitException ex)
         {
@@ -373,4 +382,19 @@ public sealed class GeminiCvMatchAnalysisService : ICvMatchAnalysisService
         [JsonPropertyName("summary")]
         public string? Summary { get; set; }
     }
+
+    public static string NeutralizeDelimiters(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return string.Empty;
+
+        return text
+            .Replace("<cv_text>", "[cv_text]", StringComparison.OrdinalIgnoreCase)
+            .Replace("</cv_text>", "[/cv_text]", StringComparison.OrdinalIgnoreCase)
+            .Replace("<job_description>", "[job_description]", StringComparison.OrdinalIgnoreCase)
+            .Replace("</job_description>", "[/job_description]", StringComparison.OrdinalIgnoreCase)
+            .Replace("<job_title>", "[job_title]", StringComparison.OrdinalIgnoreCase)
+            .Replace("</job_title>", "[/job_title]", StringComparison.OrdinalIgnoreCase);
+    }
 }
+
