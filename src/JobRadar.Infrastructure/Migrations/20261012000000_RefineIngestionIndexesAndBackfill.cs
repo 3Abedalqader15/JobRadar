@@ -1,10 +1,13 @@
+using JobRadar.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace JobRadar.Infrastructure.Migrations
 {
-    /// <inheritdoc />
+    [DbContext(typeof(AppDbContext))]
+    [Migration("20261012000000_RefineIngestionIndexesAndBackfill")]
     public partial class RefineIngestionIndexesAndBackfill : Migration
     {
         /// <inheritdoc />
